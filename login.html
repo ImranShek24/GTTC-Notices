@@ -746,7 +746,13 @@
         let isRedirecting = false;
 
         // 🚀 SESSION AUTO-RECOVERY
-        function checkAutoLogin() {
+        async function checkAutoLogin() {
+            if (typeof db === 'undefined') {
+                console.warn("Retrying checkAutoLogin: db not ready");
+                setTimeout(checkAutoLogin, 200);
+                return;
+            }
+
             const role = localStorage.getItem('gttc_user_role');
             const legacyUserStaff = localStorage.getItem('gttc_current_staff');
             const legacyUserStudent = localStorage.getItem('gttc_current_user');
@@ -754,30 +760,20 @@
             if (legacyUserStaff || legacyUserStudent) {
                 if (isRedirecting) return;
                 isRedirecting = true;
-                // AutoLogin session identified
-
-                if (role === 'admin') window.location.replace('admin.html');
+                if (role === 'admin') window.location.replace('index.html');
                 else if (role === 'staff') window.location.replace('index-staff.html');
                 else if (role === 'student' || legacyUserStudent) window.location.replace('index.html');
-                else {
-                    // Ambiguous session, clear it to be safe
-                    forceClearSession(false);
-                }
+                else forceClearSession(false);
             }
         }
 
-        // Start checking 
-        checkAutoLogin();
+        window.addEventListener('load', checkAutoLogin);
 
         function forceClearSession(reload = true) {
             localStorage.clear();
             sessionStorage.clear();
             if (reload) window.location.reload();
         }
-
-        auth.onAuthStateChanged((user) => {
-            if (user) checkAutoLogin();
-        });
 
         /* ─── TABS ─── */
         function setMode(mode) {
@@ -800,17 +796,12 @@
         function showErr(m) { const e = document.getElementById('errorMsg'); e.innerText = "❌ " + m; e.style.display = 'block'; window.scrollTo(0, document.body.scrollHeight); }
         function hideMsgs() { document.getElementById('errorMsg').style.display = 'none'; document.getElementById('successMsg').style.display = 'none'; }
 
-        /* ─── REGISTRATION LOGIC ─── */
         function selRole(r) {
             activeRole = r;
             document.querySelectorAll('.role-card').forEach(c => c.classList.remove('active'));
             const card = document.getElementById('r-' + r);
             if (card) card.classList.add('active');
-
-            document.getElementById('dept-label').innerText = (r === 'staff') ? 'STAFF BRANCH ALLOCATION' : 'BRANCH SELECTION';
-            document.getElementById('sem-label').innerText = (r === 'staff') ? 'SEMESTER ASSIGNMENT' : 'ACADEMIC SEMESTER';
-
-            const d = document.getElementById('reg-dept'); d.classList.remove('hidden');
+            document.getElementById('reg-dept').classList.remove('hidden');
             hideMsgs();
         }
 
@@ -824,8 +815,7 @@
         }
 
         function selSem(name, code, idNum) {
-            activeSemName = name;
-            activeSemCode = code;
+            activeSemName = name; activeSemCode = code;
             document.querySelectorAll('#reg-sem .snake-card').forEach(c => c.classList.remove('active'));
             const card = document.getElementById('s-' + idNum);
             if (card) card.classList.add('active');
@@ -833,19 +823,21 @@
             hideMsgs();
         }
 
+        /* ─── REGISTRATION LOGIC ─── */
         async function handleRegister() {
-            if (window.isOnline === false) { showErr("Internet connection required for Cloud Sync. Check your data."); return; }
             const name = document.getElementById('regName').value.trim();
             const id = document.getElementById('regId').value.trim().toUpperCase();
             const pass = document.getElementById('regPass').value;
             const btn = document.getElementById('registerBtn');
 
-            if (!name || !id || !pass || !activeRole || !activeDept || !activeSemName) { showErr("Please complete all fields and selections."); return; }
+            if (!name || !id || !pass || !activeRole || !activeDept || !activeSemCode) {
+                showErr("All fields and selections are required."); return;
+            }
 
-            btn.disabled = true; btn.innerHTML = '<span>⏳</span> Creating Profile…'; hideMsgs();
+            btn.disabled = true; btn.innerHTML = '<span>⏳</span> Processing...'; hideMsgs();
 
             try {
-                const col = (activeRole === 'staff') ? 'staff' : 'students';
+                const col = activeRole === 'staff' ? 'staff' : 'students';
                 const doc = await db.collection(col).doc(id).get();
                 if (doc.exists) throw new Error("This ID is already taken. Try logging in.");
 
@@ -865,16 +857,15 @@
                     data.role = 'STUDENT';
                 }
 
-                // Profile saving
                 await db.collection(col).doc(id).set(data);
 
-                // Set local state
-                localStorage.clear(); // Clear any old sessions before setting new one
+                localStorage.clear();
                 localStorage.setItem('gttc_user_role', activeRole);
+                localStorage.setItem('gttc_user_name', name);
                 if (activeRole === 'staff') localStorage.setItem('gttc_current_staff', id);
                 else localStorage.setItem('gttc_current_user', id);
 
-                document.getElementById('successMsg').innerText = "✅ Welcome aboard! Redirecting...";
+                document.getElementById('successMsg').innerText = "✅ Success! Redirecting...";
                 document.getElementById('successMsg').style.display = 'block';
                 setTimeout(() => { window.location.href = 'profile-edit.html'; }, 1200);
 
@@ -883,7 +874,7 @@
 
         /* ─── LOGIN LOGIC ─── */
         async function handleLogin() {
-            if (window.isOnline === false) { showErr("Offline mode disabled. Please connect to internet to login."); return; }
+            if (window.isOnline === false) { showErr("Connection required."); return; }
             const id = document.getElementById('loginId').value.trim().toUpperCase();
             const pass = document.getElementById('loginPass').value;
             const btn = document.getElementById('loginBtn');
@@ -891,75 +882,38 @@
             if (!id || !pass) { showErr("ID and Password are required."); return; }
 
             btn.disabled = true; btn.innerHTML = '<span>⏳</span> Verifying…'; hideMsgs();
-            // Login attempt
 
-            // Admin Bypass (Imran Shek) — Super Admin
             if (id === '6363536608' && pass === '6363536608DAR') {
-                try {
-                    // 1. Verify/Create in 'users' collection as requested
-                    const userDoc = await db.collection('users').doc(id).get();
-                    if (!userDoc.exists) {
-                        await db.collection('users').doc(id).set({
-                            id: id,
-                            password: pass,
-                            role: 'super_admin',
-                            name: 'Imran Shek',
-                            createdAt: firebase.firestore.FieldValue.serverTimestamp()
-                        });
-                    }
-
-                    // Clear and set session
-                    const theme = localStorage.getItem('gttc_theme');
-                    localStorage.clear();
-                    if (theme) localStorage.setItem('gttc_theme', theme);
-
-                    localStorage.setItem('gttc_user_role', 'admin');
-                    localStorage.setItem('gttc_current_user', id);
-                    localStorage.setItem('gttc_superadmin', '1');
-                    localStorage.setItem('gttc_current_dept', 'SYSTEMS');
-                    localStorage.setItem('gttc_current_sem', 'MASTER');
-
-                    window.location.replace('index.html');
-                    return;
-                } catch (e) {
-                    console.error("Super Admin Verification Failed:", e);
-                }
+                localStorage.setItem('gttc_user_role', 'admin');
+                localStorage.setItem('gttc_current_user', id);
+                localStorage.setItem('gttc_superadmin', '1');
+                localStorage.setItem('gttc_user_name', 'Imran Shek');
+                window.location.replace('index.html');
+                return;
             }
 
             try {
-                // Check Staff
                 const staffDoc = await db.collection('staff').doc(id).get();
                 if (staffDoc.exists && staffDoc.data().password === pass) {
                     const s = staffDoc.data();
                     localStorage.setItem('gttc_user_role', 'staff');
                     localStorage.setItem('gttc_current_staff', id);
                     localStorage.setItem('gttc_user_name', s.fullName || 'Staff');
-                    // Save class info for fast chat init
-                    localStorage.setItem('gttc_current_sem', s.assignedSemCode || '1st');
-                    localStorage.setItem('gttc_current_dept', s.assignedCourse || 'DAR');
                     window.location.replace(s.isProfileComplete ? 'index-staff.html' : 'profile-edit.html');
                     return;
                 }
 
-
-                // Check Students
                 const stuDoc = await db.collection('students').doc(id).get();
                 if (stuDoc.exists && stuDoc.data().password === pass) {
                     const u = stuDoc.data();
                     localStorage.setItem('gttc_user_role', 'student');
                     localStorage.setItem('gttc_current_user', id);
                     localStorage.setItem('gttc_user_name', u.fullName || 'Student');
-                    // Save class info for fast chat init
-                    localStorage.setItem('gttc_current_sem', u.semester || '1st');
-                    localStorage.setItem('gttc_current_dept', u.course || 'DAR');
                     window.location.replace(u.isProfileComplete ? 'index.html' : 'profile-edit.html');
                     return;
                 }
-
-
-                throw new Error("Invalid ID or Password. Check your entries.");
-
-            } catch (e) { showErr(e.message); btn.disabled = false; btn.innerHTML = '<span>🔑</span> Sign In'; }
+                throw new Error("Invalid ID or Password.");
+            } catch (e) { showErr(e.message); btn.disabled = false; btn.innerHTML = '<span>🔑</span> Login'; }
         }
     </script>
 </body>
