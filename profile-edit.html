@@ -459,10 +459,16 @@
         let isPhoneVerified = false;
 
         async function initProfile() {
-            if (!activeId) { window.location.href = 'login.html'; return; }
+            const isReady = await window.dbReady();
+            if (!isReady || !activeId) { window.location.href = 'login.html'; return; }
+
             try {
                 const snap = await db.collection(collection).doc(activeId).get();
-                if (!snap.exists) { window.location.href = 'login.html'; return; }
+                if (!snap.exists) {
+                    // Fallback for new users who haven't saved profile yet
+                    document.getElementById('roleBadge').innerHTML = userRole === 'staff' ? '👩‍🏫 STAFF' : '🎓 STUDENT';
+                    return;
+                }
                 const d = snap.data();
                 document.getElementById('roleBadge').innerHTML = userRole === 'staff' ? '👩‍🏫 STAFF' : '🎓 STUDENT';
                 document.getElementById('courseChip').innerText = d.assignedCourse || d.course || d.branch || '—';
@@ -479,9 +485,10 @@
 
                 if (d.isPhoneVerified) {
                     isPhoneVerified = true;
-                    showVerifyStatus("✅ VERIFIED", "var(--success)");
+                    showVerifyStatus("✅ VERIFIED & LINKED", "var(--success)");
                     document.getElementById('verifyBtn').style.display = 'none';
                     document.getElementById('phone').readOnly = true;
+                    document.getElementById('phone').style.opacity = '0.7';
                 }
             } catch (err) { console.error('Init Error:', err); }
         }
@@ -491,21 +498,32 @@
         // 🛡️ PHONE VERIFICATION
         function showVerifyStatus(msg, color) {
             const st = document.getElementById('verifyStatus');
-            st.innerText = msg; st.style.color = color; st.style.display = 'block';
+            st.innerHTML = `<i class="fas fa-shield-check"></i> ${msg}`;
+            st.style.color = color; st.style.display = 'block';
         }
 
         async function sendOTP() {
+            const isReady = await window.dbReady();
+            if (!isReady) return alert("System offline. Please wait.");
+
             const phone = document.getElementById('phone').value.trim();
-            if (phone.length < 10) return alert("Valid 10-digit number enter karein!");
+            if (phone.length < 10) return alert("Pehle 10-digit mobile number enter karein!");
             const formattedPhone = (phone.startsWith('+')) ? phone : '+91' + phone;
 
             try {
+                const btn = document.getElementById('verifyBtn');
+                btn.disabled = true; btn.innerText = "WAIT...";
+
                 window.recaptchaVerifier = new firebase.auth.RecaptchaVerifier('recaptcha-container', { 'size': 'invisible' });
                 confirmationResult = await auth.signInWithPhoneNumber(formattedPhone, window.recaptchaVerifier);
+
                 document.getElementById('otpBox').style.display = 'block';
-                document.getElementById('verifyBtn').disabled = true;
-                showVerifyStatus("OTP Sent! Check your SMS.", "var(--primary)");
-            } catch (e) { alert("OTP Error: " + e.message); }
+                showVerifyStatus("OTP Sent! Enter below.", "var(--primary)");
+            } catch (e) {
+                alert("OTP Error: " + e.message);
+                document.getElementById('verifyBtn').disabled = false;
+                document.getElementById('verifyBtn').innerText = "VERIFY";
+            }
         }
 
         async function verifyOTP() {
@@ -517,9 +535,10 @@
                 document.getElementById('otpBox').style.display = 'none';
                 document.getElementById('verifyBtn').style.display = 'none';
                 document.getElementById('phone').readOnly = true;
-                showVerifyStatus("✅ PHONE VERIFIED!", "var(--success)");
-                alert("Success! Number linked.");
-            } catch (e) { alert("Incorrect OTP!"); }
+                document.getElementById('phone').style.opacity = '0.7';
+                showVerifyStatus("✅ PHONE VERIFIED & LINKED", "var(--success)");
+                alert("Mobile number linked for Security!");
+            } catch (e) { alert("Incorrect OTP! Try again."); }
         }
 
         document.getElementById('dpInput').addEventListener('change', function (e) {
