@@ -1199,6 +1199,84 @@
             color: var(--primary);
         }
 
+        /* ── APK Download Banner ── */
+        .apk-banner {
+            background: linear-gradient(135deg, rgba(41, 121, 255, 0.1), rgba(0, 229, 255, 0.05));
+            border: 1px solid rgba(41, 121, 255, 0.3);
+            border-radius: 18px;
+            padding: 14px 18px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 20px;
+            gap: 12px;
+            box-shadow: 0 8px 25px rgba(41, 121, 255, 0.1);
+        }
+
+        html[data-theme="light"] .apk-banner {
+            background: linear-gradient(135deg, rgba(41, 121, 255, 0.1), rgba(0, 229, 255, 0.1));
+            border: 1px solid rgba(41, 121, 255, 0.3);
+        }
+
+        .apk-banner-left {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .apk-icon {
+            width: 42px;
+            height: 42px;
+            background: linear-gradient(135deg, #2979FF, #00e5ff);
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+            flex-shrink: 0;
+            box-shadow: 0 4px 12px rgba(41, 121, 255, 0.4);
+            color: #fff;
+        }
+
+        .apk-text h4 {
+            font-size: 13px;
+            font-weight: 800;
+            color: var(--body-color);
+            margin: 0 0 2px;
+            letter-spacing: 0.3px;
+        }
+
+        .apk-text p {
+            font-size: 10px;
+            color: var(--text-gray);
+            margin: 0;
+            font-weight: 600;
+        }
+
+        .apk-download-btn {
+            background: linear-gradient(135deg, #2979FF, #00b4d8);
+            color: #fff;
+            border: none;
+            border-radius: 12px;
+            padding: 10px 14px;
+            font-size: 11px;
+            font-weight: 800;
+            letter-spacing: 0.5px;
+            cursor: pointer;
+            white-space: nowrap;
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            box-shadow: 0 4px 15px rgba(41, 121, 255, 0.4);
+            transition: transform 0.2s, box-shadow 0.2s;
+            flex-shrink: 0;
+        }
+
+        .apk-download-btn:active {
+            transform: translateY(2px);
+        }
+
         /* MOBILE TOUCH FIXES */
         .settings-btn,
         .nav-item,
@@ -1256,6 +1334,20 @@
             SWITCH</div>
     </div>
 
+    <!-- ── DOWNLOAD APK BANNER ── -->
+    <div class="apk-banner" style="margin: 0 16px 20px;">
+        <div class="apk-banner-left">
+            <div class="apk-icon"><i class="fab fa-android" style="font-size:24px;"></i></div>
+            <div class="apk-text">
+                <h4>GTTC 24 Android App</h4>
+                <p>Install for native speed & notifications</p>
+            </div>
+        </div>
+        <a class="apk-download-btn" href="https://github.com/ImranShek24/GTTC-Notices/raw/main/GTTC_24_Latest.apk"
+            download="GTTC_24_Latest.apk">
+            <i class="fas fa-download"></i> INSTALL
+        </a>
+    </div>
 
     <!-- SMART NOTICE BOARD (SLIDER VERSION) -->
     <div class="notice-board" id="main-notice-board" style="padding-top: env(safe-area-inset-top);">
