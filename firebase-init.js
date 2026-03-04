@@ -2,8 +2,8 @@
 // Optimized for Real-time Data Integrity & Maximum Security
 
 const firebaseConfig = {
-  apiKey: "AIzaSyAPP0HuNBSHNRtykEgeXzERdT6ntxgNor0",
-  authDomain: "gttc-24.firebaseapp.com",
+  apiKey: "AIzaSyAPP0HuNBSHNRTykEgexzERdT6ntxgNor0",
+  authDomain: "imranshek24.github.io",
   projectId: "gttc-24",
   storageBucket: "gttc-24.firebasestorage.app",
   messagingSenderId: "314962618124",
