@@ -526,6 +526,36 @@
             border-radius: 3px;
             background: var(--primary);
         }
+
+        /* SHAKE ANIMATION */
+        @keyframes errorShake {
+
+            0%,
+            100% {
+                transform: translateX(0);
+            }
+
+            10%,
+            30%,
+            50%,
+            70%,
+            90% {
+                transform: translateX(-5px);
+            }
+
+            20%,
+            40%,
+            60%,
+            80% {
+                transform: translateX(5px);
+            }
+        }
+
+        .shake-error {
+            animation: errorShake 0.5s ease;
+            border-color: #F44336 !important;
+            box-shadow: 0 0 10px rgba(244, 67, 54, 0.4) !important;
+        }
     </style>
 </head>
 
@@ -929,7 +959,20 @@
             icon.innerText = show ? '🙈' : '👁️';
         }
 
-        function showErr(m) { const e = document.getElementById('errorMsg'); e.innerText = "❌ " + m; e.style.display = 'block'; window.scrollTo(0, document.body.scrollHeight); }
+        function showErr(m, fieldId = null, voiceType = null) {
+            const e = document.getElementById('errorMsg');
+            e.innerText = "❌ " + m;
+            e.style.display = 'block';
+            window.scrollTo(0, document.body.scrollHeight);
+
+            if (window.GTTCVoice) {
+                if (voiceType || fieldId) {
+                    GTTCVoice.errorAlert(fieldId, voiceType, m);
+                } else {
+                    GTTCVoice.speak(m);
+                }
+            }
+        }
         function hideMsgs() { document.getElementById('errorMsg').style.display = 'none'; document.getElementById('successMsg').style.display = 'none'; }
 
         function selRole(r) {
@@ -969,8 +1012,11 @@
             const pass = document.getElementById('regPass').value;
             const btn = document.getElementById('registerBtn');
 
-            if (!name || !id || !pass || !activeRole || !activeDept || !activeSemCode) {
-                showErr("All fields and selections are required."); return;
+            if (!name) { showErr("Full Name is required.", "regName", "empty"); return; }
+            if (!id) { showErr("Registration Number is required.", "regId", "empty"); return; }
+            if (!pass) { showErr("Password is required.", "regPass", "empty"); return; }
+            if (!activeRole || !activeDept || !activeSemCode) {
+                showErr("All selections are required."); return;
             }
 
             btn.disabled = true; btn.innerHTML = '<span>⏳</span> Processing...'; hideMsgs();
@@ -1022,7 +1068,8 @@
             const pass = document.getElementById('loginPass').value;
             const btn = document.getElementById('loginBtn');
 
-            if (!id || !pass) { showErr("ID and Password are required."); return; }
+            if (!id) { showErr("Registration ID is required.", "loginId", "empty"); return; }
+            if (!pass) { showErr("Password is required.", "loginPass", "empty"); return; }
 
             btn.disabled = true; btn.innerHTML = '<span>⏳</span> Verifying…'; hideMsgs();
 
@@ -1076,8 +1123,15 @@
                     window.location.replace(u.isProfileComplete ? 'index.html' : 'profile-edit.html');
                     return;
                 }
-                throw new Error("Invalid ID or Password.");
-            } catch (e) { showErr(e.message); btn.disabled = false; btn.innerHTML = '<span>🔑</span> Login'; }
+                throw new Error("wrong_password");
+            } catch (e) {
+                if (e.message === "wrong_password") {
+                    showErr("Aapne galat password dala hai.", "loginPass", "wrong_password");
+                } else {
+                    showErr(e.message);
+                }
+                btn.disabled = false; btn.innerHTML = '<span>🔑</span> Login';
+            }
         }
 
         /* ─── FORGOT PASSWORD LOGIC ─── */
@@ -1093,7 +1147,15 @@
         async function checkRecoveryAccess() {
             const id = document.getElementById('recoverId').value.trim().toUpperCase();
             const phone = document.getElementById('recoverPhone').value.trim();
-            if (!id || !phone) return alert("Pehle ID aur Phone dono bharein!");
+
+            if (!id) {
+                showErr("ID bharna zaroori hai.", "recoverId", "empty");
+                return;
+            }
+            if (phone.length < 10) {
+                showErr("10 digit ka mobile number bhariye.", "recoverPhone", "mobile");
+                return;
+            }
 
             const btn = document.getElementById('recoverBtn');
             btn.disabled = true; btn.innerText = "Verifying...";
@@ -1134,6 +1196,7 @@
             btn.disabled = false; btn.innerText = "Recover Password";
         }
     </script>
+    <script src="gttc-pro-features.js"></script>
 </body>
 
 </html>
