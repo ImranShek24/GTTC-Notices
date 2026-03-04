@@ -2093,6 +2093,13 @@
                 return;
             }
             const role = localStorage.getItem('gttc_user_role');
+
+            // Fees Admin: Show admin-style dashboard directly
+            if (role === 'fees_admin' || localStorage.getItem('gttc_fees_admin') === '1') {
+                renderAdminDashboard();
+                return;
+            }
+
             const colName = (role === 'staff') ? 'staff' : 'students';
 
             const doc = await db.collection(colName).doc(regNo).get();
