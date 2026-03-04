@@ -562,7 +562,12 @@
         <header class="hdr">
             <a href="javascript:history.back()" class="hdr-back"><i class="fas fa-chevron-left"></i></a>
             <div class="hdr-title" id="page-title">COLLEGE FEES</div>
-            <div style="display:flex; gap:8px;">
+            <div style="display:flex; gap:8px; align-items:center;">
+                <!-- Gear Icon for Madam Settings -->
+                <div id="madam-settings-btn" class="hidden" onclick="openMadamSettings()"
+                    style="width: 38px; height: 38px; border-radius: 10px; background: var(--surface2); border: 1px solid var(--border); display: flex; align-items: center; justify-content: center; cursor: pointer; color: var(--gold);">
+                    <i class="fas fa-cog"></i>
+                </div>
                 <button id="admin-switch-btn" class="hidden" onclick="toggleViewMode()"
                     style="background:var(--surface2); border:1px solid var(--border); color:#fff; font-size:10px; padding:4px 8px; border-radius:8px; font-weight:800;">SWITCH
                     VIEW</button>
@@ -601,9 +606,12 @@
                 <div class="input-group">
                     <label>Student Register Number</label>
                     <div style="display:flex; gap:10px;">
-                        <input type="number" id="adm-search-ref" class="input-box" placeholder="e.g. 6363536608">
-                        <button class="hdr-back" style="flex-shrink:0;" onclick="searchStudent()"><i
-                                class="fas fa-search"></i></button>
+                        <input type="number" id="adm-search-ref" class="input-box" placeholder="e.g. 6363536608"
+                            style="-moz-appearance: textfield; appearance: none;">
+                        <button class="btn-main" style="width: 60px; border-radius: 12px; padding: 0;"
+                            onclick="searchStudent()">
+                            <i class="fas fa-search"></i>
+                        </button>
                     </div>
                 </div>
             </div>
@@ -633,7 +641,7 @@
                     </div>
                 </div>
 
-                <div class="card" style="margin-bottom: 12px; background: rgba(255,255,255,0.03);">
+                <div class="card" style="margin-bottom: 20px; background: rgba(255,255,255,0.03);">
                     <div class="card-lbl">Balance Summary</div>
                     <div style="display:flex; justify-content:space-between; align-items:baseline;">
                         <span style="font-size:18px; font-weight:800;" id="res-bal">₹0</span>
@@ -641,9 +649,21 @@
                     </div>
                 </div>
 
-                <button class="btn-main" id="btn-gen-qr" onclick="generateQR()" style="background:var(--primary);">
-                    <i class="fas fa-qrcode"></i> GENERATE QR CODE
-                </button>
+                <!-- Madam QR Section -->
+                <div style="display: flex; gap: 12px; margin-bottom: 25px;">
+                    <button class="btn-main" id="btn-gen-qr" onclick="generateQR()"
+                        style="background:var(--primary); flex: 1;">
+                        <i class="fas fa-qrcode"></i> GEN QR
+                    </button>
+                </div>
+
+                <!-- NEW: Student's Specific History for Admin -->
+                <div class="section-hdr">
+                    <span><i class="fas fa-history"></i> STUDENT HISTORY</span>
+                </div>
+                <div class="tx-list" id="adm-stu-history">
+                    <!-- Loaded dynamically -->
+                </div>
             </div>
 
             <!-- PENDING APPROVALS LIST -->
@@ -696,36 +716,90 @@
         </div>
     </div>
 
+    <!-- ── MODAL: MADAM UPI SETTINGS ── -->
+    <div id="madam-settings-modal" class="modal-overlay">
+        <div class="modal-body">
+            <div class="modal-close" onclick="closeModal('madam-settings-modal')">&times;</div>
+            <h4>MADAM'S UPI SETTINGS</h4>
+            <p style="font-size:11px; color:var(--text-dim); margin-bottom:20px;">Madam, ye details QR code aur Direct
+                Pay ke liye use hongi.</p>
+
+            <div class="input-group">
+                <label>UPI ID (Madam)</label>
+                <input type="text" id="madam-upi-id" class="input-box" placeholder="example@sbi">
+            </div>
+            <div class="input-group">
+                <label>Receiver Name / Phone (Display ONLY)</label>
+                <input type="text" id="madam-phone" class="input-box" placeholder="Madam's Name / 91XXXXXXX">
+            </div>
+
+            <button class="btn-main" style="background:var(--green); margin-top:10px;" onclick="saveMadamSettings()">
+                <i class="fas fa-save"></i> SAVE SETTINGS
+            </button>
+        </div>
+    </div>
+
     <!-- ── MODAL: PROOF SUBMISSION (Student) ── -->
     <div id="proof-modal" class="modal-overlay">
         <div class="modal-body">
             <div class="modal-close" onclick="closeModal('proof-modal')">&times;</div>
-            <h4>SUBMIT PAYMENT PROOF</h4>
+            <h4 style="text-align: center;">PAY COLLEGE FEES</h4>
+
+            <!-- Quick Pay Buttons (Intent) -->
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin: 15px 0 25px;">
+                <div onclick="generateQRStudent()"
+                    style="background: var(--surface2); border: 1px solid var(--primary); border-radius: 16px; padding: 15px; text-align: center; cursor: pointer;">
+                    <i class="fas fa-qrcode" style="font-size: 24px; color: var(--primary); margin-bottom: 8px;"></i>
+                    <div style="font-size: 10px; font-weight: 800;">SCAN QR</div>
+                </div>
+                <div onclick="openPhonePe()"
+                    style="background: var(--primary); border-radius: 16px; padding: 15px; text-align: center; cursor: pointer; box-shadow: 0 5px 15px var(--primary-glow);">
+                    <i class="fas fa-mobile-screen-button"
+                        style="font-size: 24px; color: #fff; margin-bottom: 8px;"></i>
+                    <div style="font-size: 10px; font-weight: 800; color: #fff;">DIRECT PAY</div>
+                </div>
+            </div>
+
+            <div style="height: 1px; background: var(--border); margin: 20px 0;"></div>
+
+            <h5
+                style="font-size: 11px; font-weight: 800; color: var(--text-dim); text-transform: uppercase; margin-bottom: 12px; text-align: center;">
+                UPLOAD PAYMENT PROOF</h5>
+
             <div class="input-group">
                 <label>Amount Paid (₹)</label>
                 <input type="number" id="proof-amt" class="input-box" placeholder="Amount from Screen">
             </div>
             <div class="input-group">
-                <label>Add Message (Optional)</label>
-                <input type="text" id="proof-msg" class="input-box" placeholder="e.g. ₹5000 bhej diye">
-            </div>
-            <div class="input-group">
                 <label>Upload Screenshot (+)</label>
                 <div id="proof-upload-btn" onclick="document.getElementById('file-input').click()"
-                    style="width:100%; height:120px; border:2px dashed var(--border); border-radius:18px; display:flex; flex-direction:column; align-items:center; justify-content:center; cursor:pointer;">
+                    style="width:100%; height:100px; border:2px dashed var(--border); border-radius:18px; display:flex; flex-direction:column; align-items:center; justify-content:center; cursor:pointer;">
                     <i class="fas fa-camera" style="font-size:24px; color:var(--text-dim); margin-bottom:8px;"></i>
-                    <span style="font-size:11px; font-weight:700; color:var(--text-dim);">CLICK TO SELECT IMAGE</span>
+                    <span style="font-size:10px; font-weight:700; color:var(--text-dim);">SELECT SCREENSHOT</span>
                 </div>
                 <input type="file" id="file-input" class="hidden" accept="image/*"
                     onchange="previewSelectedProof(this)">
-                <div id="proof-preview-area" class="hidden" style="margin-top:10px; position:relative;">
-                    <img id="proof-preview-img" style="width:100%; border-radius:12px;">
-                    <div style="position:absolute; top:8px; right:8px; background:var(--red); color:#fff; width:28px; height:28px; border-radius:14px; display:flex; align-items:center; justify-content:center;"
-                        onclick="removeSelectedProof()">&times;</div>
+
+                <!-- Eye Icon for proof preview -->
+                <div id="proof-preview-area" class="hidden" style="margin-top:10px; text-align: center;">
+                    <div
+                        style="display: flex; align-items: center; justify-content: space-between; background: rgba(34,197,94,0.1); border: 1px solid var(--green); padding: 10px 15px; border-radius: 12px;">
+                        <div style="display: flex; align-items: center; gap: 10px;">
+                            <i class="fas fa-check-circle" style="color: var(--green);"></i>
+                            <span style="font-size: 11px; font-weight: 700;">Screenshot Selected</span>
+                        </div>
+                        <div style="display: flex; gap: 8px;">
+                            <div class="proof-eye" style="margin-top: 0; background: var(--green); color: #fff;"
+                                onclick="openProofInNewTab()">👁️</div>
+                            <div class="proof-eye" style="margin-top: 0; background: var(--red); color: #fff;"
+                                onclick="removeSelectedProof()">✕</div>
+                        </div>
+                    </div>
                 </div>
             </div>
             <button class="btn-main" id="btn-send-proof"
-                style="background:var(--green); box-shadow:0 8px 20px rgba(34,197,94,0.3);" onclick="submitProof()">
+                style="background:var(--green); box-shadow:0 8px 20px rgba(34,197,94,0.3); margin-top: 10px;"
+                onclick="submitProof()">
                 <i class="fas fa-paper-plane"></i> SUBMIT TO MADAM
             </button>
         </div>
@@ -849,13 +923,44 @@
 
         function verifyPin() {
             const pin = document.getElementById('admin-pin-input').value;
-            if (pin === '6363' || pin === '1122') { // Support custom pins
+            if (pin === '6363' || pin === '1122') {
                 isAdminAuthenticated = true;
                 closeModal('pin-modal');
                 initAdminFlow();
             } else {
                 alert("Incorrect PIN! Please try again.");
             }
+        }
+
+        // ── MADAM SETTINGS ──
+        let madamSettings = { upiId: 'pay-gttc@onlinesbi', phone: '91XXXXXXXX' };
+
+        async function loadMadamSettings() {
+            try {
+                const doc = await db.collection('admin_settings').doc('fees_config').get();
+                if (doc.exists) {
+                    madamSettings = doc.data();
+                }
+            } catch (e) { console.error("Error loading Madam settings:", e); }
+        }
+
+        function openMadamSettings() {
+            document.getElementById('madam-upi-id').value = madamSettings.upiId || '';
+            document.getElementById('madam-phone').value = madamSettings.phone || '';
+            openModal('madam-settings-modal');
+        }
+
+        async function saveMadamSettings() {
+            const upi = document.getElementById('madam-upi-id').value.trim();
+            const phone = document.getElementById('madam-phone').value.trim();
+            if (!upi) return alert("UPI ID zaroori hai!");
+
+            try {
+                await db.collection('admin_settings').doc('fees_config').set({ upiId: upi, phone: phone });
+                madamSettings = { upiId: upi, phone: phone };
+                closeModal('madam-settings-modal');
+                alert("✅ Madam's UPI settings saved!");
+            } catch (e) { alert("Error saving settings: " + e.message); }
         }
 
         function openForgotPinModal() {
@@ -900,12 +1005,15 @@
         }
 
         // ── STUDENT LOGIC ──
-        function initStudentFlow() {
+        async function initStudentFlow() {
             document.getElementById('admin-view').classList.add('hidden');
             document.getElementById('student-view').classList.remove('hidden');
             document.getElementById('stu-fab').classList.remove('hidden');
+            document.getElementById('madam-settings-btn').classList.add('hidden');
             document.getElementById('role-tag').innerText = "STUDENT";
             document.getElementById('role-tag').style.background = "var(--primary)";
+
+            await loadMadamSettings();
 
             // Listen to my own record
             db.collection('students').doc(activeUserId).onSnapshot(doc => {
@@ -960,14 +1068,41 @@
             document.getElementById('review-img').src = img;
             document.getElementById('review-meta').innerText = "Your Uploaded Screenshot";
             openModal('review-modal');
-            // Hide buttons for student view
+            // Hide review action buttons and show a single "CLOSE" button if needed or just use the X
             document.querySelector('#review-modal .modal-body div[style*="grid-template-columns"]').style.display = 'none';
+        }
+
+        function openProofInNewTab() {
+            if (tempBase64) {
+                const win = window.open();
+                win.document.write('<img src="' + tempBase64 + '" style="width:100%;">');
+            }
+        }
+
+        function generateQRStudent() {
+            const balRaw = document.getElementById('s-bal').innerText.replace('₹', '').replace(',', '');
+            const bal = parseInt(balRaw) || 0;
+            const upiId = madamSettings.upiId || 'pay-gttc@onlinesbi';
+            const qrData = `upi://pay?pa=${upiId}&pn=GTTC%20Finance&am=${bal}&cu=INR&tn=CollegeFees`;
+            document.getElementById('qr-img').src = `https://api.qrserver.com/v1/create-qr-code/?size=250x250&data=${encodeURIComponent(qrData)}`;
+            document.getElementById('qr-pay-num').innerText = upiId;
+            openModal('qr-modal');
+        }
+
+        function openPhonePe() {
+            const balRaw = document.getElementById('s-bal').innerText.replace('₹', '').replace(',', '');
+            const bal = parseInt(balRaw) || 0;
+            const upiId = madamSettings.upiId || 'pay-gttc@onlinesbi';
+            const intentUrl = `upi://pay?pa=${upiId}&pn=GTTC%20Finance&am=${bal}&cu=INR&tn=CollegeFees`;
+            window.location.href = intentUrl;
         }
 
         function openPayModal() {
             tempBase64 = null;
             document.getElementById('proof-amt').value = '';
-            document.getElementById('proof-msg').value = '';
+            // If requested payment check is there, pre-fill
+            const balRaw = document.getElementById('s-bal').innerText.replace('₹', '').replace(',', '');
+            document.getElementById('proof-amt').placeholder = "Enter Amount (Balance: ₹" + balRaw + ")";
             removeSelectedProof();
             openModal('proof-modal');
         }
@@ -978,7 +1113,6 @@
             const reader = new FileReader();
             reader.onload = (e) => {
                 tempBase64 = e.target.result;
-                document.getElementById('proof-preview-img').src = tempBase64;
                 document.getElementById('proof-preview-area').classList.remove('hidden');
                 document.getElementById('proof-upload-btn').classList.add('hidden');
             };
@@ -994,7 +1128,6 @@
 
         async function submitProof() {
             const amt = document.getElementById('proof-amt').value;
-            const msg = document.getElementById('proof-msg').value;
             const btn = document.getElementById('btn-send-proof');
 
             if (!amt || !tempBase64) return alert("Amount aur Screenshot zaroori hai!");
@@ -1024,7 +1157,7 @@
 
                 const newTx = {
                     id: txId,
-                    title: msg || 'College Fee Payment',
+                    title: 'College Fee Payment',
                     amt: parseInt(amt),
                     status: 'PENDING',
                     proofImg: publicUrl,
@@ -1055,12 +1188,15 @@
         }
 
         // ── ADMIN LOGIC ──
-        function initAdminFlow() {
+        async function initAdminFlow() {
             document.getElementById('student-view').classList.add('hidden');
             document.getElementById('admin-view').classList.remove('hidden');
             document.getElementById('stu-fab').classList.add('hidden');
+            document.getElementById('madam-settings-btn').classList.remove('hidden');
             document.getElementById('role-tag').innerText = "ADMIN / MADAM";
             document.getElementById('role-tag').style.background = "var(--gold)";
+
+            await loadMadamSettings();
 
             // Listen to all pending approvals
             db.collection('pending_approvals').onSnapshot(snap => {
@@ -1110,12 +1246,72 @@
 
             const fees = data.fees || { total: 0, history: [] };
             let paid = 0;
-            (fees.history || []).forEach(tx => { if (tx.status === 'APPROVED') paid += parseInt(tx.amt); });
+            const history = fees.history || [];
+            history.forEach(tx => { if (tx.status === 'APPROVED') paid += parseInt(tx.amt); });
 
             document.getElementById('res-bal').innerText = '₹' + ((fees.total || 0) - paid).toLocaleString();
             document.getElementById('res-total-sum').innerText = `Total: ₹${(fees.total || 0).toLocaleString()}`;
 
+            // Render history for this student (Admin view)
+            const listEl = document.getElementById('adm-stu-history');
+            listEl.innerHTML = '';
+
+            [...history].reverse().forEach(tx => {
+                const item = document.createElement('div');
+                item.className = 'tx-item';
+                item.style.flexDirection = 'column';
+                item.style.alignItems = 'stretch';
+                item.style.gap = '12px';
+
+                const dateStr = tx.createdAt ? new Date(tx.createdAt.toMillis?.() || tx.createdAt).toLocaleDateString() : 'Pending';
+
+                item.innerHTML = `
+                    <div style="display:flex; justify-content:space-between; align-items:center;">
+                        <div class="tx-info">
+                            <h4 style="font-size:14px;">${tx.title || 'Fee Payment'}</h4>
+                            <p>${dateStr} • ₹${tx.amt}</p>
+                            <span class="tx-status ${tx.status === 'APPROVED' ? 'status-approved' : 'status-pending'}">${tx.status}</span>
+                        </div>
+                        <div style="display:flex; gap:8px;">
+                            ${tx.proofImg ? `<div class="proof-eye" style="margin:0; background:var(--primary); color:#fff;" onclick="reviewProofFromHistory('${tx.id}', '${currentStudentReg}', '${tx.proofImg}', '${tx.amt}')">👁️</div>` : ''}
+                        </div>
+                    </div>
+                `;
+
+                // Add Approve/Reject buttons if Pending
+                if (tx.status === 'PENDING') {
+                    const btnRow = document.createElement('div');
+                    btnRow.style.display = 'grid';
+                    btnRow.style.gridTemplateColumns = '1fr 1fr';
+                    btnRow.style.gap = '8px';
+                    btnRow.innerHTML = `
+                        <button class="btn-main" style="background:var(--red); padding:8px; font-size:10px; border-radius:8px; box-shadow:none;" onclick="reviewActionFromHistory('reject', '${tx.id}', '${currentStudentReg}')">REJECT</button>
+                        <button class="btn-main" style="background:var(--green); padding:8px; font-size:10px; border-radius:8px; box-shadow:none;" onclick="reviewActionFromHistory('approve', '${tx.id}', '${currentStudentReg}')">APPROVE</button>
+                    `;
+                    item.appendChild(btnRow);
+                }
+
+                listEl.appendChild(item);
+            });
+
             document.getElementById('search-result').style.display = 'block';
+        }
+
+        function reviewProofFromHistory(txId, stuId, img, amt) {
+            currentReviewId = txId;
+            currentReviewStudentId = stuId;
+            document.getElementById('review-img').src = img;
+            document.getElementById('review-meta').innerText = `Student: ${stuId} • Transaction: ${txId}`;
+            // Hide review buttons in global modal since we have them in the list (optional, but cleaner)
+            document.querySelector('#review-modal .modal-body div[style*="grid-template-columns"]').style.display = 'none';
+            openModal('review-modal');
+        }
+
+        async function reviewActionFromHistory(action, txId, stuId) {
+            currentReviewId = txId;
+            currentReviewStudentId = stuId;
+            await reviewAction(action);
+            searchStudent(); // Refresh
         }
 
         let currentPayRequest = 0;
@@ -1149,12 +1345,12 @@
         }
 
         function generateQR() {
-            const vpa = "pay-gttc@onlinesbi";
+            const upiId = madamSettings.upiId || "pay-gttc@onlinesbi";
             const amt = currentPayRequest || 0;
             // Generate UPI QR with amount
-            const qrData = `upi://pay?pa=${vpa}&pn=GTTC%20Finance&am=${amt}&cu=INR&tn=CollegeFees`;
+            const qrData = `upi://pay?pa=${upiId}&pn=GTTC%20Finance&am=${amt}&cu=INR&tn=CollegeFees`;
             document.getElementById('qr-img').src = `https://api.qrserver.com/v1/create-qr-code/?size=250x250&data=${encodeURIComponent(qrData)}`;
-            document.getElementById('qr-pay-num').innerText = vpa + " (Madam's ID)";
+            document.getElementById('qr-pay-num').innerText = upiId;
             openModal('qr-modal');
         }
 
