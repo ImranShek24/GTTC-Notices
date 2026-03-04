@@ -747,9 +747,9 @@
 
         // 🚀 SESSION AUTO-RECOVERY
         async function checkAutoLogin() {
-            if (typeof db === 'undefined') {
-                console.warn("Retrying checkAutoLogin: db not ready");
-                setTimeout(checkAutoLogin, 200);
+            const isReady = await window.dbReady();
+            if (!isReady) {
+                console.error("Critical: Firestore could not connect.");
                 return;
             }
 
