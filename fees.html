@@ -866,24 +866,58 @@
 
     <!-- ── MODAL: MADAM UPI SETTINGS ── -->
     <div id="madam-settings-modal" class="modal-overlay">
-        <div class="modal-body">
+        <div class="modal-body" style="border: 1px solid var(--border); overflow: hidden;">
             <div class="modal-close" onclick="closeModal('madam-settings-modal')">&times;</div>
-            <h4>MADAM'S UPI SETTINGS</h4>
-            <p style="font-size:11px; color:var(--text-dim); margin-bottom:20px;">Madam, ye details QR code aur Direct
-                Pay ke liye use hongi.</p>
+            <h4 style="margin-bottom:8px;">MADAM'S UPI CONFIG</h4>
+            <p style="font-size:11px; color:var(--text-dim); margin-bottom:24px;">Manage payment receipt details.</p>
 
-            <div class="input-group">
-                <label>UPI ID (Madam)</label>
-                <input type="text" id="madam-upi-id" class="input-box" placeholder="example@sbi">
-            </div>
-            <div class="input-group">
-                <label>Receiver Name / Phone (Display ONLY)</label>
-                <input type="text" id="madam-phone" class="input-box" placeholder="Madam's Name / 91XXXXXXX">
+            <!-- READ MODE VIEW -->
+            <div id="madam-settings-read"
+                style="background: rgba(255,255,255,0.03); border-radius:16px; padding:20px; border: 1px solid var(--border); margin-bottom: 20px; position: relative;">
+                <div style="position: absolute; top: 15px; right: 15px; cursor: pointer; color: var(--gold); background: var(--surface2); width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 14px;"
+                    onclick="enableMadamEdit()">
+                    <i class="fas fa-pencil"></i>
+                </div>
+
+                <div style="margin-bottom: 15px;">
+                    <div style="font-size: 10px; font-weight: 800; color: var(--text-dim); text-transform: uppercase;">
+                        UPI ID</div>
+                    <div id="disp-madam-upi" style="font-size: 16px; font-weight: 700; color: var(--primary);">
+                        pay-gttc@onlinesbi</div>
+                </div>
+
+                <div>
+                    <div style="font-size: 10px; font-weight: 800; color: var(--text-dim); text-transform: uppercase;">
+                        REGISTERED PHONE / NAME</div>
+                    <div id="disp-madam-phone" style="font-size: 16px; font-weight: 700; color: #fff;">Sushmita Madam
+                    </div>
+                </div>
             </div>
 
-            <button class="btn-main" style="background:var(--green); margin-top:10px;" onclick="saveMadamSettings()">
-                <i class="fas fa-save"></i> SAVE SETTINGS
-            </button>
+            <!-- EDIT MODE VIEW (Initially Hidden) -->
+            <div id="madam-settings-edit" class="hidden">
+                <div class="input-group">
+                    <label>NEW UPI ID</label>
+                    <input type="text" id="madam-upi-id" class="input-box" placeholder="example@sbi">
+                </div>
+                <div class="input-group">
+                    <label>RECEIVER NAME / PHONE</label>
+                    <input type="text" id="madam-phone" class="input-box" placeholder="Enter Details">
+                </div>
+
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+                    <button class="btn-main"
+                        style="background:var(--surface2); color:#fff; border: 1px solid var(--border);"
+                        onclick="cancelMadamEdit()">CANCEL</button>
+                    <button class="btn-main" style="background:var(--green);" onclick="saveMadamSettings()">
+                        <i class="fas fa-save" style="margin-right: 5px;"></i> SAVE
+                    </button>
+                </div>
+            </div>
+
+            <div style="font-size: 9px; color: var(--text-dim); text-align: center; line-height: 1.4; opacity: 0.6;">
+                Changing these will immediately update the <br> QR codes generated for students.
+            </div>
         </div>
     </div>
 
@@ -1104,9 +1138,25 @@
         }
 
         function openMadamSettings() {
+            document.getElementById('disp-madam-upi').innerText = madamSettings.upiId || 'Not Set';
+            document.getElementById('disp-madam-phone').innerText = madamSettings.phone || 'Not Set';
+
+            document.getElementById('madam-settings-read').classList.remove('hidden');
+            document.getElementById('madam-settings-edit').classList.add('hidden');
+            openModal('madam-settings-modal');
+        }
+
+        function enableMadamEdit() {
             document.getElementById('madam-upi-id').value = madamSettings.upiId || '';
             document.getElementById('madam-phone').value = madamSettings.phone || '';
-            openModal('madam-settings-modal');
+
+            document.getElementById('madam-settings-read').classList.add('hidden');
+            document.getElementById('madam-settings-edit').classList.remove('hidden');
+        }
+
+        function cancelMadamEdit() {
+            document.getElementById('madam-settings-read').classList.remove('hidden');
+            document.getElementById('madam-settings-edit').classList.add('hidden');
         }
 
         async function saveMadamSettings() {
@@ -1117,8 +1167,12 @@
             try {
                 await db.collection('admin_settings').doc('fees_config').set({ upiId: upi, phone: phone });
                 madamSettings = { upiId: upi, phone: phone };
-                closeModal('madam-settings-modal');
-                alert("✅ Madam's UPI settings saved!");
+
+                document.getElementById('disp-madam-upi').innerText = upi;
+                document.getElementById('disp-madam-phone').innerText = phone;
+
+                cancelMadamEdit();
+                showToast("✅ UPI Settings Updated!");
             } catch (e) { alert("Error saving settings: " + e.message); }
         }
 
