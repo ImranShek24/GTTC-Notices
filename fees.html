@@ -195,6 +195,18 @@
             background: rgba(0, 129, 255, 0.05);
         }
 
+        /* Remove arrows/spinners from number inputs */
+        input::-webkit-outer-spin-button,
+        input::-webkit-inner-spin-button {
+            -webkit-appearance: none;
+            margin: 0;
+        }
+
+        input[type=number] {
+            -moz-appearance: textfield;
+            appearance: none;
+        }
+
         .btn-main {
             width: 100%;
             padding: 16px;
@@ -859,11 +871,18 @@
             if (!reg || !phone) return alert("Pura data bharein!");
 
             try {
-                // Madam is a Staff, check staff collection
-                const doc = await db.collection('staff').doc(reg).get();
+                // Check both collections if needed
+                let doc = await db.collection('staff').doc(reg).get();
+                if (!doc.exists) {
+                    doc = await db.collection('students').doc(reg).get();
+                }
+
                 if (doc.exists) {
                     const data = doc.data();
-                    if (data.phone === phone || data.phoneNumber === phone) {
+                    const savedPhone = data.phone || data.phoneNumber;
+
+                    if (savedPhone === phone) {
+                        // For now using the requested fixed recovery display
                         document.getElementById('recovered-pin').innerText = "6363 / 1122";
                         document.getElementById('forgot-result').style.display = 'block';
                     } else {
@@ -1069,6 +1088,7 @@
         async function searchStudent() {
             const ref = document.getElementById('adm-search-ref').value.trim();
             if (!ref) return;
+            currentPayRequest = 0; // Reset previous payment request amount
 
             const doc = await db.collection('students').doc(ref).get();
             if (doc.exists) {
