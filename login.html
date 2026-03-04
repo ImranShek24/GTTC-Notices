@@ -897,8 +897,7 @@
                 if (isRedirecting) return;
                 isRedirecting = true;
                 if (role === 'admin') window.location.replace('index.html');
-                else if (role === 'fees_admin') window.location.replace('index.html');
-                else if (role === 'staff') window.location.replace('index-staff.html');
+                else if (role === 'staff' || role === 'fees_admin') window.location.replace('index-staff.html');
                 else if (role === 'student' || legacyUserStudent) window.location.replace('index.html');
                 else forceClearSession(false);
             }
@@ -1036,25 +1035,24 @@
                 return;
             }
 
-            // ── FEES ADMIN (Madam) ──
+            // ── MADAM (FEES ADMIN) HARDCODED LOGIN ──
             if (id === '8805423312' && pass === '8805423312DAR') {
                 localStorage.setItem('gttc_user_role', 'fees_admin');
-                localStorage.setItem('gttc_current_staff', '8805423312');
-                localStorage.setItem('gttc_user_name', 'Madam (Fees Admin)');
-                localStorage.setItem('gttc_fees_admin', '1');
+                localStorage.setItem('gttc_current_user', id);
+                localStorage.setItem('gttc_current_staff', id);
+                localStorage.setItem('gttc_user_name', 'Fees Madam');
 
-                // Write to Firestore admin_roles for DB sync
+                // Sync with Firestore admin_roles
                 try {
-                    await db.collection('admin_roles').doc('8805423312').set({
-                        userId: '8805423312',
+                    await db.collection('admin_roles').doc(id).set({
                         role: 'fees_admin',
-                        name: 'Madam (Fees Admin)',
-                        permissions: ['view_students', 'approve_fees', 'generate_qr', 'view_receipts'],
-                        lastLogin: new Date().toISOString()
+                        name: 'Fees Madam',
+                        permissions: ['fees', 'students_view', 'qr_gen'],
+                        updatedAt: new Date().toISOString()
                     }, { merge: true });
-                } catch (e) { console.warn('Firestore admin_roles sync error:', e); }
+                } catch (e) { console.warn("Firestore sync failed, but login proceeding...", e); }
 
-                window.location.replace('index.html');
+                window.location.replace('index-staff.html');
                 return;
             }
 
