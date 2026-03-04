@@ -1,0 +1,967 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport"
+        content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>GTTC 24 - Login Portal</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #2979FF;
+            --primary-light: rgba(41, 121, 255, 0.12);
+            --primary-glow: rgba(41, 121, 255, 0.25);
+            --bg: #080C14;
+            --surface: #0F1623;
+            --surface2: #161E2E;
+            --surface3: #1C2740;
+            --text: #FFFFFF;
+            --text2: #B0BEC5;
+            --text3: #546E7A;
+            --border: rgba(255, 255, 255, 0.08);
+            --error: #F44336;
+            --success: #00E5A0;
+            --radius: 20px;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        html,
+        body {
+            overflow-x: hidden;
+            overscroll-behavior: none;
+            /* Prevent bounce scroll */
+            -webkit-text-size-adjust: 100%;
+            /* Prevent font scaling */
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            padding: 20px 16px 80px;
+            /* Padding for mobile safe-area */
+            -webkit-tap-highlight-color: transparent;
+            /* Remove blue highlight on tap */
+            touch-action: manipulation;
+            /* Faster taps */
+        }
+
+        .container {
+            width: 100%;
+            max-width: 400px;
+            margin: auto;
+            position: relative;
+        }
+
+        /* Prevent auto-zoom on mobile inputs */
+        input,
+        select,
+        textarea {
+            font-size: 16px !important;
+        }
+
+        /* Mobile specific font sizing */
+        @media screen and (max-width: 480px) {
+            .app-name {
+                font-size: 20px;
+            }
+
+            .glass-card {
+                padding: 20px 16px;
+                border-radius: 16px;
+            }
+
+            .role-ic {
+                font-size: 32px;
+            }
+
+            .snake-card {
+                padding: 12px 16px;
+                gap: 12px;
+            }
+
+            .action-btn {
+                padding: 14px;
+                font-size: 14px;
+            }
+        }
+
+        /* ── HEADER ── */
+        .app-header {
+            text-align: center;
+            padding: 20px 0 24px;
+            pointer-events: none;
+        }
+
+        .gear-wrap {
+            display: flex;
+            justify-content: center;
+            gap: 0px;
+            margin-bottom: 12px;
+        }
+
+        .gear {
+            font-size: 38px;
+            color: #2979FF;
+            display: inline-block;
+            filter: drop-shadow(0 0 12px rgba(41, 121, 255, 0.4));
+        }
+
+        .gear.fwd {
+            animation: spin 5s linear infinite;
+        }
+
+        .gear.rev {
+            animation: spin 5s linear infinite reverse;
+            margin-left: -12px;
+        }
+
+        @keyframes spin {
+            to {
+                transform: rotate(360deg);
+            }
+        }
+
+        .app-name {
+            font-size: 22px;
+            font-weight: 900;
+            letter-spacing: 2px;
+        }
+
+        .app-sub {
+            font-size: 10px;
+            color: var(--text3);
+            letter-spacing: 3px;
+            text-transform: uppercase;
+            margin-top: 5px;
+        }
+
+        /* ── TABS ── */
+        .tabs {
+            background: var(--surface2);
+            border-radius: 14px;
+            padding: 5px;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 5px;
+            margin-bottom: 24px;
+            border: 1px solid var(--border);
+        }
+
+        .tab-btn {
+            padding: 12px;
+            border: none;
+            border-radius: 10px;
+            background: transparent;
+            color: var(--text3);
+            font-size: 13px;
+            font-weight: 800;
+            cursor: pointer;
+            transition: 0.3s;
+        }
+
+        .tab-btn.active {
+            background: var(--primary);
+            color: #fff;
+            box-shadow: 0 4px 12px var(--primary-glow);
+        }
+
+        /* ── GLASS CARD ── */
+        .glass-card {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            padding: 24px 20px;
+            margin-bottom: 16px;
+            box-shadow: 0 12px 40px rgba(0, 0, 0, 0.5);
+            animation: slideUp 0.5s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+        }
+
+        @keyframes slideUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .section-label {
+            font-size: 9px;
+            font-weight: 700;
+            color: var(--text3);
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            margin-bottom: 18px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .section-label::after {
+            content: '';
+            flex: 1;
+            height: 1px;
+            background: var(--border);
+        }
+
+        /* ── INPUTS ── */
+        .field-wrap {
+            margin-bottom: 16px;
+        }
+
+        .field-label {
+            display: block;
+            font-size: 10px;
+            font-weight: 700;
+            color: var(--text3);
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            margin-bottom: 8px;
+        }
+
+        .input-box {
+            position: relative;
+            display: flex;
+            align-items: center;
+        }
+
+        .input-box input {
+            width: 100%;
+            padding: 14px 44px 14px 16px;
+            background: var(--surface2);
+            border: 1.5px solid var(--border);
+            border-radius: 12px;
+            color: var(--text);
+            font-size: 15px;
+            outline: none;
+            transition: 0.3s;
+        }
+
+        .input-box input:focus {
+            border-color: var(--primary);
+            background: var(--surface3);
+            box-shadow: 0 0 0 3px var(--primary-light);
+        }
+
+        .input-box input::placeholder {
+            color: #3a4a5a;
+        }
+
+        .input-icon {
+            position: absolute;
+            right: 14px;
+            font-size: 18px;
+            cursor: pointer;
+            opacity: 0.6;
+            transition: 0.2s;
+        }
+
+        .input-icon:hover {
+            opacity: 1;
+        }
+
+        /* ── ROLE SELECTION ── */
+        .role-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+            margin-bottom: 8px;
+        }
+
+        .role-card {
+            background: var(--surface2);
+            border: 2px solid var(--border);
+            border-radius: 18px;
+            padding: 22px 10px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+            position: relative;
+        }
+
+        .role-card:hover {
+            border-color: rgba(41, 121, 255, 0.3);
+            transform: translateY(-3px);
+        }
+
+        .role-card.active {
+            border-color: var(--primary);
+            background: var(--surface3);
+            transform: scale(1.02) translateY(-4px);
+            box-shadow: 0 8px 24px var(--primary-glow);
+        }
+
+        .role-ic {
+            font-size: 38px;
+            display: block;
+            margin-bottom: 10px;
+        }
+
+        .role-name {
+            font-size: 14px;
+            font-weight: 800;
+            display: block;
+        }
+
+        .role-sub {
+            font-size: 9px;
+            color: var(--text3);
+            margin-top: 4px;
+            display: block;
+        }
+
+        /* ── SNAKE LAYOUT (S-Curve) ── */
+        .snake-stack {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .snake-card {
+            background: var(--surface2);
+            border: 2.5px solid var(--border);
+            border-radius: 20px;
+            padding: 16px 22px;
+            cursor: pointer;
+            transition: all 0.35s cubic-bezier(0.34, 1.56, 0.64, 1);
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            position: relative;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+        }
+
+        .snake-card:hover {
+            border-color: rgba(41, 121, 255, 0.4);
+            transform: scale(1.02) translateX(4px);
+            background: var(--surface3);
+        }
+
+        .snake-card.active {
+            border-color: var(--primary);
+            background: var(--surface3);
+            box-shadow: 0 8px 24px var(--primary-glow);
+            transform: scale(1.04) translateX(2px);
+        }
+
+        .snake-card.active .sn-icon {
+            background: var(--primary);
+            color: #fff;
+            transform: scale(1.1);
+        }
+
+        /* Snake indents for phone layout */
+        .snake-stack .snake-card:nth-child(even) {
+            margin-left: 18px;
+        }
+
+        .snake-stack .snake-card:nth-child(odd) {
+            margin-left: 0;
+        }
+
+        .snake-stack .snake-card:nth-child(3n) {
+            margin-left: 9px;
+        }
+
+        .sn-icon,
+        .sn-text,
+        .sn-title,
+        .sn-sub {
+            pointer-events: none;
+            user-select: none;
+        }
+
+        .sn-icon {
+            font-size: 16px;
+            width: 32px;
+            height: 32px;
+            border-radius: 10px;
+            background: var(--surface3);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--primary);
+            font-weight: 800;
+            transition: all 0.3s;
+        }
+
+        .sn-text {
+            flex: 1;
+        }
+
+        .sn-title {
+            font-size: 14px;
+            font-weight: 800;
+        }
+
+        .sn-sub {
+            font-size: 10px;
+            color: var(--text3);
+            margin-top: 2px;
+        }
+
+        /* ── SUBMIT BUTTON ── */
+        .action-btn {
+            width: 100%;
+            padding: 16px;
+            background: var(--primary);
+            color: #fff;
+            border: none;
+            border-radius: 14px;
+            font-weight: 800;
+            font-size: 16px;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            box-shadow: 0 6px 20px var(--primary-glow);
+        }
+
+        .action-btn:hover {
+            background: #1a6aff;
+            transform: translateY(-2px);
+            box-shadow: 0 10px 30px var(--primary-glow);
+        }
+
+        .action-btn:active {
+            transform: scale(0.98);
+        }
+
+        .action-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+
+        #errorMsg {
+            text-align: center;
+            margin-top: 14px;
+            background: rgba(244, 67, 54, 0.1);
+            color: var(--error);
+            padding: 10px;
+            border-radius: 12px;
+            font-size: 13px;
+            font-weight: 600;
+            display: none;
+        }
+
+        #successMsg {
+            text-align: center;
+            margin-top: 14px;
+            background: rgba(0, 229, 160, 0.1);
+            color: var(--success);
+            padding: 10px;
+            border-radius: 12px;
+            font-size: 13px;
+            font-weight: 600;
+            display: none;
+        }
+
+        .hidden {
+            display: none !important;
+        }
+
+        .animate-in {
+            animation: fadeSlide 0.4s forwards;
+        }
+
+        @keyframes fadeSlide {
+            from {
+                opacity: 0;
+                transform: translateY(12px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* Progression dots */
+        .dots {
+            display: flex;
+            justify-content: center;
+            gap: 6px;
+            margin-bottom: 20px;
+        }
+
+        .dot {
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            background: #1a2438;
+            transition: 0.3s;
+        }
+
+        .dot.active {
+            width: 22px;
+            border-radius: 3px;
+            background: var(--primary);
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+
+        <!-- APP HEADER -->
+        <style>
+            .sticker-wrap {
+                background: white;
+                padding: 10px 25px;
+                border-radius: 18px;
+                display: inline-block;
+                box-shadow: 0 10px 30px rgba(0, 51, 102, 0.15);
+                margin-bottom: 30px;
+                animation: sticker-slide 0.6s cubic-bezier(0.22, 1, 0.36, 1);
+            }
+
+            .sticker-img {
+                height: 75px;
+                width: auto;
+                object-fit: contain;
+            }
+
+            @keyframes sticker-slide {
+                from {
+                    opacity: 0;
+                    transform: translateY(15px);
+                }
+
+                to {
+                    opacity: 1;
+                    transform: translateY(0);
+                }
+            }
+        </style>
+        <div class="app-header">
+            <div class="sticker-wrap">
+                <img src="gttc-logo.png" alt="GTTC Logo" class="sticker-img">
+            </div>
+        </div>
+
+        <!-- TABS -->
+        <div class="tabs">
+            <button class="tab-btn active" id="tab-login" onclick="setMode('login')">Login</button>
+            <button class="tab-btn" id="tab-register" onclick="setMode('register')">Register</button>
+        </div>
+
+        <!-- ─────── LOGIN FORM ─────── -->
+        <div id="login-form">
+            <div class="glass-card">
+                <div class="section-label">Existing User</div>
+                <div class="field-wrap">
+                    <label class="field-label">ID Number / Access ID</label>
+                    <div class="input-box">
+                        <input type="text" id="loginId" placeholder="Enter Registration No / Staff ID"
+                            autocomplete="off" style="text-transform:uppercase;">
+                        <span class="input-icon">🪪</span>
+                    </div>
+                </div>
+                <div class="field-wrap">
+                    <label class="field-label">Password</label>
+                    <div class="input-box">
+                        <input type="password" id="loginPass" placeholder="••••••••">
+                        <span class="input-icon" id="lPwToggle" onclick="togglePw('loginPass','lPwToggle')">👁️</span>
+                    </div>
+                </div>
+                <button class="action-btn" id="loginBtn" onclick="handleLogin()">
+                    <span>🔑</span> Login
+                </button>
+            </div>
+        </div>
+
+        <!-- ─────── REGISTER WIZARD ─────── -->
+        <div id="register-form" class="hidden">
+
+            <!-- Step 1: Basic Info -->
+            <div class="glass-card">
+                <div class="section-label">New Registration</div>
+                <div class="field-wrap">
+                    <label class="field-label">Full Name</label>
+                    <div class="input-box">
+                        <input type="text" id="regName" placeholder="e.g. Imran Shek" autocomplete="off">
+                        <span class="input-icon">👤</span>
+                    </div>
+                </div>
+                <div class="field-wrap">
+                    <label class="field-label">Registration Number</label>
+                    <div class="input-box">
+                        <input type="text" id="regId" placeholder="Enter Registration No."
+                            style="text-transform:uppercase;">
+                        <span class="input-icon">🪪</span>
+                    </div>
+                </div>
+                <div class="field-wrap">
+                    <label class="field-label">Create Password</label>
+                    <div class="input-box">
+                        <input type="password" id="regPass" placeholder="••••••••">
+                        <span class="input-icon" id="rPwToggle" onclick="togglePw('regPass','rPwToggle')">👁️</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Step 2: Role Selection -->
+            <div class="glass-card">
+                <div class="section-label">Your Role</div>
+                <div class="role-grid">
+                    <div class="role-card" id="r-student" onclick="selRole('student')">
+                        <span class="role-ic">🎓</span>
+                        <span class="role-name">Student</span>
+                        <span class="role-sub">Enrolled Student</span>
+                    </div>
+                    <div class="role-card" id="r-staff" onclick="selRole('staff')">
+                        <span class="role-ic">👩‍🏫</span>
+                        <span class="role-name">Staff</span>
+                        <span class="role-sub">Faculty / In-charge</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Step 3: Branch Selection (Snake) -->
+            <div class="glass-card hidden animate-in" id="reg-dept">
+                <div class="section-label" id="dept-label">Branch Selection</div>
+                <div class="snake-stack">
+                    <div class="snake-card" id="d-DAR" onclick="selDept('DAR')">
+                        <div class="sn-icon">⚙️</div>
+                        <div class="sn-text">
+                            <div class="sn-title">Automation & Robotics (DAR)</div>
+                            <div class="sn-sub">Robotics Engineering & Automation</div>
+                        </div>
+                    </div>
+                    <div class="snake-card" id="d-DEEE" onclick="selDept('DEEE')">
+                        <div class="sn-icon">⚡</div>
+                        <div class="sn-text">
+                            <div class="sn-title">Electrical & Electronics (DEEE)</div>
+                            <div class="sn-sub">Electrical Engineering Core</div>
+                        </div>
+                    </div>
+                    <div class="snake-card" id="d-DTDM" onclick="selDept('DTDM')">
+                        <div class="sn-icon">🛠️</div>
+                        <div class="sn-text">
+                            <div class="sn-title">Tool & Die Making (DTDM)</div>
+                            <div class="sn-sub">Precision Tooling & Manufacturing</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Step 4: Semester Selection (Snake) -->
+            <div class="glass-card hidden animate-in" id="reg-sem">
+                <div class="section-label" id="sem-label">Select Semester</div>
+                <div class="snake-stack">
+                    <div class="snake-card" id="s-1" onclick="selSem('First Semester','1st','1')">
+                        <div class="sn-icon">01</div>
+                        <div class="sn-text">
+                            <div class="sn-title">First Semester</div>
+                            <div class="sn-sub">First Year - Initial Term</div>
+                        </div>
+                    </div>
+                    <div class="snake-card" id="s-2" onclick="selSem('Second Semester','2nd','2')">
+                        <div class="sn-icon">02</div>
+                        <div class="sn-text">
+                            <div class="sn-title">Second Semester</div>
+                            <div class="sn-sub">First Year - Final Term</div>
+                        </div>
+                    </div>
+                    <div class="snake-card" id="s-3" onclick="selSem('Third Semester','3rd','3')">
+                        <div class="sn-icon">03</div>
+                        <div class="sn-text">
+                            <div class="sn-title">Third Semester</div>
+                            <div class="sn-sub">Second Year - Mid Term</div>
+                        </div>
+                    </div>
+                    <div class="snake-card" id="s-4" onclick="selSem('Fourth Semester','4th','4')">
+                        <div class="sn-icon">04</div>
+                        <div class="sn-text">
+                            <div class="sn-title">Fourth Semester</div>
+                            <div class="sn-sub">Second Year - Advanced Term</div>
+                        </div>
+                    </div>
+                    <div class="snake-card" id="s-5" onclick="selSem('Fifth Semester','5th','5')">
+                        <div class="sn-icon">05</div>
+                        <div class="sn-text">
+                            <div class="sn-title">Fifth Semester</div>
+                            <div class="sn-sub">Third Year - Expert Term</div>
+                        </div>
+                    </div>
+                    <div class="snake-card" id="s-6" onclick="selSem('Sixth Semester','6th','6')">
+                        <div class="sn-icon">06</div>
+                        <div class="sn-text">
+                            <div class="sn-title">Sixth Semester</div>
+                            <div class="sn-sub">Final Year - Industry Project</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Submit btn -->
+            <div class="hidden animate-in" id="reg-final" style="margin-top:20px;">
+                <button class="action-btn" id="registerBtn" onclick="handleRegister()">
+                    <span>🚀</span> Complete Registration
+                </button>
+            </div>
+        </div>
+
+        <!-- Messages -->
+        <div id="errorMsg"></div>
+        <div id="successMsg"></div>
+
+        <!-- Debug / Force Clear -->
+        <div style="text-align:center; margin-top:30px; opacity:0.3; font-size:10px;">
+            <p onclick="forceClearSession()" style="cursor:pointer; color:var(--text2);">STUCK? <u>CLEAR ALL
+                    SESSIONS</u></p>
+        </div>
+
+    </div>
+
+    <!-- Firebase SDKs -->
+    <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-firestore-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-storage-compat.js"></script>
+    <script src="firebase-init.js"></script>
+
+    <script>
+        let activeRole = null;
+        let activeDept = null;
+        let activeSemName = null;
+        let activeSemCode = null;
+        let isRedirecting = false;
+
+        // 🚀 SESSION AUTO-RECOVERY
+        function checkAutoLogin() {
+            const role = localStorage.getItem('gttc_user_role');
+            const legacyUserStaff = localStorage.getItem('gttc_current_staff');
+            const legacyUserStudent = localStorage.getItem('gttc_current_user');
+
+            if (legacyUserStaff || legacyUserStudent) {
+                if (isRedirecting) return;
+                isRedirecting = true;
+                // AutoLogin session identified
+
+                if (role === 'admin') window.location.replace('admin.html');
+                else if (role === 'staff') window.location.replace('index-staff.html');
+                else if (role === 'student' || legacyUserStudent) window.location.replace('index.html');
+                else {
+                    // Ambiguous session, clear it to be safe
+                    forceClearSession(false);
+                }
+            }
+        }
+
+        // Start checking 
+        checkAutoLogin();
+
+        function forceClearSession(reload = true) {
+            localStorage.clear();
+            sessionStorage.clear();
+            if (reload) window.location.reload();
+        }
+
+        auth.onAuthStateChanged((user) => {
+            if (user) checkAutoLogin();
+        });
+
+        /* ─── TABS ─── */
+        function setMode(mode) {
+            document.getElementById('login-form').classList.toggle('hidden', mode !== 'login');
+            document.getElementById('register-form').classList.toggle('hidden', mode !== 'register');
+            document.getElementById('tab-login').classList.toggle('active', mode === 'login');
+            document.getElementById('tab-register').classList.toggle('active', mode === 'register');
+            hideMsgs();
+        }
+
+        /* ─── HELPERS ─── */
+        function togglePw(id, iconId) {
+            const inp = document.getElementById(id);
+            const icon = document.getElementById(iconId);
+            const show = inp.type === 'password';
+            inp.type = show ? 'text' : 'password';
+            icon.innerText = show ? '🙈' : '👁️';
+        }
+
+        function showErr(m) { const e = document.getElementById('errorMsg'); e.innerText = "❌ " + m; e.style.display = 'block'; window.scrollTo(0, document.body.scrollHeight); }
+        function hideMsgs() { document.getElementById('errorMsg').style.display = 'none'; document.getElementById('successMsg').style.display = 'none'; }
+
+        /* ─── REGISTRATION LOGIC ─── */
+        function selRole(r) {
+            activeRole = r;
+            document.querySelectorAll('.role-card').forEach(c => c.classList.remove('active'));
+            const card = document.getElementById('r-' + r);
+            if (card) card.classList.add('active');
+
+            document.getElementById('dept-label').innerText = (r === 'staff') ? 'STAFF BRANCH ALLOCATION' : 'BRANCH SELECTION';
+            document.getElementById('sem-label').innerText = (r === 'staff') ? 'SEMESTER ASSIGNMENT' : 'ACADEMIC SEMESTER';
+
+            const d = document.getElementById('reg-dept'); d.classList.remove('hidden');
+            hideMsgs();
+        }
+
+        function selDept(d) {
+            activeDept = d;
+            document.querySelectorAll('#reg-dept .snake-card').forEach(c => c.classList.remove('active'));
+            const card = document.getElementById('d-' + d);
+            if (card) card.classList.add('active');
+            document.getElementById('reg-sem').classList.remove('hidden');
+            hideMsgs();
+        }
+
+        function selSem(name, code, idNum) {
+            activeSemName = name;
+            activeSemCode = code;
+            document.querySelectorAll('#reg-sem .snake-card').forEach(c => c.classList.remove('active'));
+            const card = document.getElementById('s-' + idNum);
+            if (card) card.classList.add('active');
+            document.getElementById('reg-final').classList.remove('hidden');
+            hideMsgs();
+        }
+
+        async function handleRegister() {
+            if (window.isOnline === false) { showErr("Internet connection required for Cloud Sync. Check your data."); return; }
+            const name = document.getElementById('regName').value.trim();
+            const id = document.getElementById('regId').value.trim().toUpperCase();
+            const pass = document.getElementById('regPass').value;
+            const btn = document.getElementById('registerBtn');
+
+            if (!name || !id || !pass || !activeRole || !activeDept || !activeSemName) { showErr("Please complete all fields and selections."); return; }
+
+            btn.disabled = true; btn.innerHTML = '<span>⏳</span> Creating Profile…'; hideMsgs();
+
+            try {
+                const col = (activeRole === 'staff') ? 'staff' : 'students';
+                const doc = await db.collection(col).doc(id).get();
+                if (doc.exists) throw new Error("This ID is already taken. Try logging in.");
+
+                let data = {
+                    regNo: id, fullName: name, password: pass,
+                    role: (activeRole === 'staff') ? 'STAFF' : activeDept,
+                    isProfileComplete: false, createdAt: new Date().toISOString()
+                };
+
+                if (activeRole === 'staff') {
+                    data.branch = activeDept; data.semester = activeSemCode.toUpperCase();
+                    data.assignedCourse = activeDept; data.assignedSemester = activeSemName;
+                    data.assignedSemCode = activeSemCode; data.designation = 'Staff Member';
+                } else {
+                    data.course = activeDept; data.semester = activeSemCode;
+                    data.semesterFull = activeSemName; data.fees = { total: 45000, history: [] };
+                    data.role = 'STUDENT';
+                }
+
+                // Profile saving
+                await db.collection(col).doc(id).set(data);
+
+                // Set local state
+                localStorage.clear(); // Clear any old sessions before setting new one
+                localStorage.setItem('gttc_user_role', activeRole);
+                if (activeRole === 'staff') localStorage.setItem('gttc_current_staff', id);
+                else localStorage.setItem('gttc_current_user', id);
+
+                document.getElementById('successMsg').innerText = "✅ Welcome aboard! Redirecting...";
+                document.getElementById('successMsg').style.display = 'block';
+                setTimeout(() => { window.location.href = 'profile-edit.html'; }, 1200);
+
+            } catch (e) { showErr(e.message); btn.disabled = false; btn.innerHTML = '<span>🚀</span> Complete Registration'; }
+        }
+
+        /* ─── LOGIN LOGIC ─── */
+        async function handleLogin() {
+            if (window.isOnline === false) { showErr("Offline mode disabled. Please connect to internet to login."); return; }
+            const id = document.getElementById('loginId').value.trim().toUpperCase();
+            const pass = document.getElementById('loginPass').value;
+            const btn = document.getElementById('loginBtn');
+
+            if (!id || !pass) { showErr("ID and Password are required."); return; }
+
+            btn.disabled = true; btn.innerHTML = '<span>⏳</span> Verifying…'; hideMsgs();
+            // Login attempt
+
+            // Admin Bypass (Imran Shek) — Super Admin
+            if (id === '6363536608' && pass === '6363536608DAR') {
+                try {
+                    // 1. Verify/Create in 'users' collection as requested
+                    const userDoc = await db.collection('users').doc(id).get();
+                    if (!userDoc.exists) {
+                        await db.collection('users').doc(id).set({
+                            id: id,
+                            password: pass,
+                            role: 'super_admin',
+                            name: 'Imran Shek',
+                            createdAt: firebase.firestore.FieldValue.serverTimestamp()
+                        });
+                    }
+
+                    // Clear and set session
+                    const theme = localStorage.getItem('gttc_theme');
+                    localStorage.clear();
+                    if (theme) localStorage.setItem('gttc_theme', theme);
+
+                    localStorage.setItem('gttc_user_role', 'admin');
+                    localStorage.setItem('gttc_current_user', id);
+                    localStorage.setItem('gttc_superadmin', '1');
+                    localStorage.setItem('gttc_current_dept', 'SYSTEMS');
+                    localStorage.setItem('gttc_current_sem', 'MASTER');
+
+                    window.location.replace('index.html');
+                    return;
+                } catch (e) {
+                    console.error("Super Admin Verification Failed:", e);
+                }
+            }
+
+            try {
+                // Check Staff
+                const staffDoc = await db.collection('staff').doc(id).get();
+                if (staffDoc.exists && staffDoc.data().password === pass) {
+                    const s = staffDoc.data();
+                    localStorage.setItem('gttc_user_role', 'staff');
+                    localStorage.setItem('gttc_current_staff', id);
+                    localStorage.setItem('gttc_user_name', s.fullName || 'Staff');
+                    // Save class info for fast chat init
+                    localStorage.setItem('gttc_current_sem', s.assignedSemCode || '1st');
+                    localStorage.setItem('gttc_current_dept', s.assignedCourse || 'DAR');
+                    window.location.replace(s.isProfileComplete ? 'index-staff.html' : 'profile-edit.html');
+                    return;
+                }
+
+
+                // Check Students
+                const stuDoc = await db.collection('students').doc(id).get();
+                if (stuDoc.exists && stuDoc.data().password === pass) {
+                    const u = stuDoc.data();
+                    localStorage.setItem('gttc_user_role', 'student');
+                    localStorage.setItem('gttc_current_user', id);
+                    localStorage.setItem('gttc_user_name', u.fullName || 'Student');
+                    // Save class info for fast chat init
+                    localStorage.setItem('gttc_current_sem', u.semester || '1st');
+                    localStorage.setItem('gttc_current_dept', u.course || 'DAR');
+                    window.location.replace(u.isProfileComplete ? 'index.html' : 'profile-edit.html');
+                    return;
+                }
+
+
+                throw new Error("Invalid ID or Password. Check your entries.");
+
+            } catch (e) { showErr(e.message); btn.disabled = false; btn.innerHTML = '<span>🔑</span> Sign In'; }
+        }
+    </script>
+</body>
+
+</html>
