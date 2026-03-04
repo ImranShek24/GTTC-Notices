@@ -1130,6 +1130,29 @@
             transform: scale(0.95);
             opacity: 0.9;
         }
+
+        /* NOTIF SHAKE */
+        @keyframes bellRing {
+
+            0%,
+            100% {
+                transform: rotate(0);
+            }
+
+            20%,
+            60% {
+                transform: rotate(15deg);
+            }
+
+            40%,
+            80% {
+                transform: rotate(-15deg);
+            }
+        }
+
+        .notif-shake {
+            animation: bellRing 0.5s ease;
+        }
     </style>
 </head>
 
@@ -1168,6 +1191,14 @@
                 <p id="staff-header-sub">Loading Dept...</p>
             </div>
             <div class="header-right-group">
+                <!-- Global Notification Bell -->
+                <div class="settings-btn" id="global-bell-icon" onclick="openNotifPanel()"
+                    style="position:relative; margin-right:8px;">
+                    <i class="fas fa-bell"></i>
+                    <div id="global-badge"
+                        style="display:none; position:absolute; top:8px; right:8px; background:#ff3838; width:8px; height:8px; border-radius:50%; border:2px solid var(--surface); z-index:5;">
+                    </div>
+                </div>
                 <!-- Direct Settings Icon (Drawer) -->
                 <div class="settings-btn" id="settingsBtn" onclick="openDrawer()">
                     <i class="fas fa-gear"></i>
@@ -2150,6 +2181,7 @@
         });
 
     </script>
+    <script src="gttc-pro-features.js"></script>
 </body>
 
 </html>
