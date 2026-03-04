@@ -552,6 +552,35 @@
                 padding-bottom: calc(100px + env(safe-area-inset-bottom));
             }
         }
+
+        @keyframes errorShake {
+
+            0%,
+            100% {
+                transform: translateX(0);
+            }
+
+            10%,
+            30%,
+            50%,
+            70%,
+            90% {
+                transform: translateX(-5px);
+            }
+
+            20%,
+            40%,
+            60%,
+            80% {
+                transform: translateX(5px);
+            }
+        }
+
+        .shake-error {
+            animation: errorShake 0.5s ease;
+            border-color: #F44336 !important;
+            box-shadow: 0 0 10px rgba(244, 67, 54, 0.4) !important;
+        }
     </style>
 </head>
 
@@ -1436,7 +1465,14 @@
             const amt = document.getElementById('proof-amt').value;
             const btn = document.getElementById('btn-send-proof');
 
-            if (!amt || !tempBase64) return alert("Amount aur Screenshot zaroori hai!");
+            if (!amt) {
+                if (window.GTTCVoice) GTTCVoice.errorAlert("proof-amt", "empty");
+                return alert("Amount zaroori hai!");
+            }
+            if (!tempBase64) {
+                if (window.GTTCVoice) GTTCVoice.errorAlert("file-input", "empty", "Kripya proof ka screenshot attach karein.");
+                return alert("Screenshot attach karo!");
+            }
 
             btn.disabled = true;
             btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> UPLOADING...';
