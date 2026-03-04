@@ -935,17 +935,18 @@
         </div>
     </div>
 
-    <!-- ── MODAL: PIN ACCESS (Admin Only) ── -->
+    <!-- ── MODAL: PIN ACCESS (Fees Admin / Madam) ── -->
     <div id="pin-modal" class="modal-overlay">
         <div class="modal-body" style="max-width:320px; text-align:center;">
             <i class="fas fa-lock" style="font-size:40px; color:var(--gold); margin-bottom:20px;"></i>
-            <h4>ENTER ADMIN PIN</h4>
-            <p style="font-size:11px; color:var(--text-dim); margin-bottom:20px;">Madam, please enter secure 4-digit
-                PIN.</p>
+            <h4>FEES ADMIN PIN REQUIRED</h4>
+            <p style="font-size:11px; color:var(--text-dim); margin-bottom:20px;">Madam, please enter your secure
+                4-digit fees access PIN to continue.</p>
             <input type="password" id="admin-pin-input" class="input-box" maxlength="4" placeholder="••••"
-                style="text-align:center; font-size:24px; letter-spacing:10px;">
-            <button class="btn-main" style="margin-top:20px; background:var(--gold);" onclick="verifyPin()">UNLOCK
-                SYSTEM</button>
+                style="text-align:center; font-size:24px; letter-spacing:10px;"
+                onkeydown="if(event.key==='Enter') verifyPin()">
+            <button class="btn-main" style="margin-top:20px; background:var(--gold);" onclick="verifyPin()">🔓 UNLOCK
+                FEES PANEL</button>
             <div style="margin-top:20px; font-size:11px; color:var(--text-dim); cursor:pointer; font-weight:700;"
                 onclick="openForgotPinModal()">FORGOT PIN?</div>
         </div>
@@ -1013,7 +1014,10 @@
 
         const activeUserId = localStorage.getItem('gttc_current_user') || localStorage.getItem('gttc_current_staff');
         const role = localStorage.getItem('gttc_user_role');
-        const isStaff = role === 'staff' || role === 'admin' || localStorage.getItem('gttc_superadmin') === '1';
+        const isFeesAdmin = role === 'fees_admin' || localStorage.getItem('gttc_fees_admin') === '1';
+        const isStaff = role === 'staff' || role === 'admin' || role === 'fees_admin'
+            || localStorage.getItem('gttc_superadmin') === '1'
+            || localStorage.getItem('gttc_fees_admin') === '1';
 
         let currentStudentReg = null;
         let selectedStudentData = null;
@@ -1027,13 +1031,30 @@
         let viewMode = isStaff ? 'admin' : 'student';
 
         // ── INIT & SESSION ──
-        auth.onAuthStateChanged(user => {
+        auth.onAuthStateChanged(async user => {
             if (!user && !activeUserId) {
                 window.location.href = 'login.html';
                 return;
             }
-            if (localStorage.getItem('gttc_superadmin') === '1') {
+            // Show switch button for Super Admin and Fees Admin
+            if (localStorage.getItem('gttc_superadmin') === '1' || isFeesAdmin) {
                 document.getElementById('admin-switch-btn').classList.remove('hidden');
+            }
+            // Sync admin_roles from Firestore if fees_admin
+            if (isFeesAdmin && activeUserId) {
+                try {
+                    const roleDoc = await db.collection('admin_roles').doc(activeUserId).get();
+                    if (!roleDoc.exists) {
+                        // Auto-create if not exists (first time)
+                        await db.collection('admin_roles').doc(activeUserId).set({
+                            userId: activeUserId,
+                            role: 'fees_admin',
+                            name: localStorage.getItem('gttc_user_name') || 'Madam (Fees Admin)',
+                            permissions: ['view_students', 'approve_fees', 'generate_qr', 'view_receipts'],
+                            createdAt: new Date().toISOString()
+                        });
+                    }
+                } catch (e) { console.warn('admin_roles sync:', e); }
             }
             updateView();
         });
@@ -1057,12 +1078,18 @@
 
         function verifyPin() {
             const pin = document.getElementById('admin-pin-input').value;
-            if (pin === '6363' || pin === '1122') {
+            // Primary secure PIN: 7869 (Fees Admin)
+            // Fallback: 6363 or 1122 (Super Admin / Legacy)
+            const validPins = ['7869', '6363', '1122'];
+            if (validPins.includes(pin)) {
                 isAdminAuthenticated = true;
                 closeModal('pin-modal');
                 initAdminFlow();
             } else {
-                alert("Incorrect PIN! Please try again.");
+                document.getElementById('admin-pin-input').value = '';
+                document.getElementById('admin-pin-input').style.border = '2px solid var(--red)';
+                setTimeout(() => { document.getElementById('admin-pin-input').style.border = ''; }, 1500);
+                alert("❌ Galat PIN! Madam, sahi 4-digit PIN enter karein.");
             }
         }
 
