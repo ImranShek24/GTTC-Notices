@@ -1490,6 +1490,7 @@
 
                 closeModal('proof-modal');
                 showToast('✅ Proof bhej diya! Madam approve karengi!');
+                if (window.GTTCVoice) GTTCVoice.speak("Fees Payment Successful. Proof submitted for verification.");
             } catch (e) {
                 console.error(e);
                 alert("Error: " + e.message);
@@ -1800,6 +1801,7 @@
                         ...approvedTx,
                         approvedAt: Date.now()
                     });
+                    if (window.GTTCVoice) GTTCVoice.speak("Payment Received and Approved.");
                 }
 
                 closeModal('review-modal');
@@ -1927,6 +1929,7 @@
         function openModal(id) { document.getElementById(id).classList.add('active'); }
         function closeModal(id) { document.getElementById(id).classList.remove('active'); }
     </script>
+    <script src="gttc-pro-features.js"></script>
 </body>
 
 </html>
