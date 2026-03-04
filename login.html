@@ -596,6 +596,40 @@
                 <button class="action-btn" id="loginBtn" onclick="handleLogin()">
                     <span>🔑</span> Login
                 </button>
+                <div style="text-align:center; margin-top:16px;">
+                    <p onclick="openForgotLoginModal()"
+                        style="color:var(--text3); font-size:12px; font-weight:700; cursor:pointer;">Forgot Password /
+                        PIN?</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- ─────── FORGOT PASSWORD MODAL ─────── -->
+        <div id="forgot-login-modal" class="hidden animate-in"
+            style="position:fixed; top:50%; left:50%; transform:translate(-50%,-50%); width:90%; max-width:350px; background:var(--surface); border:1px solid var(--border); border-radius:var(--radius); padding:24px; z-index:9999; box-shadow:0 0 50px rgba(0,0,0,0.8);">
+            <div style="text-align:right; margin-bottom:15px; cursor:pointer;" onclick="closeForgotModal()">✕</div>
+            <div style="text-align:center; margin-bottom:20px;">
+                <span style="font-size:32px;">🔓</span>
+                <h3 style="margin-top:10px;">Recover Access</h3>
+            </div>
+            <div class="field-wrap">
+                <label class="field-label">Register Number</label>
+                <div class="input-box">
+                    <input type="text" id="recoverId" placeholder="e.g. 6363xxxxxx" autocomplete="off"
+                        style="text-transform:uppercase;">
+                </div>
+            </div>
+            <button class="action-btn" id="recoverBtn" onclick="checkRecoveryAccess()">Verify Identity</button>
+
+            <div id="recovery-box" class="hidden"
+                style="margin-top:20px; text-align:center; padding-top:20px; border-top:1px solid var(--border);">
+                <p id="recovery-msg" style="font-size:13px; font-weight:600; color:var(--text2); line-height:1.5;"></p>
+                <div id="otp-section" class="hidden" style="margin-top:15px;">
+                    <div id="recaptcha-container"></div>
+                    <div id="phone-display"
+                        style="font-size:12px; color:var(--primary); margin-bottom:10px; font-weight:800;"></div>
+                    <button class="action-btn" onclick="sendRecoveryOTP()">Send OTP to Phone</button>
+                </div>
             </div>
         </div>
 
@@ -837,6 +871,9 @@
 
         /* ─── REGISTRATION LOGIC ─── */
         async function handleRegister() {
+            const isReady = await window.dbReady();
+            if (!isReady) { showErr("Database offline. Try again."); return; }
+            const db = window.db;
             const name = document.getElementById('regName').value.trim();
             const id = document.getElementById('regId').value.trim().toUpperCase();
             const pass = document.getElementById('regPass').value;
@@ -886,6 +923,10 @@
 
         /* ─── LOGIN LOGIC ─── */
         async function handleLogin() {
+            const isReady = await window.dbReady();
+            if (!isReady) { showErr("Database offline. Try again."); return; }
+            const db = window.db;
+
             if (window.isOnline === false) { showErr("Connection required."); return; }
             const id = document.getElementById('loginId').value.trim().toUpperCase();
             const pass = document.getElementById('loginPass').value;
@@ -926,6 +967,53 @@
                 }
                 throw new Error("Invalid ID or Password.");
             } catch (e) { showErr(e.message); btn.disabled = false; btn.innerHTML = '<span>🔑</span> Login'; }
+        }
+
+        /* ─── FORGOT PASSWORD LOGIC ─── */
+        function openForgotLoginModal() {
+            document.getElementById('forgot-login-modal').classList.remove('hidden');
+            document.getElementById('recovery-box').classList.add('hidden');
+            document.getElementById('recoverId').value = "";
+        }
+        function closeForgotModal() {
+            document.getElementById('forgot-login-modal').classList.add('hidden');
+        }
+
+        async function checkRecoveryAccess() {
+            const id = document.getElementById('recoverId').value.trim().toUpperCase();
+            if (!id) return alert("Pehle Register Number bharein!");
+
+            const btn = document.getElementById('recoverBtn');
+            btn.disabled = true; btn.innerText = "Checking...";
+
+            try {
+                await window.dbReady();
+                let doc = await db.collection('staff').doc(id).get();
+                if (!doc.exists) {
+                    doc = await db.collection('students').doc(id).get();
+                }
+
+                if (doc.exists) {
+                    const data = doc.data();
+                    const box = document.getElementById('recovery-box');
+                    const msg = document.getElementById('recovery-msg');
+                    box.classList.remove('hidden');
+
+                    if (data.isPhoneVerified && (data.phone || data.phoneNumber)) {
+                        const savedPass = data.password || "N/A";
+                        msg.innerHTML = `<span style="color:var(--success)">✅ Verified Phone Found!</span><br><br>Apka Password hai:<br><span style="font-size:20px; color:#fff; letter-spacing:2px; background:rgba(255,255,255,0.05); padding:5px 15px; border-radius:8px; display:inline-block; margin-top:10px;">${savedPass}</span>`;
+                        document.getElementById('otp-section').classList.add('hidden');
+                    } else {
+                        msg.innerHTML = `<span style="color:var(--error)">⚠️ Recovery Not Possible</span><br><br>Please link your phone in profile for recovery.<br>Admin se contact karein.`;
+                        document.getElementById('otp-section').classList.add('hidden');
+                    }
+                } else {
+                    alert("ID not found in our records!");
+                }
+            } catch (e) {
+                alert("Error: " + e.message);
+            }
+            btn.disabled = false; btn.innerText = "Verify Identity";
         }
     </script>
 </body>
