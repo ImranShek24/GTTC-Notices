@@ -935,18 +935,17 @@
         </div>
     </div>
 
-    <!-- ── MODAL: PIN ACCESS (Fees Admin / Madam) ── -->
+    <!-- ── MODAL: PIN ACCESS (Admin Only) ── -->
     <div id="pin-modal" class="modal-overlay">
         <div class="modal-body" style="max-width:320px; text-align:center;">
             <i class="fas fa-lock" style="font-size:40px; color:var(--gold); margin-bottom:20px;"></i>
-            <h4>FEES ADMIN PIN REQUIRED</h4>
-            <p style="font-size:11px; color:var(--text-dim); margin-bottom:20px;">Madam, please enter your secure
-                4-digit fees access PIN to continue.</p>
+            <h4>ENTER ADMIN PIN</h4>
+            <p style="font-size:11px; color:var(--text-dim); margin-bottom:20px;">Madam, please enter secure 4-digit
+                PIN.</p>
             <input type="password" id="admin-pin-input" class="input-box" maxlength="4" placeholder="••••"
-                style="text-align:center; font-size:24px; letter-spacing:10px;"
-                onkeydown="if(event.key==='Enter') verifyPin()">
-            <button class="btn-main" style="margin-top:20px; background:var(--gold);" onclick="verifyPin()">🔓 UNLOCK
-                FEES PANEL</button>
+                style="text-align:center; font-size:24px; letter-spacing:10px;">
+            <button class="btn-main" style="margin-top:20px; background:var(--gold);" onclick="verifyPin()">UNLOCK
+                SYSTEM</button>
             <div style="margin-top:20px; font-size:11px; color:var(--text-dim); cursor:pointer; font-weight:700;"
                 onclick="openForgotPinModal()">FORGOT PIN?</div>
         </div>
@@ -1001,6 +1000,7 @@
     <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-firestore-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-storage-compat.js"></script>
     <script src="firebase-init.js"></script>
     <!-- jsPDF for Receipt Generation -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
@@ -1014,10 +1014,7 @@
 
         const activeUserId = localStorage.getItem('gttc_current_user') || localStorage.getItem('gttc_current_staff');
         const role = localStorage.getItem('gttc_user_role');
-        const isFeesAdmin = role === 'fees_admin' || localStorage.getItem('gttc_fees_admin') === '1';
-        const isStaff = role === 'staff' || role === 'admin' || role === 'fees_admin'
-            || localStorage.getItem('gttc_superadmin') === '1'
-            || localStorage.getItem('gttc_fees_admin') === '1';
+        const isStaff = role === 'staff' || role === 'admin' || role === 'fees_admin' || localStorage.getItem('gttc_superadmin') === '1';
 
         let currentStudentReg = null;
         let selectedStudentData = null;
@@ -1031,30 +1028,13 @@
         let viewMode = isStaff ? 'admin' : 'student';
 
         // ── INIT & SESSION ──
-        auth.onAuthStateChanged(async user => {
+        auth.onAuthStateChanged(user => {
             if (!user && !activeUserId) {
                 window.location.href = 'login.html';
                 return;
             }
-            // Show switch button for Super Admin and Fees Admin
-            if (localStorage.getItem('gttc_superadmin') === '1' || isFeesAdmin) {
+            if (localStorage.getItem('gttc_superadmin') === '1') {
                 document.getElementById('admin-switch-btn').classList.remove('hidden');
-            }
-            // Sync admin_roles from Firestore if fees_admin
-            if (isFeesAdmin && activeUserId) {
-                try {
-                    const roleDoc = await db.collection('admin_roles').doc(activeUserId).get();
-                    if (!roleDoc.exists) {
-                        // Auto-create if not exists (first time)
-                        await db.collection('admin_roles').doc(activeUserId).set({
-                            userId: activeUserId,
-                            role: 'fees_admin',
-                            name: localStorage.getItem('gttc_user_name') || 'Madam (Fees Admin)',
-                            permissions: ['view_students', 'approve_fees', 'generate_qr', 'view_receipts'],
-                            createdAt: new Date().toISOString()
-                        });
-                    }
-                } catch (e) { console.warn('admin_roles sync:', e); }
             }
             updateView();
         });
@@ -1078,18 +1058,13 @@
 
         function verifyPin() {
             const pin = document.getElementById('admin-pin-input').value;
-            // Primary secure PIN: 7869 (Fees Admin)
-            // Fallback: 6363 or 1122 (Super Admin / Legacy)
-            const validPins = ['7869', '6363', '1122'];
-            if (validPins.includes(pin)) {
+            // Madam's Secret PIN: 7869
+            if (pin === '7869' || pin === '6363' || pin === '1122') {
                 isAdminAuthenticated = true;
                 closeModal('pin-modal');
                 initAdminFlow();
             } else {
-                document.getElementById('admin-pin-input').value = '';
-                document.getElementById('admin-pin-input').style.border = '2px solid var(--red)';
-                setTimeout(() => { document.getElementById('admin-pin-input').style.border = ''; }, 1500);
-                alert("❌ Galat PIN! Madam, sahi 4-digit PIN enter karein.");
+                alert("Incorrect PIN! Please try again.");
             }
         }
 
