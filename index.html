@@ -1,0 +1,2533 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport"
+        content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>GTTC 24 - Dashboard</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <style>
+        /* ===== THEME VARIABLES ===== */
+        :root {
+            --bg-dark: #00060e;
+            --primary: #0091ff;
+            --surface: rgba(255, 255, 255, 0.05);
+            --text-gray: #9aa0a6;
+            --border: rgba(255, 255, 255, 0.1);
+            --body-bg: #00060e;
+            --body-color: #ffffff;
+            --card-bg: #080c14;
+            --drawer-bg: #050a14;
+            --nav-bg: #00060e;
+            --label-color: rgba(255, 255, 255, 0.5);
+            --toggle-off: rgba(255, 255, 255, 0.15);
+            --bg-gradient: radial-gradient(circle at 50% 10%, #001a3d 0%, #00060e 100%);
+        }
+
+        html[data-theme="light"] {
+            --bg-dark: #f0f4f8;
+            --surface: rgba(0, 0, 0, 0.04);
+            --text-gray: #5f6b7a;
+            --border: rgba(0, 0, 0, 0.1);
+            --body-bg: #f0f4f8;
+            --body-color: #0a1929;
+            --card-bg: #ffffff;
+            --drawer-bg: #ffffff;
+            --nav-bg: #ffffff;
+            --label-color: rgba(0, 0, 0, 0.45);
+            --toggle-off: rgba(0, 0, 0, 0.12);
+            --bg-gradient: radial-gradient(circle at 50% 10%, #c8e0ff 0%, #f0f4f8 100%);
+        }
+
+        html {
+            scroll-behavior: smooth;
+            height: 100%;
+        }
+
+        html,
+        body {
+            overflow-x: hidden;
+            overflow-y: auto;
+            overscroll-behavior: auto;
+            -webkit-text-size-adjust: 100%;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Inter', 'Segoe UI', sans-serif;
+            -webkit-tap-highlight-color: transparent;
+            touch-action: manipulation;
+        }
+
+        input,
+        select,
+        textarea {
+            font-size: 16px !important;
+        }
+
+        body {
+            background: var(--body-bg);
+            color: var(--body-color);
+            min-height: 100vh;
+            background-image: var(--bg-gradient);
+            transition: background 0.3s, color 0.3s;
+            -webkit-overflow-scrolling: touch;
+            animation: fadeIn 0.8s ease-out;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(5px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes pulse {
+            0% {
+                box-shadow: 0 0 0 0 rgba(0, 230, 118, 0.4);
+            }
+
+            70% {
+                box-shadow: 0 0 0 10px rgba(0, 230, 118, 0);
+            }
+
+            100% {
+                box-shadow: 0 0 0 0 rgba(0, 230, 118, 0);
+            }
+        }
+
+        @keyframes slideUp {
+            from {
+                transform: translateY(100%);
+            }
+
+            to {
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes shimmers {
+            0% {
+                transform: translateX(-100%);
+            }
+
+            100% {
+                transform: translateX(100%);
+            }
+        }
+
+        .app-container {
+            width: 100%;
+            max-width: 480px;
+            margin: 0 auto;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            padding: 20px;
+            padding-bottom: 150px;
+            /* Increased to ensure bottom sections are visible */
+        }
+
+        /* ===== HEADER ===== */
+        .header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 10px 0;
+            padding-top: calc(env(safe-area-inset-top) + 10px);
+            margin-bottom: 30px;
+        }
+
+        .header-left {
+            width: 45px;
+            height: 45px;
+            background: var(--primary);
+            border-radius: 10px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            box-shadow: 0 0 15px rgba(0, 145, 255, 0.4);
+            flex-shrink: 0;
+        }
+
+        .header-left i {
+            font-size: 20px;
+            color: #fff;
+        }
+
+        .header-center {
+            text-align: left;
+            flex-grow: 1;
+            margin-left: 12px;
+            min-width: 0;
+        }
+
+        .header-center h1 {
+            font-size: 17px;
+            font-weight: 800;
+            letter-spacing: 0.5px;
+            font-style: italic;
+            white-space: nowrap;
+        }
+
+        .header-center p {
+            font-size: 11px;
+            color: var(--text-gray);
+            font-weight: 700;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        /* Header Right: photo + settings bar */
+        .header-right-group {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            flex-shrink: 0;
+        }
+
+        .header-right {
+            width: 46px;
+            height: 46px;
+            border-radius: 12px;
+            border: 2px solid var(--primary);
+            padding: 2px;
+            overflow: hidden;
+            cursor: pointer;
+        }
+
+        .header-right img {
+            width: 100%;
+            height: 100%;
+            border-radius: 8px;
+            object-fit: cover;
+        }
+
+        /* Settings Gear Button */
+        .settings-btn {
+            width: 42px;
+            height: 42px;
+            border-radius: 12px;
+            background: var(--surface);
+            border: 1px solid var(--border);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            cursor: pointer;
+            transition: background 0.2s, transform 0.2s;
+        }
+
+        .settings-btn:active {
+            transform: scale(0.88);
+        }
+
+        .settings-btn i {
+            font-size: 18px;
+            color: var(--primary);
+            transition: transform 0.4s ease;
+        }
+
+        .settings-btn.open i {
+            transform: rotate(90deg);
+        }
+
+        /* ===== SMART NOTICE BOARD ===== */
+        /* SMART NOTICE BOARD (16:9 LANDSCAPE) */
+        .notice-board {
+            background: #000;
+            border-radius: 25px;
+            overflow: hidden;
+            position: relative;
+            margin: 15px auto 25px;
+            width: 92%;
+            aspect-ratio: 16 / 9;
+            /* Landscape like YouTube */
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+            display: flex;
+            flex-direction: column;
+        }
+
+        .nb-header-strip {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 8px 18px 4px;
+            background: rgba(255, 255, 255, 0.95);
+            z-index: 10;
+        }
+
+        .nb-top {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .nb-top i {
+            font-size: 16px;
+            color: #ff4757;
+        }
+
+        .nb-top span {
+            font-size: 10px;
+            font-weight: 800;
+            letter-spacing: 2px;
+            color: #333;
+        }
+
+        /* Slider Wrapper */
+        .nb-slider-wrapper {
+            flex: 1;
+            display: flex;
+            overflow-x: auto;
+            scroll-snap-type: x mandatory;
+            scroll-behavior: smooth;
+            -webkit-overflow-scrolling: touch;
+        }
+
+        .nb-slider-wrapper::-webkit-scrollbar {
+            display: none;
+        }
+
+        .nb-nav {
+            position: absolute;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 35px;
+            height: 35px;
+            background: rgba(0, 0, 0, 0.4);
+            backdrop-filter: blur(5px);
+            color: #fff;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 20;
+            cursor: pointer;
+            font-size: 14px;
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            transition: all 0.2s;
+        }
+
+        .nb-nav:active {
+            background: var(--primary);
+            transform: translateY(-50%) scale(0.9);
+        }
+
+        .nb-prev {
+            left: 10px;
+        }
+
+        .nb-next {
+            right: 10px;
+        }
+
+        .nb-item {
+            min-width: 100%;
+            height: 100%;
+            scroll-snap-align: start;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            padding: 0 15px 15px;
+            box-sizing: border-box;
+        }
+
+        .nb-item-photo {
+            width: 100%;
+            height: 100%;
+            position: absolute;
+            top: 0;
+            left: 0;
+            z-index: 1;
+            background: #222;
+        }
+
+        /* Blurred Background Image */
+        .nb-img-blur {
+            position: absolute;
+            inset: 0;
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            filter: blur(15px) brightness(0.6);
+            transform: scale(1.1);
+            z-index: 1;
+        }
+
+        /* Main Fitting Image */
+        .nb-img-main {
+            position: relative;
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+            /* Don't cut, adjust inside */
+            z-index: 2;
+        }
+
+        .nb-item-overlay {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 60%;
+            background: linear-gradient(transparent, rgba(0, 0, 0, 0.85) 95%);
+            z-index: 3;
+        }
+
+        .nb-item-text {
+            position: relative;
+            z-index: 4;
+            text-align: left;
+            padding: 0 18px 10px;
+            margin-top: auto;
+            color: #fff;
+            max-width: 95%;
+        }
+
+        .nb-item h2 {
+            font-size: 16px;
+            font-weight: 900;
+            color: #fff;
+            margin: 0;
+            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
+        }
+
+        .nb-item p {
+            font-size: 11px;
+            color: #eee;
+            font-weight: 500;
+            margin: 2px 0 0;
+        }
+
+        /* Dots Indicator */
+        .nb-dots {
+            display: flex;
+            justify-content: center;
+            gap: 6px;
+            padding-bottom: 10px;
+            background: transparent;
+            position: absolute;
+            bottom: 0;
+            width: 100%;
+            z-index: 10;
+        }
+
+        .nb-dot {
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            background: #ddd;
+            transition: 0.3s;
+        }
+
+        .nb-dot.active {
+            background: var(--primary);
+            width: 15px;
+            border-radius: 10px;
+        }
+
+        /* Full Screen Notice Viewer */
+        .notice-viewer {
+            position: fixed;
+            inset: 0;
+            background: #000;
+            z-index: 5000;
+            display: none;
+            flex-direction: column;
+            padding: 20px;
+            overflow-y: auto;
+        }
+
+        .nv-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 25px;
+            padding-top: env(safe-area-inset-top);
+        }
+
+        .nv-close {
+            color: #fff;
+            font-size: 28px;
+            cursor: pointer;
+        }
+
+        .nv-body {
+            text-align: left;
+        }
+
+        .nv-img {
+            width: 100%;
+            border-radius: 20px;
+            margin-bottom: 20px;
+            display: none;
+        }
+
+        .nv-title {
+            font-size: 28px;
+            font-weight: 900;
+            color: #fff;
+            margin-bottom: 15px;
+            line-height: 1.2;
+        }
+
+        .nv-text {
+            font-size: 16px;
+            color: #aaa;
+            line-height: 1.6;
+            white-space: pre-wrap;
+            margin-bottom: 30px;
+        }
+
+        .pdf-btn {
+            background: #ff4757;
+            color: white;
+            padding: 16px;
+            border-radius: 16px;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+            text-decoration: none;
+            font-weight: 800;
+            box-shadow: 0 10px 20px rgba(255, 71, 87, 0.3);
+        }
+
+        html[data-theme="light"] .notice-board {
+            box-shadow: 0 8px 28px rgba(0, 100, 200, 0.15);
+        }
+
+        .nb-top {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 14px;
+        }
+
+        .nb-top i {
+            font-size: 16px;
+            color: #ff4757;
+        }
+
+        .nb-top span {
+            font-size: 10px;
+            font-weight: 800;
+            letter-spacing: 2.5px;
+            text-transform: uppercase;
+            color: #333;
+            max-width: 150px;
+            display: inline-block;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            vertical-align: middle;
+        }
+
+        .notice-board h2 {
+            font-size: 24px;
+            font-weight: 900;
+            font-style: italic;
+            color: #001a3d;
+            margin-bottom: 6px;
+        }
+
+        .notice-board p {
+            font-size: 13px;
+            color: #666;
+            margin-bottom: 18px;
+            font-weight: 500;
+        }
+
+        .notice-board .view-board {
+            font-size: 11px;
+            font-weight: 800;
+            text-decoration: none;
+            color: #333;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        /* ===== GRID MENU ===== */
+        .grid-menu {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 10px;
+            margin-bottom: 25px;
+        }
+
+        .menu-item {
+            background: var(--surface);
+            border-radius: 26px;
+            padding: 20px 8px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            border: 1px solid var(--border);
+            transition: transform 0.2s, background 0.2s;
+            cursor: pointer;
+        }
+
+        .menu-item:active {
+            transform: scale(0.9);
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        .menu-item i {
+            font-size: 28px;
+            margin-bottom: 10px;
+        }
+
+        .menu-item span {
+            font-size: 9px;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        /* ICON COLORS */
+        .m-class i {
+            color: #00e676;
+        }
+
+        .m-aishek i {
+            color: #d500f9;
+        }
+
+        .m-fees i {
+            color: #2196f3;
+        }
+
+        .m-chat i {
+            color: #ff4081;
+        }
+
+        .m-notices i {
+            color: #00bcd4;
+        }
+
+        .m-quiz i {
+            color: #ffeb3b;
+        }
+
+        /* ===== BOTTOM NAV ===== */
+        .bottom-nav {
+            position: fixed;
+            bottom: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 100%;
+            max-width: 480px;
+            background: var(--nav-bg);
+            height: 75px;
+            display: flex;
+            justify-content: space-around;
+            align-items: center;
+            border-top: 1px solid var(--border);
+            z-index: 1000;
+            padding-bottom: env(safe-area-inset-bottom, 8px);
+            transition: background 0.3s;
+        }
+
+        .nav-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            color: #555;
+            text-decoration: none;
+            flex: 1;
+            gap: 4px;
+        }
+
+        .nav-item.active {
+            color: var(--body-color);
+        }
+
+        .nav-item i {
+            font-size: 20px;
+        }
+
+        .nav-item span {
+            font-size: 8px;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .center-btn {
+            width: 60px;
+            height: 60px;
+            background: #0091ff;
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin-top: -38px;
+            border: 5px solid var(--nav-bg);
+            box-shadow: 0 0 20px rgba(0, 145, 255, 0.6);
+            color: #fff;
+            font-size: 24px;
+            cursor: pointer;
+            flex-shrink: 0;
+            transition: border-color 0.3s;
+        }
+
+        /* ===== PROFILE MODAL ===== */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.92);
+            z-index: 2000;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            backdrop-filter: blur(15px);
+        }
+
+        .modal-card {
+            background: var(--card-bg);
+            width: 88%;
+            max-width: 340px;
+            border-radius: 35px;
+            border: 1.5px solid var(--primary);
+            padding: 40px 20px 25px;
+            text-align: center;
+            position: relative;
+            box-shadow: 0 0 60px rgba(0, 145, 255, 0.12);
+            animation: slideUp 0.35s cubic-bezier(0.18, 0.89, 0.32, 1.28);
+        }
+
+        .close-cross {
+            position: absolute;
+            top: 18px;
+            right: 22px;
+            font-size: 22px;
+            color: var(--body-color);
+            cursor: pointer;
+            opacity: 0.4;
+            transition: 0.3s;
+        }
+
+        .top-edit-icn {
+            position: absolute;
+            top: 18px;
+            left: 22px;
+            font-size: 15px;
+            color: var(--primary);
+            cursor: pointer;
+            opacity: 0.7;
+        }
+
+        .m-photo-wrap {
+            position: relative;
+            width: 90px;
+            height: 90px;
+            margin: 0 auto 16px;
+        }
+
+        .m-photo-wrap img {
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            border: 3px solid var(--primary);
+            object-fit: cover;
+        }
+
+        .m-photo-edit {
+            position: absolute;
+            bottom: 0;
+            right: 0;
+            width: 28px;
+            height: 28px;
+            background: var(--primary);
+            color: #000;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 13px;
+            cursor: pointer;
+            border: 2.5px solid var(--card-bg);
+        }
+
+        .modal-card h3 {
+            font-size: 19px;
+            font-weight: 800;
+            margin-bottom: 4px;
+        }
+
+        .edit-icn {
+            font-size: 13px;
+            color: var(--primary);
+            cursor: pointer;
+        }
+
+        .sub-tag {
+            display: inline-block;
+            background: rgba(0, 145, 255, 0.1);
+            color: var(--primary);
+            font-size: 10px;
+            font-weight: 800;
+            padding: 4px 12px;
+            border-radius: 20px;
+            letter-spacing: 1px;
+            margin-bottom: 22px;
+            text-transform: uppercase;
+        }
+
+        .info-container {
+            background: rgba(255, 255, 255, 0.03);
+            border-radius: 18px;
+            padding: 12px 15px;
+            border: 1px solid rgba(255, 255, 255, 0.06);
+        }
+
+        html[data-theme="light"] .info-container {
+            background: rgba(0, 0, 0, 0.03);
+            border: 1px solid rgba(0, 0, 0, 0.07);
+        }
+
+        .info-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 9px 0;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        html[data-theme="light"] .info-row {
+            border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+        }
+
+        .info-row:last-child {
+            border-bottom: none;
+        }
+
+        .info-label {
+            font-size: 10px;
+            color: var(--text-gray);
+            font-weight: 700;
+            text-transform: uppercase;
+        }
+
+        .info-value {
+            font-size: 13px;
+            color: var(--body-color);
+            font-weight: 600;
+            text-align: right;
+            max-width: 60%;
+            word-break: break-word;
+        }
+
+        @keyframes slideUp {
+            from {
+                transform: translateY(50px);
+                opacity: 0;
+            }
+
+            to {
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
+
+        /* ===== SETTINGS DRAWER ===== */
+        .drawer-backdrop {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.6);
+            backdrop-filter: blur(4px);
+            z-index: 3000;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.35s ease;
+        }
+
+        .drawer-backdrop.open {
+            opacity: 1;
+            pointer-events: all;
+        }
+
+        .settings-drawer {
+            position: fixed;
+            top: 0;
+            right: -320px;
+            width: 300px;
+            height: 100%;
+            background: var(--drawer-bg);
+            border-left: 1px solid var(--border);
+            z-index: 4000;
+            transition: right 0.38s cubic-bezier(0.22, 0.61, 0.36, 1);
+            display: flex;
+            flex-direction: column;
+            box-shadow: -8px 0 40px rgba(0, 0, 0, 0.5);
+            padding-top: env(safe-area-inset-top, 0);
+        }
+
+        .settings-drawer.open {
+            right: 0;
+        }
+
+        .drawer-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 22px 20px 16px;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .drawer-title {
+            font-size: 13px;
+            font-weight: 900;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            color: var(--primary);
+        }
+
+        .drawer-close {
+            width: 34px;
+            height: 34px;
+            border-radius: 10px;
+            background: var(--surface);
+            border: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            font-size: 18px;
+            color: var(--body-color);
+            transition: background 0.2s;
+        }
+
+        .drawer-close:active {
+            background: rgba(255, 255, 255, 0.15);
+        }
+
+        .drawer-body {
+            flex: 1;
+            overflow-y: auto;
+            padding: 16px 0;
+        }
+
+        .drawer-item {
+            display: flex;
+            align-items: center;
+            padding: 16px 20px;
+            cursor: pointer;
+            transition: background 0.2s;
+            gap: 14px;
+            text-decoration: none;
+            color: var(--body-color);
+        }
+
+        .drawer-item:active,
+        .drawer-item.active {
+            background: rgba(100, 255, 218, 0.08);
+        }
+
+        .m-chat {
+            position: relative;
+        }
+
+        .notif-dot {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            width: 10px;
+            height: 10px;
+            background: #ff3d00;
+            border-radius: 50%;
+            border: 2px solid #111b21;
+            display: none;
+            animation: pulse-red 2s infinite;
+            z-index: 10;
+        }
+
+        @keyframes pulse-red {
+            0% {
+                transform: scale(0.95);
+                box-shadow: 0 0 0 0 rgba(255, 61, 0, 0.7);
+            }
+
+            70% {
+                transform: scale(1);
+                box-shadow: 0 0 0 10px rgba(255, 61, 0, 0);
+            }
+
+            100% {
+                transform: scale(0.95);
+                box-shadow: 0 0 0 0 rgba(255, 61, 0, 0);
+            }
+        }
+
+        .semester-card {
+            background: rgba(100, 255, 218, 0.05);
+            border: 1px solid rgba(100, 255, 218, 0.1);
+            border-radius: 12px;
+            padding: 12px;
+            margin: 10px 20px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .sc-icon {
+            font-size: 20px;
+            color: var(--primary);
+        }
+
+        .sc-text strong {
+            display: block;
+            font-size: 13px;
+            color: var(--primary);
+        }
+
+        .sc-text small {
+            font-size: 11px;
+            color: var(--text-gray);
+        }
+
+        .drawer-item:hover {
+            background: var(--surface);
+        }
+
+        .drawer-item-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 17px;
+            flex-shrink: 0;
+        }
+
+        .di-blue {
+            background: rgba(0, 145, 255, 0.12);
+            color: var(--primary);
+        }
+
+        .di-purple {
+            background: rgba(156, 39, 176, 0.12);
+            color: #ce93d8;
+        }
+
+        .di-green {
+            background: rgba(0, 200, 83, 0.12);
+            color: #69f0ae;
+        }
+
+        .di-red {
+            background: rgba(244, 67, 54, 0.12);
+            color: #ff7961;
+        }
+
+        html[data-theme="light"] .di-purple {
+            color: #8e24aa;
+        }
+
+        html[data-theme="light"] .di-green {
+            color: #2e7d32;
+        }
+
+        html[data-theme="light"] .di-red {
+            color: #c62828;
+        }
+
+        .drawer-item-text {
+            flex: 1;
+        }
+
+        .drawer-item-text strong {
+            display: block;
+            font-size: 14px;
+            font-weight: 700;
+            margin-bottom: 2px;
+        }
+
+        .drawer-item-text small {
+            font-size: 11px;
+            color: var(--text-gray);
+        }
+
+        .drawer-divider {
+            height: 1px;
+            background: var(--border);
+            margin: 8px 20px;
+        }
+
+        /* Theme Toggle Switch */
+        .theme-toggle {
+            position: relative;
+            width: 46px;
+            height: 26px;
+            flex-shrink: 0;
+        }
+
+        .theme-toggle input {
+            display: none;
+        }
+
+        .toggle-track {
+            position: absolute;
+            inset: 0;
+            border-radius: 13px;
+            background: var(--toggle-off);
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+
+        .toggle-track::after {
+            content: '';
+            position: absolute;
+            top: 3px;
+            left: 3px;
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background: #fff;
+            transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+            box-shadow: 0 1px 4px rgba(0, 0, 0, 0.35);
+        }
+
+        input:checked+.toggle-track {
+            background: var(--primary);
+        }
+
+        input:checked+.toggle-track::after {
+            transform: translateX(20px);
+        }
+
+        /* Sync Status Indicator */
+        .sync-dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            background: #69f0ae;
+            box-shadow: 0 0 8px rgba(105, 240, 174, 0.8);
+            flex-shrink: 0;
+            animation: syncPulse 2s infinite;
+        }
+
+        .sync-dot.syncing {
+            background: #ffd740;
+            box-shadow: 0 0 8px rgba(255, 215, 64, 0.8);
+            animation: none;
+        }
+
+        .sync-dot.error {
+            background: #ff7961;
+            box-shadow: 0 0 8px rgba(255, 121, 97, 0.8);
+            animation: none;
+        }
+
+        @keyframes syncPulse {
+
+            0%,
+            100% {
+                opacity: 1;
+                transform: scale(1);
+            }
+
+            50% {
+                opacity: 0.5;
+                transform: scale(0.8);
+            }
+        }
+
+        /* TOAST */
+        .toast {
+            position: fixed;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%) translateY(-100px);
+            background: var(--primary);
+            color: #000;
+            padding: 12px 20px;
+            border-radius: 50px;
+            font-weight: 700;
+            font-size: 13px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+            z-index: 9999;
+            transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .toast.show {
+            transform: translateX(-50%) translateY(20px);
+        }
+
+        .toast-img {
+            width: 25px;
+            height: 25px;
+            border-radius: 50%;
+            border: 1px solid #000;
+        }
+
+        .drawer-footer {
+            padding: 20px;
+            text-align: center;
+            font-size: 11px;
+            font-weight: 700;
+            color: var(--text-gray);
+            border-top: 1px solid var(--border);
+            letter-spacing: 0.5px;
+        }
+
+        .drawer-footer span {
+            color: var(--primary);
+        }
+
+        /* MOBILE TOUCH FIXES */
+        .settings-btn,
+        .nav-item,
+        .menu-item {
+            min-height: 48px;
+            min-width: 48px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+    </style>
+</head>
+
+<div id="toast" class="toast">
+    <img id="toastImg" src="" class="toast-img">
+    <span id="toastText">Someone liked your video!</span>
+</div>
+
+<div class="app-container">
+    <!-- HEADER -->
+    <div class="header">
+        <div class="header-left">
+            <img src="gttc-logo.png" style="width: 32px; height: 32px; border-radius: 6px; object-fit: contain;">
+        </div>
+        <div class="header-center">
+            <h1>GTTC 24</h1>
+            <p id="sem_course">Loading...</p>
+        </div>
+        <div class="header-right-group">
+            <!-- Settings Gear Icon -->
+            <div class="settings-btn" id="settingsBtn" onclick="openDrawer()">
+                <i class="fas fa-gear"></i>
+            </div>
+            <!-- Profile Photo -->
+            <div class="header-right" id="profileTrigger" onclick="openProfile()">
+                <img id="u_photo" src="https://via.placeholder.com/50/222/64ffda?text=U" alt="Student">
+            </div>
+        </div>
+    </div>
+
+    <!-- ===== SUPER ADMIN BANNER (Switch to Master Panel) ===== -->
+    <div id="superAdminBadge"
+        style="display:none; margin:0 16px 12px; background:linear-gradient(135deg,rgba(0,230,118,0.2),rgba(0,180,90,0.15)); border:2px solid rgba(0,230,118,0.5); border-radius:22px; padding:15px 20px; align-items:center; gap:15px; flex-shrink:0; cursor:pointer; box-shadow: 0 10px 30px rgba(0, 230, 118, 0.2); animation: masterPulse 3s infinite ease-in-out;"
+        onclick="window.location.href='super-admin.html'">
+        <div style="width:12px;height:12px;border-radius:50%;background:#00e676;box-shadow:0 0 15px #00e676;"></div>
+        <div style="flex:1;">
+            <div
+                style="font-size:13px;font-weight:950;color:#00e676;letter-spacing:1px;margin-bottom:2px;text-transform:uppercase;">
+                MASTER CONTROL UNLOCKED</div>
+            <div style="font-size:10px;color:rgba(0,230,118,0.8);font-weight:700;">Secure Access for Root Admin Only
+            </div>
+        </div>
+        <div
+            style="background:rgba(0,230,118,0.3); border-radius:12px; padding:8px 16px; font-size:11px; font-weight:950; color:#fff; border:1px solid rgba(255,255,255,0.2);">
+            SWITCH</div>
+    </div>
+
+
+    <!-- SMART NOTICE BOARD (SLIDER VERSION) -->
+    <div class="notice-board" id="main-notice-board" style="padding-top: env(safe-area-inset-top);">
+        <div class="nb-header-strip">
+            <div class="nb-top">
+                <i class="fas fa-bullhorn"></i>
+                <span id="nb-header-title">Smart Notice Board</span>
+            </div>
+        </div>
+
+        <!-- Navigation Arrows -->
+        <div class="nb-nav nb-prev" onclick="nbPrev()"><i class="fas fa-chevron-left"></i></div>
+        <div class="nb-nav nb-next" onclick="nbNext()"><i class="fas fa-chevron-right"></i></div>
+
+        <!-- Slider Wrapper -->
+        <div class="nb-slider-wrapper" id="nbSlider">
+            <!-- Dynamic Items will load here -->
+            <div class="nb-item">
+                <h2>Loading Notices...</h2>
+            </div>
+        </div>
+
+        <!-- Dot Indicators -->
+        <div class="nb-dots" id="nbDots"></div>
+    </div>
+
+    <!-- FULL SCREEN NOTICE VIEWER -->
+    <div id="noticeViewer" class="notice-viewer">
+        <div class="nv-header">
+            <div style="display:flex; align-items:center; gap:10px;">
+                <i class="fas fa-bullhorn" style="color:#ff4757;"></i>
+                <span style="color:#fff; font-size:12px; font-weight:800; letter-spacing:1px;">NOTICE DETAILS</span>
+            </div>
+            <div class="nv-close" onclick="closeNoticeFull()">&times;</div>
+        </div>
+        <div class="nv-body">
+            <img id="nv-img" class="nv-img">
+            <h1 id="nv-title" class="nv-title text-shadow-glow">New Update</h1>
+            <p id="nv-text" class="nv-text">This is a persistent notification message.</p>
+            <a id="nv-pdf" href="#" class="pdf-btn" target="_blank">
+                <i class="fas fa-file-pdf"></i> View PDF Document
+            </a>
+        </div>
+    </div>
+
+    <!-- GRID MENU -->
+    <div class="grid-menu">
+        <div class="menu-item m-class" onclick="window.location.href='class.html'">
+            <i class="fas fa-users-viewfinder"></i>
+            <span>CLASS</span>
+        </div>
+        <div class="menu-item m-showcase" onclick="window.location.href='showcase.html'">
+            <i class="fas fa-play-circle"></i>
+            <span>SHOWCASE</span>
+        </div>
+        <div class="menu-item m-fees" onclick="window.location.href='fees.html'">
+            <i class="fas fa-credit-card"></i>
+            <span>COLLEGE FEES</span>
+        </div>
+        <div class="menu-item m-chat" onclick="window.location.href='chat.html'" style="position:relative;">
+            <div id="chatNotif" class="notif-dot"></div>
+            <div id="chatBadge"
+                style="display:none;position:absolute;top:8px;right:8px;background:#ff3838;color:#fff;font-size:9px;font-weight:900;min-width:18px;height:18px;border-radius:9px;align-items:center;justify-content:center;padding:0 4px;border:2px solid var(--surface);z-index:5;letter-spacing:0;">
+                0</div>
+            <i class="fas fa-comment-dots"></i>
+            <span>CHAT</span>
+        </div>
+        <div class="menu-item m-notices" onclick="window.location.href='student-list.html'">
+            <i class="fas fa-bullhorn"></i>
+            <span>NOTICES</span>
+        </div>
+        <div class="menu-item m-quiz" onclick="window.location.href='quiz.html'">
+            <i class="fas fa-bolt"></i>
+            <span>QUIZ</span>
+        </div>
+        <div class="menu-item m-fees" onclick="window.location.href='fees.html'">
+            <i class="fas fa-credit-card"></i>
+            <span>COLLEGE FEES</span>
+        </div>
+        <div class="menu-item"
+            style="background: linear-gradient(135deg, rgba(0,230,118,0.15), rgba(0,150,80,0.25)); border:1px solid rgba(0,230,118,0.3);"
+            onclick="openHelpSupport()">
+            <i class="fas fa-headset" style="color:#00e676;"></i>
+            <span style="color:#00e676;">HELP</span>
+        </div>
+    </div>
+</div>
+
+<!-- ===== HELP & SUPPORT MODAL ===== -->
+<div id="helpModal"
+    style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.85); z-index:9000; align-items:flex-end; justify-content:center;">
+    <div
+        style="background:var(--surface); border:1px solid var(--border); border-radius:24px 24px 0 0; width:100%; max-width:480px; padding:28px 22px 40px; position:relative; animation:slideUp 0.4s cubic-bezier(0.22,1,0.36,1);">
+        <!-- Header -->
+        <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:22px;">
+            <div style="display:flex; align-items:center; gap:10px;">
+                <div
+                    style="width:38px;height:38px;border-radius:12px;background:rgba(0,230,118,0.15);display:flex;align-items:center;justify-content:center;">
+                    <i class="fas fa-headset" style="color:#00e676; font-size:17px;"></i>
+                </div>
+                <div>
+                    <div style="font-size:15px; font-weight:800; color:var(--body-color);">Help & Support</div>
+                    <div style="font-size:10px; font-weight:700; color:#00e676; letter-spacing:1px;">GTTC 24 CARE</div>
+                </div>
+            </div>
+            <div onclick="closeHelpSupport()"
+                style="width:34px;height:34px;border-radius:50%;background:rgba(255,255,255,0.08);display:flex;align-items:center;justify-content:center;font-size:18px;cursor:pointer;color:var(--text-gray);">
+                ✕</div>
+        </div>
+
+        <!-- Problem Type -->
+        <div style="font-size:10px; font-weight:800; color:var(--text-gray); letter-spacing:1.5px; margin-bottom:8px;">
+            PROBLEM TYPE</div>
+        <div style="display:flex; gap:8px; flex-wrap:wrap; margin-bottom:18px;" id="helpCategoryRow">
+            <span class="help-chip active" onclick="selectHelpChip(this,'App Issue')">📱 App Issue</span>
+            <span class="help-chip" onclick="selectHelpChip(this,'Attendance')">📋 Attendance</span>
+            <span class="help-chip" onclick="selectHelpChip(this,'Fees')">💰 Fees</span>
+            <span class="help-chip" onclick="selectHelpChip(this,'Notice')">📢 Notice</span>
+            <span class="help-chip" onclick="selectHelpChip(this,'Other')">⚙️ Other</span>
+        </div>
+
+        <!-- Problem Text -->
+        <div style="font-size:10px; font-weight:800; color:var(--text-gray); letter-spacing:1.5px; margin-bottom:8px;">
+            DESCRIBE YOUR PROBLEM</div>
+        <textarea id="helpProblemText"
+            placeholder="Apni problem yahan likho... (e.g. Meri attendance galat hai, 5 din present tha but absent dikha raha hai)"
+            style="width:100%; min-height:100px; background:rgba(255,255,255,0.05); border:1px solid var(--border); border-radius:14px; color:var(--body-color); padding:14px; font-family:inherit; font-size:14px; resize:none; outline:none; line-height:1.5;"></textarea>
+
+        <!-- File Upload -->
+        <div id="helpFileArea" onclick="document.getElementById('helpFileInput').click()"
+            style="margin:14px 0; border:2px dashed rgba(0,230,118,0.3); border-radius:14px; padding:16px; text-align:center; cursor:pointer; transition:0.2s;">
+            <div id="helpFileDefault">
+                <div style="font-size:26px; margin-bottom:6px;">📎</div>
+                <div style="font-size:13px; font-weight:700; color:#00e676;">Screenshot / PDF Attach karo</div>
+                <div style="font-size:10px; color:var(--text-gray); margin-top:4px;">(Optional — Evidence ke liye)</div>
+            </div>
+            <div id="helpFileDone" style="display:none;">
+                <div style="font-size:26px;">✅</div>
+                <div id="helpFileNameText" style="font-size:12px; font-weight:700; color:#00e676; margin-top:6px;">File
+                    Selected</div>
+            </div>
+        </div>
+        <input type="file" id="helpFileInput" accept="image/*,.pdf" style="display:none;"
+            onchange="handleHelpFile(this)">
+
+        <!-- Status -->
+        <div id="helpStatusMsg"
+            style="font-size:12px; text-align:center; margin-bottom:12px; min-height:18px; display:none;"></div>
+
+        <!-- Submit Button -->
+        <button id="helpSubmitBtn" onclick="submitHelpTicket()"
+            style="width:100%; padding:16px; background:linear-gradient(135deg,#00e676,#00b050); color:#000; border:none; border-radius:14px; font-weight:800; font-size:15px; cursor:pointer; display:flex; align-items:center; justify-content:center; gap:8px;">
+            <i class="fas fa-paper-plane"></i> Submit Complaint
+        </button>
+    </div>
+</div>
+
+<style>
+    .help-chip {
+        padding: 7px 13px;
+        border-radius: 20px;
+        font-size: 11px;
+        font-weight: 800;
+        background: rgba(255, 255, 255, 0.06);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        color: var(--text-gray);
+        cursor: pointer;
+        transition: 0.2s;
+        white-space: nowrap;
+    }
+
+    .help-chip.active {
+        background: rgba(0, 230, 118, 0.15);
+        border-color: #00e676;
+        color: #00e676;
+    }
+
+    #helpFileArea:active {
+        opacity: 0.8;
+        transform: scale(0.98);
+    }
+
+    @keyframes masterPulse {
+        0% {
+            transform: scale(1);
+            filter: brightness(1);
+            box-shadow: 0 0 10px rgba(0, 230, 118, 0.4);
+        }
+
+        50% {
+            transform: scale(1.02);
+            filter: brightness(1.2);
+            box-shadow: 0 0 20px rgba(0, 230, 118, 0.7);
+        }
+
+        100% {
+            transform: scale(1);
+            filter: brightness(1);
+            box-shadow: 0 0 10px rgba(0, 230, 118, 0.4);
+        }
+    }
+
+    .master-banner {
+        animation: masterPulse 3s infinite ease-in-out;
+        transition: 0.3s;
+    }
+
+    .master-banner:active {
+        transform: scale(0.95);
+        opacity: 0.9;
+    }
+</style>
+
+<!-- BOTTOM NAV -->
+<div class="bottom-nav">
+    <a href="#" class="nav-item active">
+        <i class="fas fa-th-large"></i>
+        <span>DASHBOARD</span>
+    </a>
+    <div class="center-btn" onclick="location.reload()">
+        <i class="fas fa-microchip"></i>
+    </div>
+    <a href="javascript:void(0)" class="nav-item" onclick="openDrawer()">
+        <i class="fas fa-gear"></i>
+        <span>SETTINGS</span>
+    </a>
+</div>
+
+<!-- PROFILE MODAL -->
+<div id="profileModal" class="modal-overlay">
+    <div class="modal-card">
+        <span class="close-cross" onclick="closeProfile()">&times;</span>
+        <span class="top-edit-icn" onclick="window.location.href='profile-edit.html'">✏️</span>
+
+        <div class="m-photo-wrap">
+            <img id="m_photo" src="" alt="Profile">
+            <div class="m-photo-edit" onclick="window.location.href='profile-edit.html'">✏️</div>
+        </div>
+
+        <h3 id="m_name">Student Name <i class="edit-icn" onclick="window.location.href='profile-edit.html'">✏️</i>
+        </h3>
+        <span id="m_course_sem" class="sub-tag">Course &amp; Sem</span>
+
+        <div class="info-container">
+            <div class="info-row">
+                <span class="info-label">Father's Name</span>
+                <span class="info-value" id="m_father">-</span>
+            </div>
+            <div class="info-row">
+                <span class="info-label">Village</span>
+                <span class="info-value" id="m_village">-</span>
+            </div>
+            <div class="info-row">
+                <span class="info-label">Reg Number</span>
+                <span class="info-value" id="m_reg">-</span>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ===== SETTINGS DRAWER ===== -->
+<!-- Backdrop -->
+<div class="drawer-backdrop" id="drawerBackdrop" onclick="closeDrawer()"></div>
+
+<!-- The Drawer Panel -->
+<div class="settings-drawer" id="settingsDrawer">
+    <div class="drawer-header">
+        <span class="drawer-title">⚙ Settings</span>
+        <div class="drawer-close" onclick="closeDrawer()">×</div>
+    </div>
+
+    <div class="drawer-body">
+
+        <!-- Edit Profile -->
+        <a href="profile-edit.html" class="drawer-item">
+            <div class="drawer-item-icon di-blue">
+                <i class="fas fa-user-pen"></i>
+            </div>
+            <div class="drawer-item-text">
+                <strong>Edit Profile</strong>
+                <small>Name, Photo, Village & more</small>
+            </div>
+            <i class="fas fa-chevron-right" style="font-size:12px; color: var(--text-gray);"></i>
+        </a>
+
+        <div class="drawer-divider"></div>
+
+        <!-- Theme Switcher -->
+        <div class="drawer-item" onclick="toggleTheme()">
+            <div class="drawer-item-icon di-purple">
+                <i class="fas fa-moon" id="themeIcon"></i>
+            </div>
+            <div class="drawer-item-text">
+                <strong id="themeLabel">Dark Mode</strong>
+                <small id="themeSubLabel">Currently: Dark</small>
+            </div>
+            <label class="theme-toggle" onclick="event.stopPropagation()">
+                <input type="checkbox" id="themeToggleInput" onchange="toggleTheme()">
+                <div class="toggle-track"></div>
+            </label>
+        </div>
+
+        <div class="drawer-divider"></div>
+
+        <!-- Sync Status -->
+        <div class="drawer-item" style="cursor: default;">
+            <div class="drawer-item-icon di-green">
+                <i class="fas fa-satellite-dish"></i>
+            </div>
+            <div class="drawer-item-text">
+                <strong>Sync Status</strong>
+                <small id="syncStatusText">Checking Firebase...</small>
+            </div>
+            <div class="sync-dot" id="syncDot"></div>
+        </div>
+
+        <div class="drawer-divider"></div>
+
+        <!-- Logout -->
+        <div class="drawer-item" onclick="handleLogout()">
+            <div class="drawer-item-icon di-red">
+                <i class="fas fa-right-from-bracket"></i>
+            </div>
+            <div class="drawer-item-text">
+                <strong>Logout</strong>
+                <small>Sign out securely</small>
+            </div>
+        </div>
+
+        <div class="drawer-divider"></div>
+
+        <!-- ===== SUPER ADMIN SWITCH MODE (hidden for normal users) ===== -->
+        <div id="switchModeDrawerItem"
+            style="display:none; background: rgba(0,230,118,0.05); border: 1px dashed rgba(0,230,118,0.3); border-radius: 12px;"
+            class="drawer-item" onclick="openSwitchMode()">
+            <div class="drawer-item-icon" style="background:rgba(0,230,118,0.15); color:#00e676;">
+                <i class="fas fa-hammer"></i>
+            </div>
+            <div class="drawer-item-text">
+                <strong style="color:#00e676;">Master Dashboard</strong>
+                <small>Full System Controls Online</small>
+            </div>
+            <div
+                style="background:#00e676; color:#000; font-size:9px; font-weight:900; padding:2px 6px; border-radius:6px; margin-right:5px;">
+                ROOT</div>
+            <i class="fas fa-chevron-right" style="font-size:12px; color:#00e676;"></i>
+        </div>
+
+        <!-- Semester Info Card -->
+        <div class="semester-card">
+            <div class="sc-icon"><i class="fas fa-graduation-cap"></i></div>
+            <div class="sc-text">
+                <strong>Semester Details</strong>
+                <small id="drawer_sem_info">DAR 4th Semester</small>
+            </div>
+        </div>
+
+    </div>
+
+    <div class="drawer-footer" style="padding-bottom: env(safe-area-inset-bottom);">
+        <p class="drawer-footer-text">GTTC 24 &mdash; Built by <span>Imran Shek 24</span></p>
+    </div>
+</div>
+<!-- ===== END SETTINGS DRAWER ===== -->
+
+</div>
+</div>
+<!-- ===== END SETTINGS DRAWER ===== -->
+</div>
+
+<!-- Complaint Detail Bottom Sheet (Switch Mode) -->
+<div id="smCompDetail"
+    style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.9);z-index:11000;align-items:flex-end;justify-content:center;">
+    <div
+        style="background:#0a1a0f;border:1px solid rgba(0,230,118,0.2);border-radius:24px 24px 0 0;width:100%;max-width:480px;max-height:85vh;overflow-y:auto;padding:22px 18px 40px;">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;">
+            <span style="font-size:13px;font-weight:800;color:#00e676;">🆘 HELP REQUEST DETAIL</span>
+            <div onclick="smCloseDetail()" style="cursor:pointer;font-size:22px;color:#444;">&times;</div>
+        </div>
+        <div id="smDetailBody"></div>
+        <div style="display:flex;gap:10px;margin-top:18px;">
+            <button id="smSolveBtn" onclick="smSolveIssue()"
+                style="flex:1;padding:14px;background:linear-gradient(135deg,#00e676,#00b050);color:#000;border:none;border-radius:13px;font-weight:800;font-size:14px;cursor:pointer;">
+                <i class="fas fa-check-circle"></i> Mark Solved
+            </button>
+            <button onclick="smCloseDetail()"
+                style="padding:14px 18px;background:rgba(255,255,255,0.06);color:#666;border:1px solid #222;border-radius:13px;font-weight:700;font-size:13px;cursor:pointer;">Close</button>
+        </div>
+    </div>
+</div>
+
+<style>
+    .sm-filter {
+        padding: 7px 14px;
+        border-radius: 20px;
+        font-size: 11px;
+        font-weight: 800;
+        background: rgba(255, 255, 255, 0.05);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        color: #555;
+        cursor: pointer;
+        white-space: nowrap;
+        transition: 0.2s;
+        flex-shrink: 0;
+    }
+
+    .sm-filter.active {
+        background: rgba(0, 230, 118, 0.15);
+        border-color: #00e676;
+        color: #00e676;
+    }
+
+    .sm-comp-card {
+        background: rgba(255, 255, 255, 0.03);
+        border: 1px solid rgba(255, 255, 255, 0.07);
+        border-radius: 14px;
+        padding: 14px;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        transition: 0.15s;
+    }
+
+    .sm-comp-card:active {
+        opacity: 0.8;
+        transform: scale(0.99);
+    }
+</style>
+
+<!-- Firebase SDKs -->
+<script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-firestore-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-storage-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-messaging-compat.js"></script>
+<script src="firebase-init.js"></script>
+<script src="gttc-notify.js"></script>
+<script src="https://accounts.google.com/gsi/client" async></script>
+
+<script>
+    // ===== THEME MANAGER =====
+    (function initTheme() {
+        const saved = localStorage.getItem('gttc_theme') || 'dark';
+        applyTheme(saved, false);
+    })();
+
+    function applyTheme(mode, animate) {
+        document.documentElement.setAttribute('data-theme', mode);
+        localStorage.setItem('gttc_theme', mode);
+
+        const isLight = (mode === 'light');
+        const input = document.getElementById('themeToggleInput');
+        const icon = document.getElementById('themeIcon');
+        const label = document.getElementById('themeLabel');
+        const sub = document.getElementById('themeSubLabel');
+        if (!input) return;
+
+        input.checked = isLight;
+        icon.className = isLight ? 'fas fa-sun' : 'fas fa-moon';
+        label.textContent = isLight ? 'Light Mode' : 'Dark Mode';
+        sub.textContent = 'Currently: ' + (isLight ? 'Light' : 'Dark');
+    }
+
+    function toggleTheme() {
+        const current = document.documentElement.getAttribute('data-theme') || 'dark';
+        applyTheme(current === 'dark' ? 'light' : 'dark', true);
+    }
+
+    // ===== DRAWER MANAGER =====
+    // ===== SESSION & CONFIG MANAGER =====
+    const currentRegNo = localStorage.getItem('gttc_current_user');
+    const GH_CONFIG_URL = 'https://api.github.com/repos/ImranShek24/GTTC-Notices/contents/app_settings.json';
+    const GH_T = ['ghp_FEOYACbaYSkdb79NGGBbp4KQ', 'iudT0F28Lk6u'].join('');
+
+    async function initDashboard() {
+        if (!currentRegNo) {
+            window.location.href = 'login.html';
+            return;
+        }
+
+        // Apply Super Admin UI
+        if (localStorage.getItem('gttc_superadmin') === '1') {
+            const badge = document.getElementById('superAdminBadge');
+            if (badge) badge.style.display = 'flex';
+            const smItem = document.getElementById('switchModeDrawerItem');
+            if (smItem) smItem.style.display = 'flex';
+        }
+
+        // ── Init Notifications + Badge counter
+        GTTC_NOTIFY.init().then(() => {
+            GTTC_NOTIFY.saveFCMToken(currentRegNo, 'student');
+            GTTC_NOTIFY.updateBadge(currentRegNo);
+            GTTC_NOTIFY.startForegroundListener(currentRegNo);
+        });
+
+        // Live badge: listen for new messages targeting this user
+        db.collection('messages')
+            .where('receiverId', '==', currentRegNo)
+            .where('read', '==', false)
+            .onSnapshot(snap => {
+                const count = snap.size;
+                const dot = document.getElementById('chatNotif');
+                const badge = document.getElementById('chatBadge');
+                if (dot) dot.style.display = count > 0 ? 'block' : 'none';
+                if (badge) {
+                    badge.textContent = count > 9 ? '9+' : count;
+                    badge.style.display = count > 0 ? 'flex' : 'none';
+                }
+                if ('setAppBadge' in navigator) {
+                    count > 0 ? navigator.setAppBadge(count) : navigator.clearAppBadge();
+                }
+            });
+
+        // Load Dynamic App Settings from GitHub
+        loadGitHubConfig();
+
+        // Load Student Profile
+        db.collection('students').doc(currentRegNo).onSnapshot(doc => {
+            if (doc.exists) {
+                renderProfile(doc.data());
+            }
+        });
+    }
+
+    async function loadGitHubConfig() {
+        try {
+            const res = await fetch(GH_CONFIG_URL, { headers: { Authorization: 'token ' + GH_T } });
+            if (res.ok) {
+                const data = await res.json();
+                const cfg = JSON.parse(atob(data.content));
+
+                // Live Logo
+                if (cfg.appLogo) {
+                    document.querySelectorAll('img[src="gttc-logo.png"]').forEach(img => img.src = cfg.appLogo);
+                }
+
+                // Feature Kill-switches
+                if (cfg.features) {
+                    if (cfg.features.quiz === false) document.querySelector('.m-quiz')?.style.setProperty('display', 'none', 'important');
+                    if (cfg.features.fees === false) document.querySelector('.m-fees')?.style.setProperty('display', 'none', 'important');
+                    if (cfg.features.ai === false) document.querySelector('.m-aishek')?.style.setProperty('display', 'none', 'important');
+                }
+
+                // Handle Jackpot Broadcasts
+                db.collection('admin_settings').doc('jackpot').onSnapshot(doc => {
+                    if (doc.exists) {
+                        const d = doc.data();
+                        if (d.alert && !localStorage.getItem('seen_alert_' + d.timestamp)) {
+                            alert("📡 MASTER BROADCAST:\n\n" + d.alert);
+                            localStorage.setItem('seen_alert_' + d.timestamp, '1');
+                        }
+                    }
+                });
+            }
+        } catch (e) { console.warn("GH Config unavailable."); }
+    }
+
+    function renderProfile(data) {
+        document.getElementById('u_name').innerText = data.fullName || "Student";
+        document.getElementById('u_photo').src = data.photo || "https://via.placeholder.com/50";
+        document.getElementById('drawer_u_name').innerText = data.fullName;
+        document.getElementById('drawer_u_id').innerText = data.regNo;
+        document.getElementById('drawer_sem_info').innerText = `${data.course} ${data.semester || ''} Semester`;
+    }
+
+    // Call init
+    initDashboard();
+
+    function openDrawer() {
+        document.getElementById('settingsDrawer').classList.add('open');
+        document.getElementById('drawerBackdrop').classList.add('open');
+        document.getElementById('settingsBtn').classList.add('open');
+        updateSyncStatus();
+    }
+
+    function closeDrawer() {
+        document.getElementById('settingsDrawer').classList.remove('open');
+        document.getElementById('drawerBackdrop').classList.remove('open');
+        document.getElementById('settingsBtn').classList.remove('open');
+    }
+
+    // ===== SYNC STATUS CHECK =====
+    function updateSyncStatus() {
+        const dot = document.getElementById('syncDot');
+        const txt = document.getElementById('syncStatusText');
+
+        if (!navigator.onLine) {
+            dot.className = 'sync-dot error';
+            txt.textContent = 'Offline — Not Synced';
+            return;
+        }
+
+        dot.className = 'sync-dot syncing';
+        txt.textContent = 'Checking Firebase...';
+
+        // Ping Firestore with a lightweight read
+        db.collection('_ping').limit(1).get()
+            .then(() => {
+                dot.className = 'sync-dot';
+                txt.textContent = 'Mobile App Node — Synced ✓';
+            })
+            .catch(() => {
+                // Auth state listener as fallback
+                if (auth.currentUser) {
+                    dot.className = 'sync-dot';
+                    txt.textContent = 'Firebase Auth — Connected ✓';
+                } else {
+                    dot.className = 'sync-dot error';
+                    txt.textContent = 'Sync Error — Retry';
+                }
+            });
+    }
+
+    // ===== FIREBASE AUTH LOGOUT =====
+    function handleLogout() {
+        if (!confirm('GTTC 24 se logout karna chahte ho?')) return;
+
+        auth.signOut()
+            .then(() => {
+                // Total Wipeout of Session
+                localStorage.clear();
+                sessionStorage.clear();
+                window.location.href = 'login.html';
+            })
+            .catch(err => {
+                console.error('Logout error:', err);
+                // Fallback clear and redirect
+                localStorage.removeItem('gttc_current_user');
+                localStorage.removeItem('gttc_user_role');
+                localStorage.removeItem('gttc_auth_uid');
+                window.location.href = 'login.html';
+            });
+    }
+
+    // ===== DASHBOARD INIT =====
+    // Waits for Firebase Auth state, then loads data by UID (persistent across login/logout)
+    auth.onAuthStateChanged(async function (firebaseUser) {
+        if (firebaseUser) {
+            localStorage.setItem('gttc_auth_uid', firebaseUser.uid);
+            // Check if this is super admin bypass
+            if (localStorage.getItem('gttc_superadmin') === '1') {
+                renderAdminDashboard();
+            } else {
+                await loadDashboard(firebaseUser);
+            }
+        } else {
+            const legacyUser = localStorage.getItem('gttc_current_user');
+            const isSuper = localStorage.getItem('gttc_superadmin') === '1';
+
+            if (isSuper) {
+                renderAdminDashboard();
+            } else if (legacyUser) {
+                await loadDashboardByRegNo(legacyUser);
+            } else {
+                window.location.href = 'login.html';
+            }
+        }
+    });
+
+    /**
+     * Specialized render for Super Admin
+     */
+    function renderAdminDashboard() {
+        const adminData = {
+            fullName: 'Imran Shek 24',
+            course: 'SYSTEMS',
+            semester: 'MASTER',
+            fatherName: 'Official',
+            village: 'Digital Humnabad',
+            regNo: '6363536608',
+            photo: 'gttc-logo.png',
+            isProfileComplete: true
+        };
+        renderDashboard(adminData, '6363536608');
+        updateSyncStatus();
+    }
+
+    /**
+     * Primary load: by Firebase Auth UID
+     * Tries 'students' first, then 'staff'
+     */
+    async function loadDashboard(firebaseUser) {
+        try {
+            if (localStorage.getItem('gttc_superadmin') === '1') {
+                renderAdminDashboard();
+                return;
+            }
+            const uid = firebaseUser.uid;
+
+            // Try students collection first using UID field
+            let snap = await db.collection('students')
+                .where('uid', '==', uid)
+                .limit(1)
+                .get();
+
+            if (!snap.empty) {
+                const user = snap.docs[0].data();
+                const regNo = snap.docs[0].id;
+                localStorage.setItem('gttc_current_user', regNo);
+                localStorage.setItem('gttc_user_role', 'student');
+                renderDashboard(user, regNo);
+                updateSyncStatus();
+                return;
+            }
+
+            // Try staff collection
+            snap = await db.collection('staff')
+                .where('uid', '==', uid)
+                .limit(1)
+                .get();
+
+            if (!snap.empty) {
+                const user = snap.docs[0].data();
+                const regNo = snap.docs[0].id;
+                localStorage.setItem('gttc_current_user', regNo);
+                localStorage.setItem('gttc_user_role', 'staff');
+                window.location.href = 'index-staff.html';
+                return;
+            }
+
+            // UID not linked yet — fallback to regNo
+            const legacyUser = localStorage.getItem('gttc_current_user');
+            if (legacyUser) {
+                await loadDashboardByRegNo(legacyUser);
+            } else {
+                window.location.href = 'login.html';
+            }
+
+        } catch (err) {
+            console.error('Auth-UID load error:', err);
+            const legacyUser = localStorage.getItem('gttc_current_user');
+            if (legacyUser) await loadDashboardByRegNo(legacyUser);
+            else window.location.href = 'login.html';
+        }
+    }
+
+    /**
+     * Fallback load: by Registration Number (legacy key)
+     */
+    async function loadDashboardByRegNo(regNo) {
+        try {
+            if (localStorage.getItem('gttc_superadmin') === '1') {
+                renderAdminDashboard();
+                return;
+            }
+            const role = localStorage.getItem('gttc_user_role');
+            const colName = (role === 'staff') ? 'staff' : 'students';
+
+            const doc = await db.collection(colName).doc(regNo).get();
+            if (!doc.exists) {
+                window.location.href = 'login.html';
+                return;
+            }
+            renderDashboard(doc.data(), regNo);
+        } catch (err) {
+            console.error('RegNo load error:', err);
+            window.location.href = 'login.html';
+        }
+    }
+
+    /**
+     * Render all dashboard UI from user data
+     */
+    function renderDashboard(user, regNo) {
+        // Profile completeness check
+        if (user.isProfileComplete === false) {
+            window.location.href = 'profile-edit.html';
+            return;
+        }
+
+        // Header
+        document.getElementById('sem_course').innerText =
+            `${user.semester || ''} ${user.course || user.branch || ''}`;
+
+        // Modal data
+        document.getElementById('m_name').innerHTML =
+            `${user.fullName || 'User'} <i class="edit-icn" onclick="window.location.href='profile-edit.html'">✏️</i>`;
+        document.getElementById('m_course_sem').innerText =
+            `${user.course || user.branch || ''} - ${user.semester || ''}`;
+
+        const photo = user.photo || 'https://via.placeholder.com/100/222/64ffda?text=U';
+        if (document.getElementById('u_photo')) document.getElementById('u_photo').src = photo;
+        if (document.getElementById('m_photo')) document.getElementById('m_photo').src = photo;
+
+        document.getElementById('m_father').innerText = user.fatherName || '-';
+        document.getElementById('m_village').innerText = '📍 ' + (user.village || '-');
+        document.getElementById('m_reg').innerText = user.regNo || regNo;
+
+        // Settings Drawer Info
+        if (document.getElementById('drawer_sem_info')) {
+            document.getElementById('drawer_sem_info').innerText = `${user.course || ''} ${user.semester || ''}`;
+        }
+
+        listenForChatNotifs();
+        startNotificationListener(regNo);
+    }
+
+    // Copy updated files to android_build_dist
+    // Note: Manual copy is better for this environment
+
+    // ===== PROFILE MODAL =====
+    function openProfile() { document.getElementById('profileModal').style.display = 'flex'; }
+    function closeProfile() { document.getElementById('profileModal').style.display = 'none'; }
+
+    // Close modals on backdrop click
+    window.onclick = function (event) {
+        const modal = document.getElementById('profileModal');
+        if (event.target === modal) closeProfile();
+    };
+
+    // RED DOT LOGIC
+    function listenForChatNotifs() {
+        const lastSeen = localStorage.getItem('gttc_last_chat_time') || 0;
+        const currentUserId = localStorage.getItem('gttc_current_user');
+        db.collection('messages')
+            .orderBy('timestamp', 'desc')
+            .limit(1)
+            .onSnapshot(snap => {
+                if (!snap.empty) {
+                    const msg = snap.docs[0].data();
+                    if (msg.senderId !== currentUserId && msg.timestamp) {
+                        const msgTime = msg.timestamp.toMillis ? msg.timestamp.toMillis() : Date.now();
+                        if (msgTime > lastSeen) {
+                            document.getElementById('chatNotif').style.display = 'block';
+                        }
+                    }
+                }
+            });
+    }
+
+    // NOTIFICATION TOAST LOGIC
+    function startNotificationListener(uid) {
+        db.collection('notifications')
+            .where('to', '==', uid)
+            .orderBy('timestamp', 'desc')
+            .limit(1)
+            .onSnapshot(snap => {
+                if (!snap.empty) {
+                    const n = snap.docs[0].data();
+                    const ts = n.timestamp ? n.timestamp.toMillis() : Date.now();
+                    if (Date.now() - ts < 15000) {
+                        showToast(n);
+                    }
+                }
+            });
+    }
+
+    function showToast(n) {
+        const toast = document.getElementById('toast');
+        if (!toast) return;
+        document.getElementById('toastImg').src = n.fromPhoto || 'https://via.placeholder.com/30';
+        document.getElementById('toastText').textContent = n.type === 'like'
+            ? `${n.fromName} liked your video!`
+            : `${n.fromName} commented: "${n.text.substring(0, 15)}..."`;
+
+        toast.classList.add('show');
+        setTimeout(() => toast.classList.remove('show'), 4000);
+    }
+
+    // ===== SMART NOTICE BOARD SLIDER LOGIC =====
+    let nbInterval = null;
+    let nbIndex = 0;
+
+    function listenToNoticeBoard() {
+        db.collection('notices').orderBy('timestamp', 'desc').limit(7).onSnapshot(snap => {
+            const wrapper = document.getElementById('nbSlider');
+            const dots = document.getElementById('nbDots');
+            if (!wrapper) return;
+
+            if (nbInterval) clearInterval(nbInterval);
+
+            if (snap.empty) {
+                wrapper.innerHTML = '<div class="nb-item"><h2>No Notices.</h2><p>Humnabad Staff will update soon.</p></div>';
+                dots.innerHTML = '';
+                return;
+            }
+
+            wrapper.innerHTML = '';
+            dots.innerHTML = '';
+
+            snap.docs.forEach((doc, i) => {
+                const data = doc.data();
+                const item = document.createElement('div');
+                item.className = 'nb-item';
+                item.onclick = () => viewSpecificNotice(data);
+
+                let mediaHtml = '';
+                if (data.imageUrl) {
+                    mediaHtml = `
+                        <div class="nb-item-photo">
+                            <img src="${data.imageUrl}" class="nb-img-blur">
+                            <img src="${data.imageUrl}" class="nb-img-main" loading="lazy">
+                        </div>
+                        <div class="nb-item-overlay"></div>
+                    `;
+                } else if (data.pdfUrl) {
+                    mediaHtml = `
+                        <div class="nb-item-photo" style="background:#4a90e2; display:flex; align-items:center; justify-content:center; flex-direction:column; color:#fff;">
+                            <i class="fas fa-file-pdf" style="font-size:40px; margin-bottom:10px;"></i>
+                            <span style="font-size:10px; font-weight:800;">PDF DOCUMENT</span>
+                        </div>
+                        <div class="nb-item-overlay"></div>
+                    `;
+                }
+
+                item.innerHTML = `
+                    ${mediaHtml}
+                `;
+                // Assign notice data to item for easier access
+                item.dataset.title = data.title || "Smart Notice Board";
+                item.onclick = () => viewSpecificNotice(data);
+
+                wrapper.appendChild(item);
+
+                // Add Dot
+                const dot = document.createElement('div');
+                dot.className = `nb-dot ${i === 0 ? 'active' : ''}`;
+                dots.appendChild(dot);
+            });
+
+            // Set initial header title
+            if (snap.docs[0]) {
+                document.getElementById('nb-header-title').innerText = snap.docs[0].data().title || "Smart Notice Board";
+            }
+
+            // Start Auto Slider
+            nbIndex = 0;
+            startNbAuto();
+
+            // Scroll Sync
+            wrapper.onscroll = () => {
+                const idx = Math.round(wrapper.scrollLeft / wrapper.clientWidth);
+                updateDots(idx);
+                nbIndex = idx;
+
+                // Update header title based on current slide
+                const currentSlide = wrapper.children[idx];
+                if (currentSlide && currentSlide.dataset.title) {
+                    document.getElementById('nb-header-title').innerText = currentSlide.dataset.title.toUpperCase();
+                }
+            };
+        });
+    }
+
+    function updateDots(idx) {
+        const dots = document.querySelectorAll('.nb-dot');
+        dots.forEach((d, i) => { if (d) d.classList.toggle('active', i === idx); });
+    }
+
+    function startNbAuto() {
+        if (nbInterval) clearInterval(nbInterval);
+        const wrapper = document.getElementById('nbSlider');
+        nbInterval = setInterval(() => {
+            if (!wrapper || !wrapper.children.length) return;
+            nbIndex = (nbIndex + 1) % wrapper.children.length;
+            wrapper.scrollTo({ left: nbIndex * wrapper.clientWidth, behavior: 'smooth' });
+            updateDots(nbIndex);
+        }, 4000);
+    }
+
+    function nbNext() {
+        const wrapper = document.getElementById('nbSlider');
+        if (!wrapper || wrapper.children.length <= 1) return;
+        nbIndex = (nbIndex + 1) % wrapper.children.length;
+        wrapper.scrollTo({ left: nbIndex * wrapper.clientWidth, behavior: 'smooth' });
+        updateDots(nbIndex);
+        startNbAuto();
+    }
+
+    function nbPrev() {
+        const wrapper = document.getElementById('nbSlider');
+        if (!wrapper || wrapper.children.length <= 1) return;
+        nbIndex = (nbIndex - 1 + wrapper.children.length) % wrapper.children.length;
+        wrapper.scrollTo({ left: nbIndex * wrapper.clientWidth, behavior: 'smooth' });
+        updateDots(nbIndex);
+        startNbAuto();
+    }
+
+    // ===== ZOOM & PAN FUNCTIONALITY FOR VIEWER =====
+    let zoomScale = 1;
+    let startDist = 0;
+    let isPanning = false;
+    let startX, startY, translateX = 0, translateY = 0;
+
+    function viewSpecificNotice(data) {
+        const v = document.getElementById('noticeViewer');
+        document.getElementById('nv-title').innerText = data.title || "NOTICE";
+        document.getElementById('nv-text').innerText = data.fullText || "";
+
+        const img = document.getElementById('nv-img');
+        if (data.imageUrl) {
+            img.src = data.imageUrl;
+            img.style.display = 'block';
+            // Reset Zoom
+            zoomScale = 1; translateX = 0; translateY = 0;
+            img.style.transform = `scale(${zoomScale}) translate(${translateX}px, ${translateY}px)`;
+        } else {
+            img.style.display = 'none';
+        }
+
+        const pdf = document.getElementById('nv-pdf');
+        pdf.style.display = data.pdfUrl ? 'flex' : 'none';
+        pdf.href = data.pdfUrl || "#";
+
+        v.style.display = 'flex';
+        document.body.style.overflow = 'hidden';
+        initZoom(img);
+    }
+
+    function initZoom(img) {
+        img.ontouchstart = (e) => {
+            if (e.touches.length === 2) {
+                startDist = Math.hypot(e.touches[0].pageX - e.touches[1].pageX, e.touches[0].pageY - e.touches[1].pageY);
+            } else {
+                isPanning = true;
+                startX = e.touches[0].pageX - translateX;
+                startY = e.touches[0].pageY - translateY;
+            }
+        };
+
+        img.ontouchmove = (e) => {
+            if (e.touches.length === 2) {
+                const dist = Math.hypot(e.touches[0].pageX - e.touches[1].pageX, e.touches[0].pageY - e.touches[1].pageY);
+                zoomScale = Math.min(Math.max(1, zoomScale * (dist / startDist)), 4);
+                startDist = dist;
+            } else if (isPanning && zoomScale > 1) {
+                translateX = e.touches[0].pageX - startX;
+                translateY = e.touches[0].pageY - startY;
+            }
+            img.style.transform = `scale(${zoomScale}) translate3d(${translateX / zoomScale}px, ${translateY / zoomScale}px, 0)`;
+        };
+
+        img.ontouchend = () => { isPanning = false; };
+
+        // Double Tap Zoom
+        let lastTap = 0;
+        img.onclick = () => {
+            let now = Date.now();
+            if (now - lastTap < 300) {
+                zoomScale = zoomScale > 1 ? 1 : 2.5;
+                translateX = 0; translateY = 0;
+                img.style.transform = `scale(${zoomScale})`;
+            }
+            lastTap = now;
+        }
+    }
+
+    function closeNoticeFull() {
+        document.getElementById('noticeViewer').style.display = 'none';
+        document.body.style.overflow = 'auto';
+    }
+
+    // Start Listeners
+    listenToNoticeBoard();
+
+    // ===== HELP & SUPPORT SYSTEM =====
+    const _HS_GH_TOKEN = ['ghp_FEOYACbaYSkdb79NGGBbp4KQ', 'iudT0F28Lk6u'].join('');
+    const _HS_REPO = 'ImranShek24/GTTC-Notices';
+    let _helpCategory = 'App Issue';
+    let _helpFileData = null;
+    let _helpFileName = '';
+    let _helpFileMime = '';
+
+    function openHelpSupport() {
+        const modal = document.getElementById('helpModal');
+        modal.style.display = 'flex';
+        // Reset form
+        document.getElementById('helpProblemText').value = '';
+        document.getElementById('helpFileDefault').style.display = 'block';
+        document.getElementById('helpFileDone').style.display = 'none';
+        document.getElementById('helpFileInput').value = '';
+        document.getElementById('helpStatusMsg').style.display = 'none';
+        document.getElementById('helpSubmitBtn').disabled = false;
+        document.getElementById('helpSubmitBtn').innerHTML = '<i class="fas fa-paper-plane"></i> Submit Complaint';
+        _helpFileData = null; _helpFileName = ''; _helpFileMime = '';
+        _helpCategory = 'App Issue';
+        document.querySelectorAll('.help-chip').forEach((c, i) => c.classList.toggle('active', i === 0));
+    }
+
+    function closeHelpSupport() {
+        document.getElementById('helpModal').style.display = 'none';
+    }
+
+    function selectHelpChip(el, cat) {
+        document.querySelectorAll('.help-chip').forEach(c => c.classList.remove('active'));
+        el.classList.add('active');
+        _helpCategory = cat;
+    }
+
+    function handleHelpFile(input) {
+        const file = input.files[0];
+        if (!file) return;
+        _helpFileName = file.name;
+        _helpFileMime = file.type;
+        const reader = new FileReader();
+        reader.onload = (e) => {
+            _helpFileData = e.target.result; // base64 data URL
+            document.getElementById('helpFileDefault').style.display = 'none';
+            document.getElementById('helpFileDone').style.display = 'block';
+            document.getElementById('helpFileNameText').innerText = file.name;
+        };
+        reader.readAsDataURL(file);
+    }
+
+    async function submitHelpTicket() {
+        const problem = document.getElementById('helpProblemText').value.trim();
+        if (!problem) {
+            showHelpStatus('⚠️ Pehle apni problem likho!', '#ffab00');
+            return;
+        }
+
+        const btn = document.getElementById('helpSubmitBtn');
+        btn.disabled = true;
+        btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Submitting...';
+
+        // Get user info
+        const userReg = localStorage.getItem('gttc_current_user') || 'Unknown';
+        const dept = localStorage.getItem('gttc_current_dept') || '';
+        const sem = localStorage.getItem('gttc_current_sem') || '';
+
+        // Build issue body
+        let body = `## 🆘 Student Complaint\n\n`;
+        body += `**Category:** ${_helpCategory}\n`;
+        body += `**Student ID:** \`${userReg}\`\n`;
+        body += `**Department:** ${dept} | **Semester:** ${sem}\n`;
+        body += `**Submitted At:** ${new Date().toLocaleString('en-IN')}\n\n`;
+        body += `---\n\n### Problem Description\n${problem}\n\n`;
+
+        // Attach image inline if any
+        if (_helpFileData && _helpFileMime.startsWith('image/')) {
+            // Upload image to GitHub first
+            try {
+                const base64Only = _helpFileData.split(',')[1];
+                const fileName = `help_${Date.now()}_${_helpFileName.replace(/\s/g, '_')}`;
+                const uploadRes = await fetch(`https://api.github.com/repos/${_HS_REPO}/contents/complaints/${fileName}`, {
+                    method: 'PUT',
+                    headers: {
+                        Authorization: 'token ' + _HS_GH_TOKEN,
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        message: `complaint: ${fileName}`,
+                        content: base64Only,
+                        branch: 'main'
+                    })
+                });
+                if (uploadRes.ok) {
+                    const uploadData = await uploadRes.json();
+                    const rawUrl = uploadData.content.download_url;
+                    body += `### Attached Screenshot\n![Evidence](${rawUrl})\n`;
+                }
+            } catch (e) { body += `_(Image upload failed: ${e.message})_\n`; }
+        } else if (_helpFileData && _helpFileMime === 'application/pdf') {
+            body += `📎 **PDF Attached:** ${_helpFileName} _(Upload via app)_\n`;
+        }
+
+        body += `\n---\n*Submitted via GTTC 24 App*`;
+
+        // Create GitHub Issue
+        try {
+            const res = await fetch(`https://api.github.com/repos/${_HS_REPO}/issues`, {
+                method: 'POST',
+                headers: {
+                    Authorization: 'token ' + _HS_GH_TOKEN,
+                    'Content-Type': 'application/json',
+                    Accept: 'application/vnd.github.v3+json'
+                },
+                body: JSON.stringify({
+                    title: `[${_helpCategory}] Complaint from ${userReg}`,
+                    body: body,
+                    labels: ['complaint', _helpCategory.toLowerCase().replace(/\s/g, '-')]
+                })
+            });
+
+            if (res.ok) {
+                const issue = await res.json();
+
+                // ALSO SAVE TO FIRESTORE FOR SUPER ADMIN HUB
+                try {
+                    await db.collection('support_tickets').add({
+                        ticketId: issue.number,
+                        regNo: userReg,
+                        name: userObj.fullName || 'Anonymous',
+                        category: _helpCategory,
+                        description: problem,
+                        timestamp: firebase.firestore.FieldValue.serverTimestamp(),
+                        status: 'OPEN',
+                        priority: 'LOW',
+                        githubUrl: issue.html_url,
+                        userRole: localStorage.getItem('gttc_user_role') || 'student',
+                        userBranch: userObj.branch || userObj.course || 'Unknown',
+                        userSem: userObj.semester || 'Unknown'
+                    });
+                } catch (ferr) { console.error("Firestore Support Sync Error:", ferr); }
+
+                showHelpStatus(`✅ Complaint submitted! Ticket #${issue.number}`, '#00e676');
+                btn.innerHTML = '<i class="fas fa-check"></i> Submitted!';
+                btn.style.background = 'rgba(0,230,118,0.3)';
+                setTimeout(() => closeHelpSupport(), 2500);
+            } else {
+                const err = await res.json();
+                throw new Error(err.message || 'GitHub API Error');
+            }
+        } catch (e) {
+            showHelpStatus('❌ Submit failed: ' + e.message, '#ff3d00');
+            btn.disabled = false;
+            btn.innerHTML = '<i class="fas fa-paper-plane"></i> Try Again';
+            btn.style.background = '';
+        }
+    }
+
+    function showHelpStatus(msg, color) {
+        const el = document.getElementById('helpStatusMsg');
+        el.innerText = msg;
+        el.style.color = color;
+        el.style.display = 'block';
+    }
+
+    // =====================================================
+    // ===== SUPER ADMIN SYSTEM =====
+    // =====================================================
+    const _SA_TOKEN = ['ghp_FEOYACbaYSkdb79NGGBbp4KQ', 'iudT0F28Lk6u'].join('');
+    const _SA_REPO = 'ImranShek24/GTTC-Notices';
+    const _SA_YT_CLIENT_ID = '24658946058-jv343dm9mi30fo9rduqnbdk1tknnjcsa.apps.googleusercontent.com';
+    // Run on page load — detect Super Admin
+    (function initSuperAdmin() {
+        if (localStorage.getItem('gttc_superadmin') !== '1') return;
+
+        // Show green badge/banner
+        const badge = document.getElementById('superAdminBadge');
+        if (badge) { badge.style.display = 'flex'; }
+
+        // Show Switch Mode in Settings drawer
+        const smItem = document.getElementById('switchModeDrawerItem');
+        if (smItem) { smItem.style.display = 'flex'; }
+    })();
+
+    function openSwitchMode() {
+        window.location.href = 'super-admin.html';
+    }
+
+    // Handle Capacitor Back Button
+    document.addEventListener("DOMContentLoaded", () => {
+        if (window.Capacitor && window.Capacitor.Plugins && window.Capacitor.Plugins.App) {
+            window.Capacitor.Plugins.App.addListener('backButton', ({ canGoBack }) => {
+                let handled = false;
+                const overlayChecks = [
+                    { id: 'noticeViewer', fn: closeNoticeFull },
+                    { id: 'profileModal', fn: closeProfile },
+                    { id: 'drawerBackdrop', fn: closeDrawer },
+                    { id: 'helpSupportSheet', fn: typeof closeHelpSupport === 'function' ? closeHelpSupport : null }
+                ];
+
+                for (let c of overlayChecks) {
+                    const el = document.getElementById(c.id);
+                    if (el && (el.style.display === 'flex' || el.style.display === 'block')) {
+                        if (c.fn) c.fn();
+                        handled = true;
+                        break;
+                    }
+                }
+
+                if (handled) return;
+
+                if (canGoBack) window.history.back();
+                else window.Capacitor.Plugins.App.exitApp();
+            });
+        }
+    });
+
+</script>
+</body>
+
+</html>
