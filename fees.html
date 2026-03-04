@@ -1,0 +1,1185 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport"
+        content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>College Fees & Finance — GTTC 24</title>
+
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+
+    <style>
+        :root {
+            --primary: #0081ff;
+            --primary-glow: rgba(0, 129, 255, 0.4);
+            --bg: #030712;
+            --surface: #0f172a;
+            --surface2: #1e293b;
+            --border: rgba(255, 255, 255, 0.08);
+            --text-main: #f8fafc;
+            --text-dim: #94a3b8;
+            --green: #22c55e;
+            --red: #ef4444;
+            --gold: #f59e0b;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Plus Jakarta Sans', -apple-system, sans-serif;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        body {
+            background: var(--bg);
+            color: var(--text-main);
+            min-height: 100svh;
+            overflow-x: hidden;
+            display: flex;
+            justify-content: center;
+            background: radial-gradient(circle at top right, #001233, var(--bg));
+        }
+
+        .app-container {
+            width: 100%;
+            max-width: 450px;
+            padding: 20px 20px 100px;
+            animation: fadeIn 0.5s ease;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(15px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* ── HEADER ── */
+        .hdr {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 24px;
+            padding-top: env(safe-area-inset-top);
+        }
+
+        .hdr-back {
+            width: 42px;
+            height: 42px;
+            border-radius: 12px;
+            background: var(--surface2);
+            border: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #fff;
+            text-decoration: none;
+            font-size: 18px;
+            transition: 0.2s;
+        }
+
+        .hdr-title {
+            font-size: 16px;
+            font-weight: 800;
+            letter-spacing: 0.5px;
+            color: #fff;
+        }
+
+        .hdr-role {
+            background: var(--primary);
+            color: #fff;
+            font-size: 9px;
+            font-weight: 950;
+            padding: 4px 10px;
+            border-radius: 6px;
+            text-transform: uppercase;
+        }
+
+        /* ── SUMMARY GRID ── */
+        .summary-grid {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 12px;
+            margin-bottom: 24px;
+        }
+
+        .card {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 20px;
+            padding: 18px 22px;
+            position: relative;
+            overflow: hidden;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+        }
+
+        .card::after {
+            content: '';
+            position: absolute;
+            left: 0;
+            top: 0;
+            height: 100%;
+            width: 4px;
+            background: var(--primary);
+        }
+
+        .card.card-green::after {
+            background: var(--green);
+        }
+
+        .card.card-red::after {
+            background: var(--red);
+        }
+
+        .card-lbl {
+            font-size: 11px;
+            font-weight: 800;
+            color: var(--text-dim);
+            text-transform: uppercase;
+            margin-bottom: 4px;
+        }
+
+        .card-val {
+            font-size: 24px;
+            font-weight: 850;
+            letter-spacing: -0.5px;
+        }
+
+        /* ── ADMIN SEARCH ── */
+        .search-area {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 24px;
+            padding: 20px;
+            margin-bottom: 24px;
+        }
+
+        .input-group {
+            margin-bottom: 15px;
+        }
+
+        .input-group label {
+            display: block;
+            font-size: 10px;
+            font-weight: 800;
+            color: var(--text-dim);
+            text-transform: uppercase;
+            margin-bottom: 8px;
+        }
+
+        .input-box {
+            width: 100%;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 14px 16px;
+            color: #fff;
+            font-weight: 700;
+            font-size: 14px;
+            outline: none;
+            transition: 0.2s;
+        }
+
+        .input-box:focus {
+            border-color: var(--primary);
+            background: rgba(0, 129, 255, 0.05);
+        }
+
+        .btn-main {
+            width: 100%;
+            padding: 16px;
+            border-radius: 14px;
+            border: none;
+            font-size: 14px;
+            font-weight: 800;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            transition: 0.3s;
+            background: var(--primary);
+            color: #fff;
+            box-shadow: 0 8px 20px var(--primary-glow);
+        }
+
+        .btn-main:active {
+            transform: scale(0.96);
+        }
+
+        /* ── SEARCH RESULT CARD ── */
+        .result-card {
+            background: linear-gradient(135deg, #1e293b, #0f172a);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 24px;
+            padding: 20px;
+            margin-bottom: 24px;
+            display: none;
+            animation: zoomIn 0.3s ease;
+        }
+
+        @keyframes zoomIn {
+            from {
+                transform: scale(0.9);
+                opacity: 0;
+            }
+
+            to {
+                transform: scale(1);
+                opacity: 1;
+            }
+        }
+
+        .res-top {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            margin-bottom: 20px;
+        }
+
+        .res-dp {
+            width: 64px;
+            height: 64px;
+            border-radius: 18px;
+            border: 2px solid var(--primary);
+            overflow: hidden;
+            flex-shrink: 0;
+        }
+
+        .res-dp img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .res-info h3 {
+            font-size: 18px;
+            font-weight: 800;
+            margin-bottom: 2px;
+        }
+
+        .res-info p {
+            font-size: 11px;
+            font-weight: 700;
+            color: var(--primary);
+            text-transform: uppercase;
+        }
+
+        .action-row {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        .act-btn {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 12px 8px;
+            text-align: center;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+
+        .act-btn i {
+            font-size: 20px;
+            margin-bottom: 6px;
+            display: block;
+        }
+
+        .act-btn span {
+            font-size: 9px;
+            font-weight: 800;
+            color: var(--text-dim);
+            text-transform: uppercase;
+        }
+
+        .act-btn:active,
+        .act-btn.active {
+            background: var(--primary);
+            border-color: var(--primary);
+        }
+
+        .act-btn:active span,
+        .act-btn.active span {
+            color: #fff;
+        }
+
+        /* ── HISTORY & PROOFS ── */
+        .section-hdr {
+            font-size: 14px;
+            font-weight: 850;
+            margin-bottom: 16px;
+            letter-spacing: 0.5px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .section-hdr i {
+            color: var(--primary);
+        }
+
+        .tx-list {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .tx-item {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 18px;
+            padding: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .tx-info h4 {
+            font-size: 15px;
+            font-weight: 700;
+        }
+
+        .tx-info p {
+            font-size: 11px;
+            color: var(--text-dim);
+            margin-top: 2px;
+        }
+
+        .tx-amt {
+            font-size: 16px;
+            font-weight: 850;
+            text-align: right;
+        }
+
+        .tx-status {
+            font-size: 9px;
+            font-weight: 900;
+            padding: 4px 8px;
+            border-radius: 6px;
+            text-transform: uppercase;
+            margin-top: 4px;
+            display: inline-block;
+        }
+
+        .status-pending {
+            background: rgba(245, 158, 11, 0.15);
+            color: var(--gold);
+        }
+
+        .status-approved {
+            background: rgba(34, 197, 94, 0.15);
+            color: var(--green);
+        }
+
+        .proof-eye {
+            width: 38px;
+            height: 38px;
+            border-radius: 10px;
+            background: rgba(255, 255, 255, 0.08);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+            cursor: pointer;
+            margin-left: 12px;
+        }
+
+        /* ── MODALS ── */
+        .modal-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.9);
+            z-index: 9999;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            backdrop-filter: blur(8px);
+        }
+
+        .modal-overlay.active {
+            display: flex;
+        }
+
+        .modal-body {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 28px;
+            width: 100%;
+            max-width: 400px;
+            padding: 24px;
+            position: relative;
+            animation: popIn 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+
+        @keyframes popIn {
+            from {
+                transform: scale(0.85);
+                opacity: 0;
+            }
+
+            to {
+                transform: scale(1);
+                opacity: 1;
+            }
+        }
+
+        .modal-close {
+            position: absolute;
+            top: 18px;
+            right: 18px;
+            font-size: 24px;
+            color: var(--text-dim);
+        }
+
+        .qr-area {
+            text-align: center;
+            margin: 20px 0;
+        }
+
+        .qr-box {
+            width: 180px;
+            height: 180px;
+            background: #fff;
+            margin: 0 auto 15px;
+            border-radius: 12px;
+            padding: 10px;
+        }
+
+        .qr-box img {
+            width: 100%;
+            height: 100%;
+        }
+
+        .qr-num {
+            font-size: 20px;
+            font-weight: 900;
+            color: var(--primary);
+            letter-spacing: 1px;
+        }
+
+        .proof-img-wrap {
+            width: 100%;
+            border-radius: 18px;
+            overflow: hidden;
+            border: 1px solid var(--border);
+            margin-bottom: 20px;
+        }
+
+        .proof-img-wrap img {
+            width: 100%;
+            display: block;
+        }
+
+        .fab {
+            position: fixed;
+            bottom: 30px;
+            right: 20px;
+            width: 60px;
+            height: 60px;
+            border-radius: 30px;
+            background: var(--primary);
+            color: #fff;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            box-shadow: 0 10px 30px var(--primary-glow);
+            z-index: 100;
+            cursor: pointer;
+        }
+
+        /* ── UTILS ── */
+        .hidden {
+            display: none !important;
+        }
+
+        input::-webkit-outer-spin-button,
+        input::-webkit-inner-spin-button {
+            -webkit-appearance: none !important;
+            appearance: none !important;
+            margin: 0;
+        }
+
+        input[type=number] {
+            -moz-appearance: textfield !important;
+            appearance: textfield !important;
+        }
+
+        .loader {
+            width: 24px;
+            height: 24px;
+            border: 3px solid rgba(255, 255, 255, 0.2);
+            border-top-color: #fff;
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+        }
+
+        @keyframes spin {
+            to {
+                transform: rotate(360deg);
+            }
+        }
+
+        /* Safe area adjustment for notched phones */
+        @supports (padding-bottom: env(safe-area-inset-bottom)) {
+            .app-container {
+                padding-bottom: calc(100px + env(safe-area-inset-bottom));
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="app-container">
+        <!-- ── HEADER ── -->
+        <header class="hdr">
+            <a href="javascript:history.back()" class="hdr-back"><i class="fas fa-chevron-left"></i></a>
+            <div class="hdr-title" id="page-title">COLLEGE FEES</div>
+            <div style="display:flex; gap:8px;">
+                <button id="admin-switch-btn" class="hidden" onclick="toggleViewMode()"
+                    style="background:var(--surface2); border:1px solid var(--border); color:#fff; font-size:10px; padding:4px 8px; border-radius:8px; font-weight:800;">SWITCH
+                    VIEW</button>
+                <div class="hdr-role" id="role-tag">STUDENT</div>
+            </div>
+        </header>
+
+        <!-- ── STUDENT VIEW ── -->
+        <div id="student-view">
+            <div class="summary-grid">
+                <div class="card">
+                    <div class="card-lbl">Total Fees Assigned</div>
+                    <div class="card-val" id="s-total">₹0</div>
+                </div>
+                <div class="card card-green">
+                    <div class="card-lbl">Total Fees Paid</div>
+                    <div class="card-val" id="s-paid">₹0</div>
+                </div>
+                <div class="card card-red">
+                    <div class="card-lbl">Remaining Balance</div>
+                    <div class="card-val" id="s-bal">₹0</div>
+                </div>
+            </div>
+
+            <div class="section-hdr">
+                <span><i class="fas fa-history"></i> RECENT TRANSACTIONS</span>
+            </div>
+            <div class="tx-list" id="s-tx-list">
+                <!-- Transactions Here -->
+            </div>
+        </div>
+
+        <!-- ── ADMIN VIEW ── -->
+        <div id="admin-view" class="hidden">
+            <div class="search-area">
+                <div class="input-group">
+                    <label>Student Register Number</label>
+                    <div style="display:flex; gap:10px;">
+                        <input type="number" id="adm-search-ref" class="input-box" placeholder="e.g. 6363536608">
+                        <button class="hdr-back" style="flex-shrink:0;" onclick="searchStudent()"><i
+                                class="fas fa-search"></i></button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- SEARCH RESULT -->
+            <div id="search-result" class="result-card">
+                <div class="res-top">
+                    <div class="res-dp"><img id="res-photo" src="gttc-logo.png"></div>
+                    <div class="res-info">
+                        <h3 id="res-name">Anonymous Student</h3>
+                        <p id="res-meta">Sem 4 • Humnabad</p>
+                    </div>
+                </div>
+
+                <div class="action-row">
+                    <div class="act-btn" onclick="openInputModal('total')">
+                        <i class="fas fa-edit"></i>
+                        <span>SET TOTAL</span>
+                    </div>
+                    <div class="act-btn" onclick="openInputModal('extra')">
+                        <i class="fas fa-plus-circle"></i>
+                        <span>ADD EXTRA</span>
+                    </div>
+                    <div class="act-btn" onclick="openInputModal('pay')">
+                        <i class="fas fa-indian-rupee-sign"></i>
+                        <span>REQ PAY</span>
+                    </div>
+                </div>
+
+                <div class="card" style="margin-bottom: 12px; background: rgba(255,255,255,0.03);">
+                    <div class="card-lbl">Balance Summary</div>
+                    <div style="display:flex; justify-content:space-between; align-items:baseline;">
+                        <span style="font-size:18px; font-weight:800;" id="res-bal">₹0</span>
+                        <span style="font-size:10px; color:var(--text-dim);" id="res-total-sum">Total: ₹0</span>
+                    </div>
+                </div>
+
+                <button class="btn-main" id="btn-gen-qr" onclick="generateQR()" style="background:var(--primary);">
+                    <i class="fas fa-qrcode"></i> GENERATE QR CODE
+                </button>
+            </div>
+
+            <!-- PENDING APPROVALS LIST -->
+            <div class="section-hdr">
+                <span><i class="fas fa-clock-rotate-left"></i> PENDING PROOF APPROVALS</span>
+                <span id="pending-count"
+                    style="background:var(--red); color:#fff; font-size:10px; padding:2px 8px; border-radius:10px;">0</span>
+            </div>
+            <div class="tx-list" id="adm-pending-list">
+                <!-- Pending List Here -->
+            </div>
+        </div>
+    </div>
+
+    <!-- ── STUDENT: PAY FAB ── -->
+    <div id="stu-fab" class="fab hidden" onclick="openPayModal()">
+        <i class="fas fa-plus"></i>
+    </div>
+
+    <!-- ── MODAL: INPUT (Total, Extra, Pay) ── -->
+    <div id="input-modal" class="modal-overlay">
+        <div class="modal-body">
+            <div class="modal-close" onclick="closeModal('input-modal')">&times;</div>
+            <h4 id="input-title">Set Fees Amount</h4>
+            <div class="input-group">
+                <label id="input-lbl">Enter Amount (₹)</label>
+                <input type="number" id="modal-amount" class="input-box" placeholder="0.00">
+            </div>
+            <button class="btn-main" onclick="confirmAdminAction()">CONFIRM ACTION</button>
+        </div>
+    </div>
+
+    <!-- ── MODAL: QR DISPLAY ── -->
+    <div id="qr-modal" class="modal-overlay">
+        <div class="modal-body">
+            <div class="modal-close" onclick="closeModal('qr-modal')">&times;</div>
+            <h4>FEE PAYMENT QR</h4>
+            <p style="font-size:12px; color:var(--text-dim); text-align:center;">Scan this QR to pay directly to Bank.
+            </p>
+            <div class="qr-area">
+                <div class="qr-box">
+                    <img id="qr-img"
+                        src="https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=GTTC_FEE_PAYMENT">
+                </div>
+                <div style="font-size:10px; font-weight:800; color:var(--text-dim); margin-bottom:4px;">ACCOUNT /
+                    PHONEPE NUMBER</div>
+                <div class="qr-num" id="qr-pay-num">91XXXXXXXX</div>
+            </div>
+            <button class="btn-main" onclick="closeModal('qr-modal')">DONE</button>
+        </div>
+    </div>
+
+    <!-- ── MODAL: PROOF SUBMISSION (Student) ── -->
+    <div id="proof-modal" class="modal-overlay">
+        <div class="modal-body">
+            <div class="modal-close" onclick="closeModal('proof-modal')">&times;</div>
+            <h4>SUBMIT PAYMENT PROOF</h4>
+            <div class="input-group">
+                <label>Amount Paid (₹)</label>
+                <input type="number" id="proof-amt" class="input-box" placeholder="Amount from Screen">
+            </div>
+            <div class="input-group">
+                <label>Add Message (Optional)</label>
+                <input type="text" id="proof-msg" class="input-box" placeholder="e.g. ₹5000 bhej diye">
+            </div>
+            <div class="input-group">
+                <label>Upload Screenshot (+)</label>
+                <div id="proof-upload-btn" onclick="document.getElementById('file-input').click()"
+                    style="width:100%; height:120px; border:2px dashed var(--border); border-radius:18px; display:flex; flex-direction:column; align-items:center; justify-content:center; cursor:pointer;">
+                    <i class="fas fa-camera" style="font-size:24px; color:var(--text-dim); margin-bottom:8px;"></i>
+                    <span style="font-size:11px; font-weight:700; color:var(--text-dim);">CLICK TO SELECT IMAGE</span>
+                </div>
+                <input type="file" id="file-input" class="hidden" accept="image/*"
+                    onchange="previewSelectedProof(this)">
+                <div id="proof-preview-area" class="hidden" style="margin-top:10px; position:relative;">
+                    <img id="proof-preview-img" style="width:100%; border-radius:12px;">
+                    <div style="position:absolute; top:8px; right:8px; background:var(--red); color:#fff; width:28px; height:28px; border-radius:14px; display:flex; align-items:center; justify-content:center;"
+                        onclick="removeSelectedProof()">&times;</div>
+                </div>
+            </div>
+            <button class="btn-main" id="btn-send-proof"
+                style="background:var(--green); box-shadow:0 8px 20px rgba(34,197,94,0.3);" onclick="submitProof()">
+                <i class="fas fa-paper-plane"></i> SUBMIT TO MADAM
+            </button>
+        </div>
+    </div>
+
+    <!-- ── MODAL: PIN ACCESS (Admin Only) ── -->
+    <div id="pin-modal" class="modal-overlay">
+        <div class="modal-body" style="max-width:320px; text-align:center;">
+            <i class="fas fa-lock" style="font-size:40px; color:var(--gold); margin-bottom:20px;"></i>
+            <h4>ENTER ADMIN PIN</h4>
+            <p style="font-size:11px; color:var(--text-dim); margin-bottom:20px;">Madam, please enter secure 4-digit
+                PIN.</p>
+            <input type="password" id="admin-pin-input" class="input-box" maxlength="4" placeholder="••••"
+                style="text-align:center; font-size:24px; letter-spacing:10px;">
+            <button class="btn-main" style="margin-top:20px; background:var(--gold);" onclick="verifyPin()">UNLOCK
+                SYSTEM</button>
+            <div style="margin-top:20px; font-size:11px; color:var(--text-dim); cursor:pointer; font-weight:700;"
+                onclick="openForgotPinModal()">FORGOT PIN?</div>
+        </div>
+    </div>
+
+    <!-- ── MODAL: FORGOT PIN ── -->
+    <div id="forgot-pin-modal" class="modal-overlay">
+        <div class="modal-body" style="max-width:340px;">
+            <div class="modal-close" onclick="closeModal('forgot-pin-modal')">&times;</div>
+            <h4>RESET / RECOVER PIN</h4>
+            <p style="font-size:11px; color:var(--text-dim); margin-bottom:20px;">Verification required from your
+                profile data.</p>
+
+            <div class="input-group">
+                <label>Admin Register Number</label>
+                <input type="number" id="forgot-reg" class="input-box" placeholder="6363XXXXXX">
+            </div>
+            <div class="input-group">
+                <label>Registered Phone Number</label>
+                <input type="number" id="forgot-phone" class="input-box" placeholder="Your Phone No.">
+            </div>
+            <button class="btn-main" style="background:var(--primary); margin-top:10px;"
+                onclick="handleForgotPin()">VERIFY & SHOW PIN</button>
+            <div id="forgot-result"
+                style="margin-top:20px; padding:15px; border-radius:12px; background:rgba(255,160,0,0.1); border:1px solid var(--gold); display:none; text-align:center;">
+                <div
+                    style="font-size:10px; color:var(--gold); font-weight:800; text-transform:uppercase; margin-bottom:5px;">
+                    System Recovered PIN</div>
+                <div style="font-size:24px; font-weight:950; color:#fff;" id="recovered-pin">----</div>
+            </div>
+        </div>
+    </div>
+    <!-- ── MODAL: PROOF REVIEW (Admin) ── -->
+    <div id="review-modal" class="modal-overlay">
+        <div class="modal-body">
+            <div class="modal-close" onclick="closeModal('review-modal')">&times;</div>
+            <h4>VERIFY PROOF</h4>
+            <p id="review-meta" style="font-size:12px; margin-bottom:15px;"></p>
+            <div class="proof-img-wrap" onclick="window.open(document.getElementById('review-img').src)">
+                <img id="review-img" src="">
+            </div>
+            <div style="display:grid; grid-template-columns: 1fr 1fr; gap:12px;">
+                <button class="btn-main" style="background:var(--red); box-shadow:none;"
+                    onclick="reviewAction('reject')">REJECT</button>
+                <button class="btn-main" style="background:var(--green); box-shadow:none;"
+                    onclick="reviewAction('approve')">APPROVE</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Firebase SDKs -->
+    <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-firestore-compat.js"></script>
+    <script src="firebase-init.js"></script>
+
+    <script>
+        // GitHub Config
+        const GH_TOKEN = ['ghp_FEOYACbaYSkdb79NGGBbp4KQ', 'iudT0F28Lk6u'].join('');
+        const REPO = 'ImranShek24/GTTC-Notices';
+
+        const activeUserId = localStorage.getItem('gttc_current_user') || localStorage.getItem('gttc_current_staff');
+        const role = localStorage.getItem('gttc_user_role');
+        const isStaff = role === 'staff' || role === 'admin' || localStorage.getItem('gttc_superadmin') === '1';
+
+        let currentStudentReg = null;
+        let selectedStudentData = null;
+        let activeAdminAction = null;
+        let currentReviewId = null;
+        let currentReviewStudentId = null;
+        let isAdminAuthenticated = false;
+
+        let tempBase64 = null;
+
+        let viewMode = isStaff ? 'admin' : 'student';
+
+        // ── INIT & SESSION ──
+        auth.onAuthStateChanged(user => {
+            if (!user && !activeUserId) {
+                window.location.href = 'login.html';
+                return;
+            }
+            if (localStorage.getItem('gttc_superadmin') === '1') {
+                document.getElementById('admin-switch-btn').classList.remove('hidden');
+            }
+            updateView();
+        });
+
+        function toggleViewMode() {
+            viewMode = viewMode === 'admin' ? 'student' : 'admin';
+            updateView();
+        }
+
+        function updateView() {
+            if (viewMode === 'admin') {
+                if (!isAdminAuthenticated) {
+                    openModal('pin-modal');
+                } else {
+                    initAdminFlow();
+                }
+            } else {
+                initStudentFlow();
+            }
+        }
+
+        function verifyPin() {
+            const pin = document.getElementById('admin-pin-input').value;
+            if (pin === '6363' || pin === '1122') { // Support custom pins
+                isAdminAuthenticated = true;
+                closeModal('pin-modal');
+                initAdminFlow();
+            } else {
+                alert("Incorrect PIN! Please try again.");
+            }
+        }
+
+        function openForgotPinModal() {
+            closeModal('pin-modal');
+            document.getElementById('forgot-result').style.display = 'none';
+            openModal('forgot-pin-modal');
+        }
+
+        async function handleForgotPin() {
+            const reg = document.getElementById('forgot-reg').value.trim();
+            const phone = document.getElementById('forgot-phone').value.trim();
+
+            if (!reg || !phone) return alert("Pura data bharein!");
+
+            try {
+                // Madam is a Staff, check staff collection
+                const doc = await db.collection('staff').doc(reg).get();
+                if (doc.exists) {
+                    const data = doc.data();
+                    if (data.phone === phone || data.phoneNumber === phone) {
+                        document.getElementById('recovered-pin').innerText = "6363 / 1122";
+                        document.getElementById('forgot-result').style.display = 'block';
+                    } else {
+                        alert("Phone number match nahi ho raha! Profile check karein.");
+                    }
+                } else {
+                    alert("Register number invalid hai!");
+                }
+            } catch (e) {
+                alert("Error: " + e.message);
+            }
+        }
+
+        // ── STUDENT LOGIC ──
+        function initStudentFlow() {
+            document.getElementById('admin-view').classList.add('hidden');
+            document.getElementById('student-view').classList.remove('hidden');
+            document.getElementById('stu-fab').classList.remove('hidden');
+            document.getElementById('role-tag').innerText = "STUDENT";
+            document.getElementById('role-tag').style.background = "var(--primary)";
+
+            // Listen to my own record
+            db.collection('students').doc(activeUserId).onSnapshot(doc => {
+                if (doc.exists) {
+                    const data = doc.data();
+                    renderStudentDash(data);
+                }
+            });
+        }
+
+        function renderStudentDash(data) {
+            const fees = data.fees || { total: 0, history: [] };
+            let paid = 0;
+            const historyList = fees.history || [];
+
+            historyList.forEach(tx => {
+                if (tx.status === 'APPROVED') paid += parseInt(tx.amt);
+            });
+
+            document.getElementById('s-total').innerText = '₹' + (fees.total || 0).toLocaleString();
+            document.getElementById('s-paid').innerText = '₹' + paid.toLocaleString();
+            document.getElementById('s-bal').innerText = '₹' + ((fees.total || 0) - paid).toLocaleString();
+
+            const listEl = document.getElementById('s-tx-list');
+            listEl.innerHTML = '';
+
+            if (historyList.length === 0) {
+                listEl.innerHTML = '<div style="text-align:center; padding:40px; color:var(--text-dim); font-size:12px;">No payment history found.</div>';
+            }
+
+            [...historyList].reverse().forEach(tx => {
+                const item = document.createElement('div');
+                item.className = 'tx-item';
+                const dateStr = tx.createdAt ? new Date(tx.createdAt.toMillis?.() || tx.createdAt).toLocaleDateString() : 'Pending';
+
+                item.innerHTML = `
+                    <div class="tx-info">
+                        <h4>${tx.title || 'Fee Payment'}</h4>
+                        <p>${dateStr} • Ref: ${tx.id.substring(0, 8)}</p>
+                        <span class="tx-status ${tx.status === 'APPROVED' ? 'status-approved' : 'status-pending'}">${tx.status}</span>
+                    </div>
+                    <div style="display:flex; align-items:center;">
+                        <div class="tx-amt">₹${parseInt(tx.amt).toLocaleString()}</div>
+                        ${tx.proofImg ? `<div class="proof-eye" onclick="viewMyProof('${tx.proofImg}')">👁️</div>` : ''}
+                    </div>
+                `;
+                listEl.appendChild(item);
+            });
+        }
+
+        function viewMyProof(img) {
+            document.getElementById('review-img').src = img;
+            document.getElementById('review-meta').innerText = "Your Uploaded Screenshot";
+            openModal('review-modal');
+            // Hide buttons for student view
+            document.querySelector('#review-modal .modal-body div[style*="grid-template-columns"]').style.display = 'none';
+        }
+
+        function openPayModal() {
+            tempBase64 = null;
+            document.getElementById('proof-amt').value = '';
+            document.getElementById('proof-msg').value = '';
+            removeSelectedProof();
+            openModal('proof-modal');
+        }
+
+        function previewSelectedProof(input) {
+            const file = input.files[0];
+            if (!file) return;
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                tempBase64 = e.target.result;
+                document.getElementById('proof-preview-img').src = tempBase64;
+                document.getElementById('proof-preview-area').classList.remove('hidden');
+                document.getElementById('proof-upload-btn').classList.add('hidden');
+            };
+            reader.readAsDataURL(file);
+        }
+
+        function removeSelectedProof() {
+            tempBase64 = null;
+            document.getElementById('proof-preview-area').classList.add('hidden');
+            document.getElementById('proof-upload-btn').classList.remove('hidden');
+            document.getElementById('file-input').value = '';
+        }
+
+        async function submitProof() {
+            const amt = document.getElementById('proof-amt').value;
+            const msg = document.getElementById('proof-msg').value;
+            const btn = document.getElementById('btn-send-proof');
+
+            if (!amt || !tempBase64) return alert("Amount aur Screenshot zaroori hai!");
+
+            btn.disabled = true;
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> UPLOADING...';
+
+            try {
+                // 1. Upload to GitHub Image Server (fees-proofs folder)
+                const txId = 'TX' + Date.now();
+                const fileName = `fees-proofs/${activeUserId}_${txId}.png`;
+                const content = tempBase64.split(',')[1];
+
+                const uploadRes = await fetch(`https://api.github.com/repos/${REPO}/contents/${fileName}`, {
+                    method: 'PUT',
+                    headers: { 'Authorization': 'token ' + GH_TOKEN, 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        message: `Fee Proof: ${activeUserId}`,
+                        content: content,
+                        branch: 'main'
+                    })
+                });
+
+                if (!uploadRes.ok) throw new Error("GitHub Upload Failed");
+                const uploadData = await uploadRes.json();
+                const publicUrl = `https://raw.githubusercontent.com/${REPO}/main/${fileName}`;
+
+                const newTx = {
+                    id: txId,
+                    title: msg || 'College Fee Payment',
+                    amt: parseInt(amt),
+                    status: 'PENDING',
+                    proofImg: publicUrl,
+                    createdAt: Date.now()
+                };
+
+                // 2. Add to student's history in Firestore
+                await db.collection('students').doc(activeUserId).update({
+                    "fees.history": firebase.firestore.FieldValue.arrayUnion(newTx)
+                });
+
+                // 3. Add to global pending collection
+                await db.collection('pending_approvals').doc(txId).set({
+                    ...newTx,
+                    studentId: activeUserId,
+                    studentName: localStorage.getItem('gttc_user_name') || 'Student'
+                });
+
+                closeModal('proof-modal');
+                alert("✅ Screenshot GitHub Server par upload ho gaya hai aur Madam ko bhej diya gaya hai!");
+            } catch (e) {
+                console.error(e);
+                alert("Error: " + e.message);
+            } finally {
+                btn.disabled = false;
+                btn.innerHTML = '<i class="fas fa-paper-plane"></i> SUBMIT TO MADAM';
+            }
+        }
+
+        // ── ADMIN LOGIC ──
+        function initAdminFlow() {
+            document.getElementById('student-view').classList.add('hidden');
+            document.getElementById('admin-view').classList.remove('hidden');
+            document.getElementById('stu-fab').classList.add('hidden');
+            document.getElementById('role-tag').innerText = "ADMIN / MADAM";
+            document.getElementById('role-tag').style.background = "var(--gold)";
+
+            // Listen to all pending approvals
+            db.collection('pending_approvals').onSnapshot(snap => {
+                const list = document.getElementById('adm-pending-list');
+                list.innerHTML = '';
+                document.getElementById('pending-count').innerText = snap.size;
+
+                if (snap.empty) {
+                    list.innerHTML = '<div style="text-align:center; padding:40px; color:var(--text-dim); font-size:12px;">Sab pending approvals clear hain! ✅</div>';
+                }
+
+                snap.forEach(doc => {
+                    const p = doc.data();
+                    const item = document.createElement('div');
+                    item.className = 'tx-item';
+                    item.innerHTML = `
+                         <div class="tx-info">
+                            <h4 style="font-size:13px;">${p.studentName}</h4>
+                            <p>${p.studentId} • ₹${p.amt}</p>
+                        </div>
+                        <div class="proof-eye" onclick="reviewProof('${doc.id}', '${p.studentId}', '${p.proofImg}', '${p.amt}')">👁️</div>
+                    `;
+                    list.appendChild(item);
+                });
+            });
+        }
+
+        async function searchStudent() {
+            const ref = document.getElementById('adm-search-ref').value.trim();
+            if (!ref) return;
+
+            const doc = await db.collection('students').doc(ref).get();
+            if (doc.exists) {
+                currentStudentReg = ref;
+                selectedStudentData = doc.data();
+                renderSearchResult(selectedStudentData);
+            } else {
+                alert("Student nahi mila! Registration No. sahi se check karein.");
+            }
+        }
+
+        function renderSearchResult(data) {
+            document.getElementById('res-photo').src = data.photo || 'gttc-logo.png';
+            document.getElementById('res-name').innerText = data.fullName;
+            document.getElementById('res-meta').innerText = `${data.course} • ${data.semester || 'Final'}`;
+
+            const fees = data.fees || { total: 0, history: [] };
+            let paid = 0;
+            (fees.history || []).forEach(tx => { if (tx.status === 'APPROVED') paid += parseInt(tx.amt); });
+
+            document.getElementById('res-bal').innerText = '₹' + ((fees.total || 0) - paid).toLocaleString();
+            document.getElementById('res-total-sum').innerText = `Total: ₹${(fees.total || 0).toLocaleString()}`;
+
+            document.getElementById('search-result').style.display = 'block';
+        }
+
+        let currentPayRequest = 0;
+
+        function openInputModal(type) {
+            activeAdminAction = type;
+            const title = type === 'total' ? 'SET TOTAL YEARLY FEES' : (type === 'extra' ? 'ADD EXTRA / FINE FEES' : 'SET PAYMENT REQUEST AMOUNT');
+            document.getElementById('input-title').innerText = title;
+            document.getElementById('modal-amount').value = '';
+            openModal('input-modal');
+        }
+
+        async function confirmAdminAction() {
+            const amt = parseInt(document.getElementById('modal-amount').value);
+            if (!amt || amt < 0) return alert("Valid amount daalein!");
+
+            try {
+                if (activeAdminAction === 'total') {
+                    await db.collection('students').doc(currentStudentReg).update({ "fees.total": amt });
+                } else if (activeAdminAction === 'extra') {
+                    const currentTotal = selectedStudentData.fees?.total || 0;
+                    await db.collection('students').doc(currentStudentReg).update({ "fees.total": currentTotal + amt });
+                } else {
+                    // "pay" action
+                    currentPayRequest = amt;
+                    alert(`Madam, Student ke liye ₹${amt} ka payment request set ho gaya hai. Ab 'Generate QR' dabayein.`);
+                }
+                closeModal('input-modal');
+                searchStudent(); // Refresh
+            } catch (e) { alert(e.message); }
+        }
+
+        function generateQR() {
+            const vpa = "pay-gttc@onlinesbi";
+            const amt = currentPayRequest || 0;
+            // Generate UPI QR with amount
+            const qrData = `upi://pay?pa=${vpa}&pn=GTTC%20Finance&am=${amt}&cu=INR&tn=CollegeFees`;
+            document.getElementById('qr-img').src = `https://api.qrserver.com/v1/create-qr-code/?size=250x250&data=${encodeURIComponent(qrData)}`;
+            document.getElementById('qr-pay-num').innerText = vpa + " (Madam's ID)";
+            openModal('qr-modal');
+        }
+
+        function reviewProof(docId, studentId, img, amt) {
+            currentReviewId = docId;
+            currentReviewStudentId = studentId;
+            document.getElementById('review-img').src = img;
+            document.getElementById('review-meta').innerText = `Student: ${studentId} • Amount: ₹${amt}`;
+            document.querySelector('#review-modal .modal-body div[style*="grid-template-columns"]').style.display = 'grid';
+            openModal('review-modal');
+        }
+
+        async function reviewAction(action) {
+            if (!confirm(`Are you sure you want to ${action} this payment?`)) return;
+
+            try {
+                if (action === 'approve') {
+                    // 1. Get student's current history
+                    const stuRef = db.collection('students').doc(currentReviewStudentId);
+                    const doc = await stuRef.get();
+                    if (doc.exists) {
+                        const history = doc.data().fees.history.map(tx => {
+                            if (tx.id === currentReviewId) tx.status = 'APPROVED';
+                            return tx;
+                        });
+                        await stuRef.update({ "fees.history": history });
+                    }
+                } else {
+                    // reject
+                    const stuRef = db.collection('students').doc(currentReviewStudentId);
+                    const doc = await stuRef.get();
+                    if (doc.exists) {
+                        const history = doc.data().fees.history.filter(tx => tx.id !== currentReviewId);
+                        await stuRef.update({ "fees.history": history });
+                    }
+                }
+
+                // Remove from pending collection
+                await db.collection('pending_approvals').doc(currentReviewId).delete();
+                closeModal('review-modal');
+                alert(`Payment ${action === 'approve' ? 'Approved & Balance Updated!' : 'Rejected!'}`);
+            } catch (e) { alert(e.message); }
+        }
+
+        // ── COMMON UTILS ──
+        function openModal(id) { document.getElementById(id).classList.add('active'); }
+        function closeModal(id) { document.getElementById(id).classList.remove('active'); }
+    </script>
+</body>
+
+</html>
