@@ -1052,19 +1052,21 @@
                     initAdminFlow();
                 }
             } else {
+                // Students should skip PIN modal and go straight to their status
+                closeModal('pin-modal');
                 initStudentFlow();
             }
         }
 
         function verifyPin() {
             const pin = document.getElementById('admin-pin-input').value;
-            // Madam's Secret PIN: 7869
-            if (pin === '7869' || pin === '6363' || pin === '1122') {
+            // Secret PIN: 7869 (Madam's Priority)
+            if (pin === '7869' || pin === '6363' || pin === '7890') {
                 isAdminAuthenticated = true;
                 closeModal('pin-modal');
                 initAdminFlow();
             } else {
-                alert("Incorrect PIN! Please try again.");
+                alert("❌ Galat PIN! Please try again.");
             }
         }
 
@@ -1662,13 +1664,20 @@
                     // Show receipt
                     const stuDoc = await db.collection('students').doc(currentReviewStudentId).get();
                     const stuData = stuDoc.data() || {};
-                    showReceiptModal({
+                    const receiptData = {
                         txId: approvedTx.id,
                         studentName: stuData.fullName || approvedTx.studentName || currentReviewStudentId,
                         regNo: currentReviewStudentId,
                         amt: approvedTx.amt,
                         date: new Date().toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' })
-                    });
+                    };
+                    showReceiptModal(receiptData);
+
+                    // Auto-trigger download
+                    setTimeout(() => {
+                        downloadReceiptPDF();
+                        showToast('✅ Receipt Downloaded!');
+                    }, 500);
                 } else {
                     showToast('❌ Payment Rejected!');
                 }
