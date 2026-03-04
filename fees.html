@@ -701,18 +701,145 @@
         <div class="modal-body">
             <div class="modal-close" onclick="closeModal('qr-modal')">&times;</div>
             <h4>FEE PAYMENT QR</h4>
-            <p style="font-size:12px; color:var(--text-dim); text-align:center;">Scan this QR to pay directly to Bank.
-            </p>
+            <p style="font-size:12px; color:var(--text-dim); text-align:center;">Scan this QR to pay directly to Madam's
+                UPI.</p>
             <div class="qr-area">
                 <div class="qr-box">
                     <img id="qr-img"
                         src="https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=GTTC_FEE_PAYMENT">
                 </div>
-                <div style="font-size:10px; font-weight:800; color:var(--text-dim); margin-bottom:4px;">ACCOUNT /
-                    PHONEPE NUMBER</div>
+                <div style="font-size:10px; font-weight:800; color:var(--text-dim); margin-bottom:4px;">UPI ID / PHONEPE
+                </div>
                 <div class="qr-num" id="qr-pay-num">91XXXXXXXX</div>
             </div>
-            <button class="btn-main" onclick="closeModal('qr-modal')">DONE</button>
+            <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px;">
+                <button class="btn-main" onclick="closeModal('qr-modal')"
+                    style="background:var(--surface2); border:1px solid var(--border); color:#fff; box-shadow:none;">DONE</button>
+                <button class="btn-main" onclick="payNowFromQR()" style="background:var(--green); box-shadow:none;"><i
+                        class="fas fa-bolt"></i> PAY NOW</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ── MODAL: QR SCANNER ── -->
+    <div id="scanner-modal" class="modal-overlay">
+        <div class="modal-body" style="padding: 0; overflow: hidden; border-radius: 20px;">
+            <div
+                style="background: var(--surface); padding: 16px 20px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border);">
+                <div style="font-weight: 800; font-size: 14px;">SCAN UPI QR CODE</div>
+                <div onclick="stopScanner()" style="font-size: 24px; cursor: pointer; color: var(--text-dim);">&times;
+                </div>
+            </div>
+            <div style="position: relative; background: #000;">
+                <video id="qr-video" style="width: 100%; max-height: 340px; display: block; object-fit: cover;"></video>
+                <canvas id="qr-canvas" style="display: none;"></canvas>
+                <!-- Scanning overlay -->
+                <div
+                    style="position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; pointer-events: none;">
+                    <div
+                        style="width: 200px; height: 200px; border: 3px solid var(--primary); border-radius: 12px; box-shadow: 0 0 0 9999px rgba(0,0,0,0.5);">
+                        <div
+                            style="position: absolute; top: 0; left: 0; width: 22px; height: 22px; border-top: 4px solid var(--green); border-left: 4px solid var(--green); border-radius: 4px 0 0 0;">
+                        </div>
+                        <div
+                            style="position: absolute; top: 0; right: 0; width: 22px; height: 22px; border-top: 4px solid var(--green); border-right: 4px solid var(--green); border-radius: 0 4px 0 0;">
+                        </div>
+                        <div
+                            style="position: absolute; bottom: 0; left: 0; width: 22px; height: 22px; border-bottom: 4px solid var(--green); border-left: 4px solid var(--green); border-radius: 0 0 0 4px;">
+                        </div>
+                        <div
+                            style="position: absolute; bottom: 0; right: 0; width: 22px; height: 22px; border-bottom: 4px solid var(--green); border-right: 4px solid var(--green); border-radius: 0 0 4px 0;">
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div style="padding: 16px 20px;">
+                <div id="scanner-status"
+                    style="font-size: 11px; color: var(--text-dim); text-align: center; margin-bottom: 12px;">Camera
+                    ready. Point at a UPI QR code.</div>
+                <div id="scanner-result" class="hidden"
+                    style="background: rgba(34,197,94,0.1); border: 1px solid var(--green); border-radius: 12px; padding: 12px; margin-bottom: 12px;">
+                    <div
+                        style="font-size: 9px; font-weight: 800; color: var(--green); text-transform: uppercase; margin-bottom: 4px;">
+                        QR DETECTED!</div>
+                    <div id="scanner-detected-upi" style="font-size: 13px; font-weight: 700; word-break: break-all;">
+                    </div>
+                    <button class="btn-main" style="background: var(--green); margin-top: 10px; padding: 10px;"
+                        onclick="openDetectedUPI()">
+                        <i class="fas fa-bolt"></i> OPEN IN UPI APP
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ── MODAL: PROOF IMAGE VIEWER (Fullscreen popup) ── -->
+    <div id="proof-viewer-modal" class="modal-overlay" style="background: rgba(0,0,0,0.97); padding: 0;"
+        onclick="closeModal('proof-viewer-modal')">
+        <div
+            style="width: 100%; height: 100%; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 20px;">
+            <div style="font-size: 12px; color: #666; text-align: center; margin-bottom: 10px;">Tap anywhere to close
+            </div>
+            <img id="proof-viewer-img"
+                style="max-width: 100%; max-height: 80vh; border-radius: 12px; object-fit: contain;">
+        </div>
+    </div>
+
+    <!-- ── MODAL: RECEIPT (PDF Preview) ── -->
+    <div id="receipt-modal" class="modal-overlay">
+        <div class="modal-body" style="max-width: 380px;">
+            <div class="modal-close" onclick="closeModal('receipt-modal')">&times;</div>
+            <h4 style="text-align:center; margin-bottom: 4px;">PAYMENT RECEIPT</h4>
+            <p style="font-size:10px; text-align:center; color:var(--text-dim); margin-bottom: 20px;">GTTC College,
+                Humnabad</p>
+
+            <div id="receipt-content"
+                style="background: #fff; color: #111; border-radius: 16px; padding: 20px; font-family: monospace;">
+                <div
+                    style="text-align: center; margin-bottom: 16px; border-bottom: 2px dashed #ccc; padding-bottom: 16px;">
+                    <div style="font-size: 18px; font-weight: 900; color: #003366;">🏫 GTTC COLLEGE</div>
+                    <div style="font-size: 10px; color: #666; margin-top: 4px;">Government Tool Room & Training Centre,
+                        Humnabad</div>
+                </div>
+                <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
+                    <span style="font-size: 11px; color: #666;">Receipt No.:</span>
+                    <span style="font-size: 11px; font-weight: 700;" id="rcpt-id"></span>
+                </div>
+                <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
+                    <span style="font-size: 11px; color: #666;">Date:</span>
+                    <span style="font-size: 11px; font-weight: 700;" id="rcpt-date"></span>
+                </div>
+                <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
+                    <span style="font-size: 11px; color: #666;">Student:</span>
+                    <span style="font-size: 11px; font-weight: 700;" id="rcpt-name"></span>
+                </div>
+                <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
+                    <span style="font-size: 11px; color: #666;">Reg. No.:</span>
+                    <span style="font-size: 11px; font-weight: 700;" id="rcpt-reg"></span>
+                </div>
+                <div
+                    style="border-top: 2px dashed #ccc; margin: 12px 0; padding-top: 12px; display: flex; justify-content: space-between;">
+                    <span style="font-size: 14px; font-weight: 900; color: #003366;">AMOUNT PAID</span>
+                    <span style="font-size: 18px; font-weight: 900; color: #22c55e;" id="rcpt-amt"></span>
+                </div>
+                <div
+                    style="background: #f0fdf4; border: 1px solid #bbf7d0; border-radius: 8px; padding: 10px; text-align: center; margin-top: 12px;">
+                    <div style="font-size: 10px; color: #16a34a; font-weight: 800;">✅ PAYMENT APPROVED</div>
+                    <div style="font-size: 9px; color: #666; margin-top: 2px;">Authorized by GTTC Finance Department
+                    </div>
+                </div>
+            </div>
+
+            <div style="display:grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 16px;">
+                <button class="btn-main" onclick="downloadReceiptPDF()"
+                    style="background:var(--primary); box-shadow:none; font-size:11px;">
+                    <i class="fas fa-download"></i> DOWNLOAD PDF
+                </button>
+                <button class="btn-main" onclick="closeModal('receipt-modal')"
+                    style="background:var(--surface2); border:1px solid var(--border); color:#fff; box-shadow:none; font-size:11px;">
+                    CLOSE
+                </button>
+            </div>
         </div>
     </div>
 
@@ -747,16 +874,19 @@
 
             <!-- Quick Pay Buttons (Intent) -->
             <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin: 15px 0 25px;">
-                <div onclick="generateQRStudent()"
+                <div onclick="openScanner()"
                     style="background: var(--surface2); border: 1px solid var(--primary); border-radius: 16px; padding: 15px; text-align: center; cursor: pointer;">
-                    <i class="fas fa-qrcode" style="font-size: 24px; color: var(--primary); margin-bottom: 8px;"></i>
-                    <div style="font-size: 10px; font-weight: 800;">SCAN QR</div>
+                    <i class="fas fa-camera" style="font-size: 24px; color: var(--primary); margin-bottom: 8px;"></i>
+                    <div style="font-size: 10px; font-weight: 800;">SCAN & PAY</div>
+                    <div style="font-size: 9px; color: var(--text-dim); margin-top: 3px;">Camera se QR scan karo</div>
                 </div>
                 <div onclick="openPhonePe()"
                     style="background: var(--primary); border-radius: 16px; padding: 15px; text-align: center; cursor: pointer; box-shadow: 0 5px 15px var(--primary-glow);">
                     <i class="fas fa-mobile-screen-button"
                         style="font-size: 24px; color: #fff; margin-bottom: 8px;"></i>
                     <div style="font-size: 10px; font-weight: 800; color: #fff;">DIRECT PAY</div>
+                    <div style="font-size: 9px; color: rgba(255,255,255,0.7); margin-top: 3px;">PhonePe/GPay open karo
+                    </div>
                 </div>
             </div>
 
@@ -780,17 +910,17 @@
                 <input type="file" id="file-input" class="hidden" accept="image/*"
                     onchange="previewSelectedProof(this)">
 
-                <!-- Eye Icon for proof preview -->
+                <!-- Eye Icon for proof preview - click to open popup -->
                 <div id="proof-preview-area" class="hidden" style="margin-top:10px; text-align: center;">
                     <div
                         style="display: flex; align-items: center; justify-content: space-between; background: rgba(34,197,94,0.1); border: 1px solid var(--green); padding: 10px 15px; border-radius: 12px;">
                         <div style="display: flex; align-items: center; gap: 10px;">
                             <i class="fas fa-check-circle" style="color: var(--green);"></i>
-                            <span style="font-size: 11px; font-weight: 700;">Screenshot Selected</span>
+                            <span style="font-size: 11px; font-weight: 700;">Screenshot Ready ✅</span>
                         </div>
                         <div style="display: flex; gap: 8px;">
                             <div class="proof-eye" style="margin-top: 0; background: var(--green); color: #fff;"
-                                onclick="openProofInNewTab()">👁️</div>
+                                onclick="openProofViewer(tempBase64)">👁️</div>
                             <div class="proof-eye" style="margin-top: 0; background: var(--red); color: #fff;"
                                 onclick="removeSelectedProof()">✕</div>
                         </div>
@@ -871,6 +1001,10 @@
     <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-firestore-compat.js"></script>
     <script src="firebase-init.js"></script>
+    <!-- jsPDF for Receipt Generation -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <!-- jsQR for Camera QR Scanning -->
+    <script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.min.js"></script>
 
     <script>
         // GitHub Config
@@ -1055,9 +1189,10 @@
                         <p>${dateStr} • Ref: ${tx.id.substring(0, 8)}</p>
                         <span class="tx-status ${tx.status === 'APPROVED' ? 'status-approved' : 'status-pending'}">${tx.status}</span>
                     </div>
-                    <div style="display:flex; align-items:center;">
+                    <div style="display:flex; align-items:center; gap:6px;">
                         <div class="tx-amt">₹${parseInt(tx.amt).toLocaleString()}</div>
-                        ${tx.proofImg ? `<div class="proof-eye" onclick="viewMyProof('${tx.proofImg}')">👁️</div>` : ''}
+                        ${tx.proofImg ? `<div class="proof-eye" onclick="openProofViewer('${tx.proofImg}')">👁️</div>` : ''}
+                        ${tx.status === 'APPROVED' ? `<div class="proof-eye" style="background:var(--primary); color:#fff; font-size:12px;" onclick='viewStudentReceipt(${JSON.stringify(tx).replace(/'/g, "&#39;")})'>📄</div>` : ''}
                     </div>
                 `;
                 listEl.appendChild(item);
@@ -1065,28 +1200,105 @@
         }
 
         function viewMyProof(img) {
-            document.getElementById('review-img').src = img;
-            document.getElementById('review-meta').innerText = "Your Uploaded Screenshot";
-            openModal('review-modal');
-            // Hide review action buttons and show a single "CLOSE" button if needed or just use the X
-            document.querySelector('#review-modal .modal-body div[style*="grid-template-columns"]').style.display = 'none';
+            openProofViewer(img);
         }
 
-        function openProofInNewTab() {
-            if (tempBase64) {
-                const win = window.open();
-                win.document.write('<img src="' + tempBase64 + '" style="width:100%;">');
+        // ── PROOF VIEWER POPUP ──
+        function openProofViewer(imgSrc) {
+            if (!imgSrc) return;
+            document.getElementById('proof-viewer-img').src = imgSrc;
+            openModal('proof-viewer-modal');
+        }
+
+        // ── QR SCANNER ──
+        let scannerStream = null;
+        let scannerRAF = null;
+        let scannedUPIData = null;
+
+        function openScanner() {
+            openModal('scanner-modal');
+            document.getElementById('scanner-result').classList.add('hidden');
+            document.getElementById('scanner-status').innerText = 'Starting camera...';
+            startScanner();
+        }
+
+        async function startScanner() {
+            try {
+                scannerStream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } });
+                const video = document.getElementById('qr-video');
+                video.srcObject = scannerStream;
+                video.setAttribute('playsinline', true);
+                await video.play();
+                document.getElementById('scanner-status').innerText = 'Camera ready. Point at a UPI QR code.';
+                scanQRLoop();
+            } catch (e) {
+                document.getElementById('scanner-status').innerText = 'Camera access denied. Please allow camera permission.';
             }
         }
 
-        function generateQRStudent() {
+        function scanQRLoop() {
+            const video = document.getElementById('qr-video');
+            const canvas = document.getElementById('qr-canvas');
+            const ctx = canvas.getContext('2d');
+
+            function tick() {
+                if (video.readyState === video.HAVE_ENOUGH_DATA) {
+                    canvas.height = video.videoHeight;
+                    canvas.width = video.videoWidth;
+                    ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+                    const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+                    try {
+                        const code = jsQR(imageData.data, imageData.width, imageData.height, { inversionAttempts: 'dontInvert' });
+                        if (code && code.data) {
+                            scannedUPIData = code.data;
+                            document.getElementById('scanner-detected-upi').innerText = code.data;
+                            document.getElementById('scanner-result').classList.remove('hidden');
+                            document.getElementById('scanner-status').innerText = 'QR Found! ✅';
+                            stopScannerLoop();
+                            return;
+                        }
+                    } catch (e) { }
+                }
+                scannerRAF = requestAnimationFrame(tick);
+            }
+            scannerRAF = requestAnimationFrame(tick);
+        }
+
+        function stopScannerLoop() {
+            if (scannerRAF) { cancelAnimationFrame(scannerRAF); scannerRAF = null; }
+        }
+
+        function stopScanner() {
+            stopScannerLoop();
+            if (scannerStream) {
+                scannerStream.getTracks().forEach(t => t.stop());
+                scannerStream = null;
+            }
+            closeModal('scanner-modal');
+        }
+
+        function openDetectedUPI() {
+            if (scannedUPIData) {
+                window.location.href = scannedUPIData;
+                // After returning, show proof upload
+                setTimeout(() => {
+                    stopScanner();
+                    openModal('proof-modal');
+                }, 1500);
+            }
+        }
+
+        // ── PAY NOW from QR modal (intent link) ──
+        function payNowFromQR() {
+            const qrSrc = document.getElementById('qr-img').src;
+            const upiId = madamSettings.upiId || 'pay-gttc@onlinesbi';
             const balRaw = document.getElementById('s-bal').innerText.replace('₹', '').replace(',', '');
             const bal = parseInt(balRaw) || 0;
-            const upiId = madamSettings.upiId || 'pay-gttc@onlinesbi';
-            const qrData = `upi://pay?pa=${upiId}&pn=GTTC%20Finance&am=${bal}&cu=INR&tn=CollegeFees`;
-            document.getElementById('qr-img').src = `https://api.qrserver.com/v1/create-qr-code/?size=250x250&data=${encodeURIComponent(qrData)}`;
-            document.getElementById('qr-pay-num').innerText = upiId;
-            openModal('qr-modal');
+            const intentUrl = `upi://pay?pa=${upiId}&pn=GTTC%20Finance&am=${bal}&cu=INR&tn=CollegeFees`;
+            closeModal('qr-modal');
+            window.location.href = intentUrl;
+            // After payment return, show proof upload
+            setTimeout(() => { openModal('proof-modal'); }, 2000);
         }
 
         function openPhonePe() {
@@ -1100,12 +1312,27 @@
         function openPayModal() {
             tempBase64 = null;
             document.getElementById('proof-amt').value = '';
-            // If requested payment check is there, pre-fill
             const balRaw = document.getElementById('s-bal').innerText.replace('₹', '').replace(',', '');
             document.getElementById('proof-amt').placeholder = "Enter Amount (Balance: ₹" + balRaw + ")";
             removeSelectedProof();
             openModal('proof-modal');
         }
+
+        // Check if user is returning from UPI payment (visibilitychange trick)
+        document.addEventListener('visibilitychange', () => {
+            if (!document.hidden && document.getElementById('proof-modal') &&
+                !document.getElementById('proof-modal').classList.contains('active')) {
+                // Suggest user to upload proof after coming back
+                const stu = document.getElementById('student-view');
+                if (stu && !stu.classList.contains('hidden')) {
+                    setTimeout(() => {
+                        if (!document.getElementById('proof-modal').classList.contains('active')) {
+                            openPayModal();
+                        }
+                    }, 800);
+                }
+            }
+        });
 
         function previewSelectedProof(input) {
             const file = input.files[0];
@@ -1152,7 +1379,6 @@
                 });
 
                 if (!uploadRes.ok) throw new Error("GitHub Upload Failed");
-                const uploadData = await uploadRes.json();
                 const publicUrl = `https://raw.githubusercontent.com/${REPO}/main/${fileName}`;
 
                 const newTx = {
@@ -1161,6 +1387,7 @@
                     amt: parseInt(amt),
                     status: 'PENDING',
                     proofImg: publicUrl,
+                    studentName: localStorage.getItem('gttc_user_name') || 'Student',
                     createdAt: Date.now()
                 };
 
@@ -1172,12 +1399,18 @@
                 // 3. Add to global pending collection
                 await db.collection('pending_approvals').doc(txId).set({
                     ...newTx,
-                    studentId: activeUserId,
-                    studentName: localStorage.getItem('gttc_user_name') || 'Student'
+                    studentId: activeUserId
                 });
 
+                // 4. Send notification to admin via Firestore trigger
+                await sendAdminNotification(
+                    localStorage.getItem('gttc_user_name') || 'Student',
+                    parseInt(amt),
+                    txId
+                );
+
                 closeModal('proof-modal');
-                alert("✅ Screenshot GitHub Server par upload ho gaya hai aur Madam ko bhej diya gaya hai!");
+                showToast('✅ Proof bhej diya! Madam approve karengi!');
             } catch (e) {
                 console.error(e);
                 alert("Error: " + e.message);
@@ -1185,6 +1418,35 @@
                 btn.disabled = false;
                 btn.innerHTML = '<i class="fas fa-paper-plane"></i> SUBMIT TO MADAM';
             }
+        }
+
+        // ── ADMIN NOTIFICATION via Firestore ──
+        async function sendAdminNotification(studentName, amount, txId) {
+            try {
+                await db.collection('admin_notifications').add({
+                    type: 'new_fee_proof',
+                    title: '💰 New Fee Proof Received',
+                    body: `${studentName} ne ₹${amount} ka proof bheja hai. Check karein!`,
+                    studentId: activeUserId,
+                    txId: txId,
+                    read: false,
+                    createdAt: firebase.firestore.FieldValue.serverTimestamp()
+                });
+            } catch (e) { console.warn('Notification error:', e); }
+        }
+
+        function showToast(msg) {
+            let toast = document.getElementById('fees-toast');
+            if (!toast) {
+                toast = document.createElement('div');
+                toast.id = 'fees-toast';
+                toast.style.cssText = 'position:fixed;bottom:90px;left:50%;transform:translateX(-50%);background:#22c55e;color:#fff;padding:12px 20px;border-radius:20px;font-size:13px;font-weight:700;z-index:9999;box-shadow:0 4px 15px rgba(0,0,0,0.3);';
+                document.body.appendChild(toast);
+            }
+            toast.innerText = msg;
+            toast.style.display = 'block';
+            toast.style.opacity = '1';
+            setTimeout(() => { toast.style.opacity = '0'; setTimeout(() => { toast.style.display = 'none'; }, 500); }, 3000);
         }
 
         // ── ADMIN LOGIC ──
@@ -1367,19 +1629,21 @@
             if (!confirm(`Are you sure you want to ${action} this payment?`)) return;
 
             try {
+                let approvedTx = null;
                 if (action === 'approve') {
-                    // 1. Get student's current history
                     const stuRef = db.collection('students').doc(currentReviewStudentId);
                     const doc = await stuRef.get();
                     if (doc.exists) {
                         const history = doc.data().fees.history.map(tx => {
-                            if (tx.id === currentReviewId) tx.status = 'APPROVED';
+                            if (tx.id === currentReviewId) {
+                                tx.status = 'APPROVED';
+                                approvedTx = { ...tx, studentId: currentReviewStudentId };
+                            }
                             return tx;
                         });
                         await stuRef.update({ "fees.history": history });
                     }
                 } else {
-                    // reject
                     const stuRef = db.collection('students').doc(currentReviewStudentId);
                     const doc = await stuRef.get();
                     if (doc.exists) {
@@ -1391,8 +1655,117 @@
                 // Remove from pending collection
                 await db.collection('pending_approvals').doc(currentReviewId).delete();
                 closeModal('review-modal');
-                alert(`Payment ${action === 'approve' ? 'Approved & Balance Updated!' : 'Rejected!'}`);
+
+                if (action === 'approve' && approvedTx) {
+                    // Show receipt
+                    const stuDoc = await db.collection('students').doc(currentReviewStudentId).get();
+                    const stuData = stuDoc.data() || {};
+                    showReceiptModal({
+                        txId: approvedTx.id,
+                        studentName: stuData.fullName || approvedTx.studentName || currentReviewStudentId,
+                        regNo: currentReviewStudentId,
+                        amt: approvedTx.amt,
+                        date: new Date().toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' })
+                    });
+                } else {
+                    showToast('❌ Payment Rejected!');
+                }
             } catch (e) { alert(e.message); }
+        }
+
+        // ── RECEIPT MODAL ──
+        let currentReceiptData = null;
+
+        function showReceiptModal(data) {
+            currentReceiptData = data;
+            document.getElementById('rcpt-id').innerText = data.txId;
+            document.getElementById('rcpt-date').innerText = data.date;
+            document.getElementById('rcpt-name').innerText = data.studentName;
+            document.getElementById('rcpt-reg').innerText = data.regNo;
+            document.getElementById('rcpt-amt').innerText = '₹' + parseInt(data.amt).toLocaleString();
+            openModal('receipt-modal');
+        }
+
+        function downloadReceiptPDF() {
+            if (!currentReceiptData) return;
+            const { jsPDF } = window.jspdf;
+            const doc = new jsPDF({ orientation: 'portrait', unit: 'mm', format: [80, 130] });
+
+            // Header
+            doc.setFillColor(0, 51, 102);
+            doc.rect(0, 0, 80, 28, 'F');
+            doc.setFont('helvetica', 'bold');
+            doc.setFontSize(14);
+            doc.setTextColor(255, 255, 255);
+            doc.text('GTTC COLLEGE', 40, 10, { align: 'center' });
+            doc.setFontSize(7);
+            doc.setFont('helvetica', 'normal');
+            doc.text('Government Tool Room & Training Centre', 40, 16, { align: 'center' });
+            doc.text('Humnabad, Karnataka', 40, 21, { align: 'center' });
+            doc.text('PAYMENT RECEIPT', 40, 26, { align: 'center' });
+
+            // Content
+            doc.setTextColor(30, 30, 30);
+            doc.setFontSize(8);
+            let y = 36;
+            const addRow = (label, value, bold = false) => {
+                doc.setFont('helvetica', 'normal');
+                doc.setTextColor(100, 100, 100);
+                doc.text(label, 8, y);
+                doc.setFont('helvetica', bold ? 'bold' : 'normal');
+                doc.setTextColor(20, 20, 20);
+                doc.text(value, 72, y, { align: 'right' });
+                y += 8;
+            };
+
+            addRow('Receipt No.:', currentReceiptData.txId.substring(0, 12));
+            addRow('Date:', currentReceiptData.date);
+            addRow('Student:', currentReceiptData.studentName);
+            addRow('Reg. No.:', currentReceiptData.regNo);
+
+            // Divider
+            y += 2;
+            doc.setDrawColor(200, 200, 200);
+            doc.setLineDashPattern([2, 2]);
+            doc.line(8, y, 72, y);
+            y += 6;
+
+            // Amount
+            doc.setLineDashPattern([]);
+            doc.setFont('helvetica', 'bold');
+            doc.setFontSize(10);
+            doc.setTextColor(0, 51, 102);
+            doc.text('AMOUNT PAID', 8, y);
+            doc.setFontSize(14);
+            doc.setTextColor(34, 197, 94);
+            doc.text('₹' + parseInt(currentReceiptData.amt).toLocaleString(), 72, y, { align: 'right' });
+            y += 10;
+
+            // Footer stamp
+            doc.setFillColor(240, 255, 244);
+            doc.roundedRect(8, y, 64, 18, 2, 2, 'F');
+            doc.setFont('helvetica', 'bold');
+            doc.setFontSize(9);
+            doc.setTextColor(22, 163, 74);
+            doc.text('✅ PAYMENT APPROVED', 40, y + 7, { align: 'center' });
+            doc.setFont('helvetica', 'normal');
+            doc.setFontSize(6);
+            doc.setTextColor(100, 100, 100);
+            doc.text('Authorized by GTTC Finance Department', 40, y + 13, { align: 'center' });
+
+            doc.save(`GTTC_Receipt_${currentReceiptData.regNo}_${currentReceiptData.txId}.pdf`);
+            showToast('📄 Receipt download ho gayi!');
+        }
+
+        // Student-side: view receipt from history
+        function viewStudentReceipt(tx) {
+            showReceiptModal({
+                txId: tx.id,
+                studentName: localStorage.getItem('gttc_user_name') || 'Student',
+                regNo: activeUserId,
+                amt: tx.amt,
+                date: tx.createdAt ? new Date(tx.createdAt.toMillis ? tx.createdAt.toMillis() : tx.createdAt).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' }) : 'N/A'
+            });
         }
 
         // ── COMMON UTILS ──
