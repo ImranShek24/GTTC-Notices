@@ -1602,16 +1602,8 @@
 
         function renderUI(staff, staffId) {
             const role = localStorage.getItem('gttc_user_role');
-            if (role === 'fees_admin') {
-                // Customize menu for Madam: Only show Fees and Class
-                document.querySelectorAll('.menu-item').forEach(el => {
-                    if (!el.classList.contains('m-fees') && !el.classList.contains('m-class')) {
-                        el.style.display = 'none';
-                    }
-                });
-                const grid = document.querySelector('.grid-menu');
-                if (grid) grid.style.gridTemplateColumns = '1fr 1fr';
-            }
+            // Menu restriction removed as per user's 'same to same' request.
+            // All staff buttons should be visible for Madam as well.
 
             if (staff.isProfileComplete === false) { window.location.href = 'profile-edit.html'; return; }
             document.getElementById('staff-header-sub').innerText = (staff.assignedSemester || "") + " " + (staff.branch || "");
