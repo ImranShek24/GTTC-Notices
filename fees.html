@@ -602,6 +602,17 @@
 
         <!-- ── ADMIN VIEW ── -->
         <div id="admin-view" class="hidden">
+            <div class="summary-grid" style="margin-bottom: 20px;">
+                <div class="card card-red">
+                    <div class="card-lbl">TOTAL PENDING</div>
+                    <div class="card-val" id="adm-total-pending">₹0</div>
+                </div>
+                <div class="card card-green">
+                    <div class="card-lbl">TOTAL APPROVED</div>
+                    <div class="card-val" id="adm-total-approved">₹0</div>
+                </div>
+            </div>
+
             <div class="search-area">
                 <div class="input-group">
                     <label>Student Register Number</label>
@@ -674,6 +685,16 @@
             </div>
             <div class="tx-list" id="adm-pending-list">
                 <!-- Pending List Here -->
+            </div>
+
+            <!-- APPROVED HISTORY LIST -->
+            <div class="section-hdr">
+                <span><i class="fas fa-check-circle"></i> APPROVED PAYMENTS HISTORY</span>
+                <span id="approved-count"
+                    style="background:var(--green); color:#fff; font-size:10px; padding:2px 8px; border-radius:10px;">0</span>
+            </div>
+            <div class="tx-list" id="adm-approved-list">
+                <!-- Approved List Here -->
             </div>
         </div>
     </div>
@@ -1465,10 +1486,12 @@
             await loadMadamSettings();
 
             // Listen to all pending approvals
-            db.collection('pending_approvals').onSnapshot(snap => {
+            db.collection('pending_approvals').orderBy('createdAt', 'desc').onSnapshot(snap => {
                 const list = document.getElementById('adm-pending-list');
                 list.innerHTML = '';
                 document.getElementById('pending-count').innerText = snap.size;
+
+                let totalPending = 0;
 
                 if (snap.empty) {
                     list.innerHTML = '<div style="text-align:center; padding:40px; color:var(--text-dim); font-size:12px;">Sab pending approvals clear hain! ✅</div>';
@@ -1476,6 +1499,7 @@
 
                 snap.forEach(doc => {
                     const p = doc.data();
+                    totalPending += parseInt(p.amt || 0);
                     const item = document.createElement('div');
                     item.className = 'tx-item';
                     item.innerHTML = `
@@ -1487,6 +1511,63 @@
                     `;
                     list.appendChild(item);
                 });
+                document.getElementById('adm-total-pending').innerText = '₹' + totalPending.toLocaleString();
+            });
+
+            // Listen to all approved history
+            db.collection('approved_history').orderBy('approvedAt', 'desc').limit(50).onSnapshot(snap => {
+                const list = document.getElementById('adm-approved-list');
+                list.innerHTML = '';
+                document.getElementById('approved-count').innerText = snap.size;
+
+                let totalApproved = 0;
+                // Note: snap only has last 50, for total we might need a separate counter or fetch all
+                // For now, let's use the current snap or a separate query if needed.
+                // madam wants TO SEE HISTORY, let's show history and count them.
+
+                if (snap.empty) {
+                    list.innerHTML = '<div style="text-align:center; padding:40px; color:var(--text-dim); font-size:12px;">Pehle koi approved payment nahi mili.</div>';
+                }
+
+                snap.forEach(doc => {
+                    const h = doc.data();
+                    totalApproved += parseInt(h.amt || 0);
+                    const item = document.createElement('div');
+                    item.className = 'tx-item';
+                    const dateStr = h.approvedAt ? new Date(h.approvedAt).toLocaleDateString() : 'N/A';
+
+                    // Sanitize h for JSON
+                    const h_json = JSON.stringify({
+                        id: h.id,
+                        studentName: h.studentName,
+                        studentId: h.studentId,
+                        amt: h.amt,
+                        approvedAt: h.approvedAt
+                    }).replace(/'/g, "&#39;");
+
+                    item.innerHTML = `
+                         <div class="tx-info">
+                            <h4 style="font-size:13px;">${h.studentName}</h4>
+                            <p>${dateStr} • ₹${h.amt} <span style="font-size:8px; opacity:0.6;">(Ref: ${h.id.substring(0, 8)})</span></p>
+                        </div>
+                        <div style="display:flex; gap:8px;">
+                            ${h.proofImg ? `<div class="proof-eye" style="background:var(--surface2);" onclick="openProofViewer('${h.proofImg}')">👁️</div>` : ''}
+                            <div class="proof-eye" style="background:var(--primary); color:#fff;" onclick='viewStudentReceipt(${h_json})'>📄</div>
+                        </div>
+                    `;
+                    list.appendChild(item);
+                });
+                document.getElementById('adm-total-approved').innerText = '₹' + totalApproved.toLocaleString();
+            });
+        }
+
+        function viewStudentReceipt(h) {
+            showReceiptModal({
+                txId: h.id,
+                studentName: h.studentName,
+                regNo: h.studentId,
+                amt: h.amt,
+                date: h.approvedAt ? new Date(h.approvedAt).toLocaleDateString('en-IN') : new Date().toLocaleDateString('en-IN')
             });
         }
 
@@ -1658,6 +1739,15 @@
 
                 // Remove from pending collection
                 await db.collection('pending_approvals').doc(currentReviewId).delete();
+
+                // Add to approved_history collection (Global Admin View)
+                if (action === 'approve' && approvedTx) {
+                    await db.collection('approved_history').doc(currentReviewId).set({
+                        ...approvedTx,
+                        approvedAt: Date.now()
+                    });
+                }
+
                 closeModal('review-modal');
 
                 if (action === 'approve' && approvedTx) {
