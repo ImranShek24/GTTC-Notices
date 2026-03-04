@@ -879,6 +879,9 @@
 
                 if (doc.exists) {
                     const data = doc.data();
+                    if (!data.isPhoneVerified) {
+                        return alert("Please link your phone in profile for recovery!");
+                    }
                     const savedPhone = data.phone || data.phoneNumber;
 
                     if (savedPhone === phone) {
