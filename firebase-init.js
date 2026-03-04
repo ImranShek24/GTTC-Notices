@@ -24,14 +24,31 @@ if (typeof firebase !== 'undefined' && !firebase.apps.length) {
 }
 
 // 🔑 GLOBAL INSTANCES (Safe Access)
-var db = firebase.firestore();
-var auth = firebase.auth();
-var storage = firebase.storage();
+var db, auth, storage;
 
-// Attach to window for absolute global certainty
-window.db = db;
-window.auth = auth;
-window.storage = storage;
+try {
+  if (typeof firebase !== 'undefined' && firebase.apps.length) {
+    db = firebase.firestore();
+    auth = firebase.auth();
+    storage = firebase.storage();
+
+    // Attach to window for absolute global certainty
+    window.db = db;
+    window.auth = auth;
+    window.storage = storage;
+  }
+} catch (e) {
+  console.error("Firebase Instance Error:", e);
+}
+
+// ⏳ DB READY HELPER
+window.dbReady = async function (maxWait = 4000) {
+  const start = Date.now();
+  while (!window.db && (Date.now() - start < maxWait)) {
+    await new Promise(r => setTimeout(r, 100));
+  }
+  return !!window.db;
+};
 
 // 📡 REAL-TIME CONNECTIVITY FIREWALL
 window.isOnline = navigator.onLine;
