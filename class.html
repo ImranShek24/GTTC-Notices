@@ -881,7 +881,14 @@
         async function loadStaffClassData() {
             const role = localStorage.getItem('gttc_user_role');
             if (role === 'fees_admin') {
-                document.getElementById('classLabel').textContent = "ALL COLLEGE STUDENTS (BIODATA)";
+                document.getElementById('classLabel').textContent = "ALL FACULTY / STAFF MEMBERS";
+                document.querySelector('.section-label').textContent = "STAFF DIRECTORY";
+                // For Madam, show staff list in the Attendance tab first
+                db.collection('staff')
+                    .orderBy('fullName')
+                    .onSnapshot(snap => renderStaffDirectory(snap));
+
+                // Keep the 'All Students' tab as a general biodata list
                 db.collection('students')
                     .orderBy('fullName')
                     .onSnapshot(snap => renderStudentLists(snap));
@@ -994,10 +1001,56 @@
             document.getElementById('count-total').textContent = snap.size;
         }
 
+        // ── MADAM SPECIAL: STAFF DIRECTORY ──
+        function renderStaffDirectory(snap) {
+            const staffList = document.getElementById('staffAttList');
+            staffList.innerHTML = '';
+
+            if (snap.empty) {
+                staffList.innerHTML = `<div style="text-align:center; padding:40px; opacity:0.6;">No staff found in database.</div>`;
+                return;
+            }
+
+            snap.forEach(doc => {
+                const s = doc.data();
+                const id = doc.id;
+
+                const staffRow = document.createElement('div');
+                staffRow.className = 'attendance-row';
+                staffRow.style.padding = '12px 15px';
+                staffRow.innerHTML = `
+                    <div style="display:flex; align-items:center; gap:12px; cursor:pointer;" onclick="viewStaffStudents('${id}', '${s.assignedSemester}', '${s.assignedCourse}', '${s.fullName}')">
+                        <img src="${s.photo || 'gttc-logo.png'}" class="s-item-dp" style="width:45px; height:45px; border:2px solid var(--action-blue);">
+                        <div>
+                            <div style="font-size:15px; font-weight:800; color:var(--text-white);">${s.fullName}</div>
+                            <div style="font-size:11px; color:var(--text-grey);">${s.assignedSemester || ''} ${s.assignedCourse || ''}</div>
+                        </div>
+                    </div>
+                    <button class="btn-view-sm" style="background:var(--action-blue);" onclick="viewStaffStudents('${id}', '${s.assignedSemester}', '${s.assignedCourse}', '${s.fullName}')">View Class</button>
+                `;
+                staffList.appendChild(staffRow);
+            });
+        }
+
+        async function viewStaffStudents(staffId, sem, course, staffName) {
+            if (!sem || !course) return alert(`${staffName} ne abhi tak koi class assign nahi ki hai.`);
+
+            // Switch to Students tab to show their students
+            switchTab('students');
+            document.getElementById('classLabel').textContent = `${staffName}'s Class: ${sem} ${course}`;
+
+            // Clear current search to show these specific students
+            document.getElementById('studentSearch').value = '';
+
+            db.collection('students')
+                .where('semester', '==', sem)
+                .where('course', '==', course)
+                .onSnapshot(snap => renderStudentLists(snap));
+        }
+
         // ── STUDENT BIODATA OVERLAY ──
         async function showStudentBiodata(regNo) {
-            alert('Loading Biodata for ' + regNo + '...');
-            // Full biodata logic can be added here if needed
+            alert('Loading Full Biodata for ' + regNo + '...');
         }
 
         async function markStatus(id, status) {
