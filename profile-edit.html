@@ -1,0 +1,584 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GTTC Humnabad - Profile Setup</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <style>
+        :root {
+            --primary: #2979FF;
+            --primary-light: rgba(41, 121, 255, 0.12);
+            --primary-glow: rgba(41, 121, 255, 0.25);
+            --bg: #080C14;
+            --surface: #0F1623;
+            --surface2: #161E2E;
+            --surface3: #1C2740;
+            --text: #FFFFFF;
+            --text2: #B0BEC5;
+            --text3: #546E7A;
+            --border: rgba(255, 255, 255, 0.07);
+            --error: #F44336;
+            --success: #64ffda;
+            --input-bg: transparent;
+        }
+
+        html[data-theme="light"] {
+            --bg: #f0f4f8;
+            --surface: #ffffff;
+            --surface2: #e1e8f0;
+            --surface3: #d1d9e6;
+            --text: #0a1929;
+            --text2: #455a64;
+            --text3: #607d8b;
+            --border: rgba(0, 0, 0, 0.1);
+            --input-bg: #fff;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            transition: background 0.3s, color 0.3s, border-color 0.3s;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            padding: 24px 16px 48px;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 420px;
+            margin: auto;
+            animation: slideUp 0.5s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+        }
+
+        @keyframes slideUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* ── HEADER ── */
+        .header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 20px;
+            padding: 0 4px;
+        }
+
+        .back-btn {
+            width: 40px;
+            height: 40px;
+            border-radius: 12px;
+            background: var(--surface);
+            border: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            font-size: 18px;
+            text-decoration: none;
+            color: var(--text);
+            transition: 0.25s;
+        }
+
+        .back-btn:hover {
+            background: var(--surface2);
+            border-color: rgba(41, 121, 255, 0.3);
+        }
+
+        .header-title {
+            font-size: 16px;
+            font-weight: 800;
+        }
+
+        .header-sub {
+            font-size: 10px;
+            color: var(--text3);
+        }
+
+        /* ── DP SECTION ── */
+        .dp-section {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            margin-bottom: 28px;
+        }
+
+        .dp-outer {
+            position: relative;
+            margin-bottom: 10px;
+        }
+
+        .dp-ring {
+            width: 110px;
+            height: 110px;
+            border-radius: 50%;
+            border: 3px solid var(--primary);
+            overflow: hidden;
+            background: var(--surface2);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 48px;
+            cursor: pointer;
+            box-shadow: 0 0 30px var(--primary-glow);
+        }
+
+        .dp-ring img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .camera-overlay {
+            position: absolute;
+            bottom: 4px;
+            right: 4px;
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            background: var(--primary);
+            border: 2px solid var(--bg);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 14px;
+            cursor: pointer;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.4);
+        }
+
+        .dp-label {
+            font-size: 12px;
+            color: var(--primary);
+            cursor: pointer;
+            font-weight: 600;
+        }
+
+        #dpInput {
+            display: none;
+        }
+
+        /* ── ROLE BADGE ── */
+        .role-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            background: var(--primary-light);
+            border: 1px solid var(--primary);
+            border-radius: 20px;
+            padding: 5px 14px;
+            font-size: 11px;
+            font-weight: 700;
+            color: var(--primary);
+            letter-spacing: 0.5px;
+            margin: 0 auto 24px;
+        }
+
+        /* ── INFO CHIPS ── */
+        .info-chips {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            margin-bottom: 24px;
+        }
+
+        .info-chip {
+            background: var(--surface2);
+            border: 1px solid var(--border);
+            border-radius: 14px;
+            padding: 12px 14px;
+        }
+
+        .ic-label {
+            font-size: 9px;
+            color: var(--text3);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 5px;
+        }
+
+        .ic-val {
+            font-size: 16px;
+            font-weight: 900;
+            color: var(--primary);
+        }
+
+        /* ── GLASS CARD ── */
+        .glass-card {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 20px;
+            padding: 22px 20px;
+            margin-bottom: 14px;
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
+        }
+
+        html[data-theme="light"] .glass-card {
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+        }
+
+        .section-label {
+            font-size: 9px;
+            font-weight: 700;
+            color: var(--text3);
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            margin-bottom: 16px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .section-label::after {
+            content: '';
+            flex: 1;
+            height: 1px;
+            background: var(--border);
+        }
+
+        /* ── OUTLINED TEXT FIELD ── */
+        .outlined-field {
+            position: relative;
+            margin-bottom: 16px;
+        }
+
+        .outlined-field label {
+            position: absolute;
+            top: -8px;
+            left: 12px;
+            background: var(--surface);
+            padding: 0 5px;
+            font-size: 10px;
+            font-weight: 700;
+            color: var(--text3);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            z-index: 1;
+        }
+
+        .outlined-field input,
+        .outlined-field textarea {
+            width: 100%;
+            padding: 14px 16px;
+            background: var(--input-bg);
+            border: 1.5px solid var(--border);
+            border-radius: 12px;
+            color: var(--text);
+            font-size: 15px;
+            outline: none;
+            transition: all 0.25s;
+            font-family: 'Inter', sans-serif;
+        }
+
+        .outlined-field textarea {
+            height: 88px;
+            font-size: 14px;
+        }
+
+        .outlined-field input:focus,
+        .outlined-field textarea:focus {
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px var(--primary-light);
+        }
+
+        /* ── SAVE BUTTON ── */
+        .save-btn {
+            width: 100%;
+            padding: 17px;
+            background: var(--primary);
+            color: #fff;
+            border: none;
+            border-radius: 14px;
+            font-weight: 800;
+            font-size: 16px;
+            cursor: pointer;
+            box-shadow: 0 6px 24px var(--primary-glow);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+
+        #statusMsg {
+            text-align: center;
+            margin-top: 14px;
+            font-size: 13px;
+            font-weight: 600;
+            display: none;
+            padding: 12px;
+            border-radius: 12px;
+        }
+
+        #statusMsg.success {
+            background: rgba(100, 255, 218, 0.08);
+            color: var(--success);
+        }
+
+        #statusMsg.error {
+            background: rgba(244, 67, 54, 0.1);
+            color: var(--error);
+        }
+    </style>
+</head>
+
+<body>
+    <script>
+        // Init theme before body loads
+        (function () {
+            const savedTheme = localStorage.getItem('gttc_theme') || 'dark';
+            document.documentElement.setAttribute('data-theme', savedTheme);
+        })();
+    </script>
+
+    <div class="container">
+        <!-- HEADER -->
+        <div class="header">
+            <a href="javascript:history.back()" class="back-btn"><i class="fas fa-arrow-left"></i></a>
+            <div style="text-align:right;">
+                <div class="header-title">Profile Setup</div>
+                <div class="header-sub">Update your core details</div>
+            </div>
+        </div>
+
+        <!-- PROFILE PHOTO -->
+        <div class="dp-section">
+            <div class="dp-outer">
+                <div class="dp-ring" id="dpPreview" onclick="document.getElementById('dpInput').click()">👤</div>
+                <div class="camera-overlay" onclick="document.getElementById('dpInput').click()">📷</div>
+            </div>
+            <label for="dpInput" class="dp-label">Change Photo</label>
+            <input type="file" id="dpInput" accept="image/*">
+        </div>
+
+        <!-- ROLE BADGE -->
+        <div style="text-align:center;">
+            <div class="role-badge" id="roleBadge">🔄 Loading…</div>
+        </div>
+
+        <!-- LOCKED INFO -->
+        <div class="info-chips">
+            <div class="info-chip">
+                <div class="ic-label">🔒 Course / ವಿಷಯ</div>
+                <div class="ic-val" id="courseChip">—</div>
+            </div>
+            <div class="info-chip">
+                <div class="ic-label">🔒 Sem / ಸೆಮಿ</div>
+                <div class="ic-val" id="semChip">—</div>
+            </div>
+        </div>
+
+        <!-- PERSONAL DETAILS -->
+        <form id="setupForm">
+            <div class="glass-card">
+                <div class="section-label">Personal Information</div>
+                <div class="outlined-field">
+                    <label>Full Name</label>
+                    <input type="text" id="fullName" placeholder="e.g. Imran Shek" autocomplete="off">
+                </div>
+                <div class="outlined-field">
+                    <label>Father's Name</label>
+                    <input type="text" id="fatherName" placeholder="e.g. Shadul Shek" autocomplete="off">
+                </div>
+                <div class="outlined-field">
+                    <label>Phone / ಫೋನ್ ಸಂಖ್ಯೆ</label>
+                    <div style="display: flex; gap: 8px; align-items: center;">
+                        <input type="tel" id="phone" placeholder="9876543210" autocomplete="off" style="flex: 1;">
+                        <button type="button" id="verifyBtn" onclick="sendOTP()"
+                            style="padding: 8px 12px; background: var(--surface3); border: 1px solid var(--border); border-radius: 8px; font-size: 11px; font-weight: 700; color: var(--primary); cursor: pointer; white-space: nowrap;">
+                            VERIFY
+                        </button>
+                    </div>
+                    <div id="verifyStatus" style="font-size: 10px; margin-top: 6px; font-weight: 700; display: none;">
+                    </div>
+                    <div id="otpBox" style="margin-top: 10px; display: none;">
+                        <input type="number" id="otpInput" placeholder="Enter 6-digit OTP"
+                            style="width: 100%; padding: 10px; border-radius: 8px; background: var(--surface2); border: 1px solid var(--primary); color: #fff; text-align: center; letter-spacing: 5px;">
+                        <button type="button" onclick="verifyOTP()"
+                            style="width: 100%; margin-top: 8px; padding: 10px; background: var(--primary); border: none; border-radius: 8px; color: #fff; font-weight: 800; font-size: 12px;">CONFIRM
+                            OTP</button>
+                    </div>
+                    <div id="recaptcha-container"></div>
+                </div>
+            </div>
+
+            <div class="glass-card">
+                <div class="section-label">Location Details</div>
+                <div class="outlined-field">
+                    <label>Village / Area</label>
+                    <input type="text" id="village" placeholder="e.g. Kandgul" autocomplete="off">
+                </div>
+            </div>
+
+            <div class="glass-card">
+                <div class="section-label">About Me</div>
+                <div class="outlined-field">
+                    <label>Bio</label>
+                    <textarea id="bio" placeholder="A short intro about you…"></textarea>
+                </div>
+            </div>
+
+            <button type="submit" id="saveBtn" class="save-btn">
+                <span>💾</span> Save Changes / ಪ್ರೊಫೈಲ್ ಉಳಿಸಿ
+            </button>
+            <p id="statusMsg"></p>
+        </form>
+    </div>
+
+    <!-- Firebase SDKs -->
+    <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-firestore-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-storage-compat.js"></script>
+    <script src="firebase-init.js"></script>
+
+    <script>
+        const userRole = localStorage.getItem('gttc_user_role');
+        const currentUser = localStorage.getItem('gttc_current_user');
+        const currentStaff = localStorage.getItem('gttc_current_staff');
+        const activeId = userRole === 'staff' ? currentStaff : currentUser;
+        const collection = userRole === 'staff' ? 'staff' : 'students';
+        let imageData = '';
+        let confirmationResult = null;
+        let isPhoneVerified = false;
+
+        async function initProfile() {
+            if (!activeId) { window.location.href = 'login.html'; return; }
+            try {
+                const snap = await db.collection(collection).doc(activeId).get();
+                if (!snap.exists) { window.location.href = 'login.html'; return; }
+                const d = snap.data();
+                document.getElementById('roleBadge').innerHTML = userRole === 'staff' ? '👩‍🏫 STAFF' : '🎓 STUDENT';
+                document.getElementById('courseChip').innerText = d.assignedCourse || d.course || d.branch || '—';
+                document.getElementById('semChip').innerText = d.assignedSemester || d.semesterFull || d.semester || '—';
+                if (d.fullName) document.getElementById('fullName').value = d.fullName;
+                if (d.fatherName) document.getElementById('fatherName').value = d.fatherName;
+                if (d.phone) document.getElementById('phone').value = d.phone;
+                if (d.village) document.getElementById('village').value = d.village;
+                if (d.bio) document.getElementById('bio').value = d.bio;
+                if (d.photo) {
+                    imageData = d.photo;
+                    document.getElementById('dpPreview').innerHTML = `<img src="${d.photo}" alt="DP">`;
+                }
+
+                if (d.isPhoneVerified) {
+                    isPhoneVerified = true;
+                    showVerifyStatus("✅ VERIFIED", "var(--success)");
+                    document.getElementById('verifyBtn').style.display = 'none';
+                    document.getElementById('phone').readOnly = true;
+                }
+            } catch (err) { console.error('Init Error:', err); }
+        }
+
+        initProfile();
+
+        // 🛡️ PHONE VERIFICATION
+        function showVerifyStatus(msg, color) {
+            const st = document.getElementById('verifyStatus');
+            st.innerText = msg; st.style.color = color; st.style.display = 'block';
+        }
+
+        async function sendOTP() {
+            const phone = document.getElementById('phone').value.trim();
+            if (phone.length < 10) return alert("Valid 10-digit number enter karein!");
+            const formattedPhone = (phone.startsWith('+')) ? phone : '+91' + phone;
+
+            try {
+                window.recaptchaVerifier = new firebase.auth.RecaptchaVerifier('recaptcha-container', { 'size': 'invisible' });
+                confirmationResult = await auth.signInWithPhoneNumber(formattedPhone, window.recaptchaVerifier);
+                document.getElementById('otpBox').style.display = 'block';
+                document.getElementById('verifyBtn').disabled = true;
+                showVerifyStatus("OTP Sent! Check your SMS.", "var(--primary)");
+            } catch (e) { alert("OTP Error: " + e.message); }
+        }
+
+        async function verifyOTP() {
+            const code = document.getElementById('otpInput').value.trim();
+            if (!code || !confirmationResult) return;
+            try {
+                await confirmationResult.confirm(code);
+                isPhoneVerified = true;
+                document.getElementById('otpBox').style.display = 'none';
+                document.getElementById('verifyBtn').style.display = 'none';
+                document.getElementById('phone').readOnly = true;
+                showVerifyStatus("✅ PHONE VERIFIED!", "var(--success)");
+                alert("Success! Number linked.");
+            } catch (e) { alert("Incorrect OTP!"); }
+        }
+
+        document.getElementById('dpInput').addEventListener('change', function (e) {
+            const file = e.target.files[0];
+            if (!file) return;
+            const reader = new FileReader();
+            reader.onload = ev => {
+                imageData = ev.target.result;
+                document.getElementById('dpPreview').innerHTML = `<img src="${imageData}" alt="DP">`;
+            };
+            reader.readAsDataURL(file);
+        });
+
+        document.getElementById('setupForm').addEventListener('submit', async function (e) {
+            e.preventDefault();
+            const btn = document.getElementById('saveBtn');
+            const msg = document.getElementById('statusMsg');
+            btn.disabled = true;
+            btn.innerHTML = '<span>⚡</span> Saving...';
+            msg.innerText = 'Syncing...';
+            msg.style.display = 'block';
+
+            try {
+                await db.collection(collection).doc(activeId).update({
+                    fullName: document.getElementById('fullName').value.trim(),
+                    fatherName: document.getElementById('fatherName').value.trim(),
+                    phone: document.getElementById('phone').value.trim(),
+                    village: document.getElementById('village').value.trim(),
+                    bio: document.getElementById('bio').value.trim(),
+                    photo: imageData || '',
+                    isProfileComplete: true,
+                    isPhoneVerified: isPhoneVerified
+                });
+
+                localStorage.setItem('gttc_user_name', document.getElementById('fullName').value.trim());
+
+                msg.className = 'success';
+                msg.innerText = '✅ Success!';
+                setTimeout(() => {
+                    window.location.href = (userRole === 'staff' || activeId === '6363536608') ? 'index-staff.html' : 'index.html';
+                }, 1000);
+            } catch (err) {
+                msg.className = 'error';
+                msg.innerText = '❌ ' + err.message;
+                btn.disabled = false;
+                btn.innerHTML = '<span>💾</span> Save Changes';
+            }
+        });
+
+        // Handle Capacitor Back Button
+        document.addEventListener("DOMContentLoaded", () => {
+            if (window.Capacitor && window.Capacitor.Plugins && window.Capacitor.Plugins.App) {
+                window.Capacitor.Plugins.App.addListener('backButton', ({ canGoBack }) => {
+                    if (canGoBack) window.history.back();
+                    else window.Capacitor.Plugins.App.exitApp();
+                });
+            }
+        });
+    </script>
+</body>
+
+</html>
