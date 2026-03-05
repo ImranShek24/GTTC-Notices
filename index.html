@@ -1287,6 +1287,47 @@
             align-items: center;
             justify-content: center;
         }
+
+        /* NOTIF SHAKE */
+        @keyframes notifPulse {
+            0% {
+                transform: scale(1);
+                border-color: rgba(41, 121, 255, 0.3);
+            }
+
+            50% {
+                transform: scale(1.1);
+                border-color: rgba(41, 121, 255, 0.8);
+                box-shadow: 0 0 15px rgba(41, 121, 255, 0.3);
+            }
+
+            100% {
+                transform: scale(1);
+                border-color: rgba(41, 121, 255, 0.3);
+            }
+        }
+
+        .notif-shake {
+            animation: bellRing 0.5s ease;
+        }
+
+        @keyframes bellRing {
+
+            0%,
+            100% {
+                transform: rotate(0);
+            }
+
+            20%,
+            60% {
+                transform: rotate(15deg);
+            }
+
+            40%,
+            80% {
+                transform: rotate(-15deg);
+            }
+        }
     </style>
 </head>
 
@@ -1306,6 +1347,14 @@
             <p id="sem_course">Loading...</p>
         </div>
         <div class="header-right-group">
+            <!-- Global Notification Bell -->
+            <div class="settings-btn" id="global-bell-icon" onclick="openNotifPanel()"
+                style="position:relative; margin-right:8px;">
+                <i class="fas fa-bell"></i>
+                <div id="global-badge"
+                    style="display:none; position:absolute; top:8px; right:8px; background:#ff3838; width:8px; height:8px; border-radius:50%; border:2px solid var(--surface); z-index:5;">
+                </div>
+            </div>
             <!-- Settings Gear Icon -->
             <div class="settings-btn" id="settingsBtn" onclick="openDrawer()">
                 <i class="fas fa-gear"></i>
@@ -1776,13 +1825,9 @@
     }
 </style>
 
-<!-- Firebase SDKs -->
-<script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-auth-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-firestore-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-storage-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-messaging-compat.js"></script>
-<script src="firebase-init.js"></script>
+<!-- Supabase SDK -->
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="supabase-init.js"></script>
 <script src="gttc-notify.js"></script>
 <script src="https://accounts.google.com/gsi/client" async></script>
 
@@ -1835,40 +1880,65 @@
             if (smItem) smItem.style.display = 'flex';
         }
 
-        // ── Init Notifications + Badge counter
+        // ── Init Notifications
         GTTC_NOTIFY.init().then(() => {
             GTTC_NOTIFY.saveFCMToken(currentRegNo, 'student');
             GTTC_NOTIFY.updateBadge(currentRegNo);
             GTTC_NOTIFY.startForegroundListener(currentRegNo);
         });
 
-        // Live badge: listen for new messages targeting this user
-        db.collection('messages')
-            .where('receiverId', '==', currentRegNo)
-            .where('read', '==', false)
-            .onSnapshot(snap => {
-                const count = snap.size;
-                const dot = document.getElementById('chatNotif');
-                const badge = document.getElementById('chatBadge');
-                if (dot) dot.style.display = count > 0 ? 'block' : 'none';
-                if (badge) {
-                    badge.textContent = count > 9 ? '9+' : count;
-                    badge.style.display = count > 0 ? 'flex' : 'none';
-                }
-                if ('setAppBadge' in navigator) {
-                    count > 0 ? navigator.setAppBadge(count) : navigator.clearAppBadge();
-                }
-            });
+        // Live badge for unread messages (Supabase)
+        supabase
+            .channel('unread-messages')
+            .on('postgres_changes', {
+                event: '*',
+                schema: 'public',
+                table: 'messages',
+                filter: `receiverId=eq.${currentRegNo}`
+            }, payload => {
+                updateUnreadCount();
+            })
+            .subscribe();
+
+        async function updateUnreadCount() {
+            const { count, error } = await supabase
+                .from('messages')
+                .select('*', { count: 'exact', head: true })
+                .eq('receiverId', currentRegNo)
+                .eq('read', false);
+
+            if (error) return;
+            const dot = document.getElementById('chatNotif');
+            const badge = document.getElementById('chatBadge');
+            if (dot) dot.style.display = count > 0 ? 'block' : 'none';
+            if (badge) {
+                badge.textContent = count > 9 ? '9+' : count;
+                badge.style.display = count > 0 ? 'flex' : 'none';
+            }
+        }
+        updateUnreadCount();
 
         // Load Dynamic App Settings from GitHub
         loadGitHubConfig();
 
-        // Load Student Profile
-        db.collection('students').doc(currentRegNo).onSnapshot(doc => {
-            if (doc.exists) {
-                renderProfile(doc.data());
-            }
-        });
+        // Load Student Profile (Real-time Supabase)
+        const role = localStorage.getItem('gttc_user_role');
+        const colName = (role === 'staff' || role === 'fees_admin') ? 'staff' : 'students';
+
+        supabase.channel('profile-sync')
+            .on('postgres_changes', {
+                event: 'UPDATE',
+                schema: 'public',
+                table: colName,
+                filter: `regNo=eq.${currentRegNo}`
+            }, payload => {
+                if (payload.new) renderProfile(payload.new);
+            })
+            .subscribe();
+
+        // Initial Fetch
+        const { data: profile } = await supabase.from(colName).select('*').eq('regNo', currentRegNo).maybeSingle();
+        if (profile) renderProfile(profile);
     }
 
     async function loadGitHubConfig() {
@@ -1890,16 +1960,23 @@
                     if (cfg.features.ai === false) document.querySelector('.m-aishek')?.style.setProperty('display', 'none', 'important');
                 }
 
-                // Handle Jackpot Broadcasts
-                db.collection('admin_settings').doc('jackpot').onSnapshot(doc => {
-                    if (doc.exists) {
-                        const d = doc.data();
-                        if (d.alert && !localStorage.getItem('seen_alert_' + d.timestamp)) {
-                            alert("📡 MASTER BROADCAST:\n\n" + d.alert);
-                            localStorage.setItem('seen_alert_' + d.timestamp, '1');
+                // Handle Jackpot Broadcasts (Supabase)
+                supabase.channel('jackpot-alerts')
+                    .on('postgres_changes', { event: '*', schema: 'public', table: 'admin_settings' }, async () => {
+                        const { data } = await supabase.from('admin_settings').select('*').eq('id', 'jackpot').maybeSingle();
+                        if (data && data.alert && !localStorage.getItem('seen_alert_' + data.timestamp)) {
+                            alert("📡 MASTER BROADCAST:\n\n" + data.alert);
+                            localStorage.setItem('seen_alert_' + data.timestamp, '1');
                         }
-                    }
-                });
+                    })
+                    .subscribe();
+
+                // Fetch initial
+                const { data: d } = await supabase.from('admin_settings').select('*').eq('id', 'jackpot').maybeSingle();
+                if (d && d.alert && !localStorage.getItem('seen_alert_' + d.timestamp)) {
+                    alert("📡 MASTER BROADCAST:\n\n" + d.alert);
+                    localStorage.setItem('seen_alert_' + d.timestamp, '1');
+                }
             }
         } catch (e) { console.warn("GH Config unavailable."); }
     }
@@ -1940,71 +2017,42 @@
         }
 
         dot.className = 'sync-dot syncing';
-        txt.textContent = 'Checking Firebase...';
+        txt.textContent = 'Connecting Supabase...';
 
-        // Ping Firestore with a lightweight read
-        db.collection('_ping').limit(1).get()
-            .then(() => {
+        window.supabaseReady().then(ok => {
+            if (ok) {
                 dot.className = 'sync-dot';
-                txt.textContent = 'Mobile App Node — Synced ✓';
-            })
-            .catch(() => {
-                // Auth state listener as fallback
-                if (auth.currentUser) {
-                    dot.className = 'sync-dot';
-                    txt.textContent = 'Firebase Auth — Connected ✓';
-                } else {
-                    dot.className = 'sync-dot error';
-                    txt.textContent = 'Sync Error — Retry';
-                }
-            });
+                txt.textContent = 'Supabase Engine — Synced ✓';
+            } else {
+                dot.className = 'sync-dot error';
+                txt.textContent = 'Sync Error — Unreachable';
+            }
+        });
     }
 
-    // ===== FIREBASE AUTH LOGOUT =====
+    // ===== LOGOUT =====
     function handleLogout() {
         if (!confirm('GTTC 24 se logout karna chahte ho?')) return;
-
-        auth.signOut()
-            .then(() => {
-                // Total Wipeout of Session
-                localStorage.clear();
-                sessionStorage.clear();
-                window.location.href = 'login.html';
-            })
-            .catch(err => {
-                console.error('Logout error:', err);
-                // Fallback clear and redirect
-                localStorage.removeItem('gttc_current_user');
-                localStorage.removeItem('gttc_user_role');
-                localStorage.removeItem('gttc_auth_uid');
-                window.location.href = 'login.html';
-            });
+        localStorage.clear();
+        sessionStorage.clear();
+        window.location.href = 'login.html';
     }
 
     // ===== DASHBOARD INIT =====
-    // Waits for Firebase Auth state, then loads data by UID (persistent across login/logout)
-    auth.onAuthStateChanged(async function (firebaseUser) {
-        if (firebaseUser) {
-            localStorage.setItem('gttc_auth_uid', firebaseUser.uid);
-            // Check if this is super admin bypass
-            if (localStorage.getItem('gttc_superadmin') === '1') {
-                renderAdminDashboard();
-            } else {
-                await loadDashboard(firebaseUser);
-            }
-        } else {
-            const legacyUser = localStorage.getItem('gttc_current_user');
-            const isSuper = localStorage.getItem('gttc_superadmin') === '1';
+    async function initApp() {
+        const isReady = await window.supabaseReady();
+        const uId = localStorage.getItem('gttc_current_user');
+        const isSuper = localStorage.getItem('gttc_superadmin') === '1';
 
-            if (isSuper) {
-                renderAdminDashboard();
-            } else if (legacyUser) {
-                await loadDashboardByRegNo(legacyUser);
-            } else {
-                window.location.href = 'login.html';
-            }
+        if (isSuper) {
+            renderAdminDashboard();
+        } else if (uId) {
+            await loadDashboardByRegNo(uId);
+        } else {
+            window.location.href = 'login.html';
         }
-    });
+    }
+    initApp();
 
     /**
      * Specialized render for Super Admin
@@ -2024,67 +2072,9 @@
         updateSyncStatus();
     }
 
-    /**
-     * Primary load: by Firebase Auth UID
-     * Tries 'students' first, then 'staff'
-     */
-    async function loadDashboard(firebaseUser) {
-        try {
-            if (localStorage.getItem('gttc_superadmin') === '1') {
-                renderAdminDashboard();
-                return;
-            }
-            const uid = firebaseUser.uid;
-
-            // Try students collection first using UID field
-            let snap = await db.collection('students')
-                .where('uid', '==', uid)
-                .limit(1)
-                .get();
-
-            if (!snap.empty) {
-                const user = snap.docs[0].data();
-                const regNo = snap.docs[0].id;
-                localStorage.setItem('gttc_current_user', regNo);
-                localStorage.setItem('gttc_user_role', 'student');
-                renderDashboard(user, regNo);
-                updateSyncStatus();
-                return;
-            }
-
-            // Try staff collection
-            snap = await db.collection('staff')
-                .where('uid', '==', uid)
-                .limit(1)
-                .get();
-
-            if (!snap.empty) {
-                const user = snap.docs[0].data();
-                const regNo = snap.docs[0].id;
-                localStorage.setItem('gttc_current_user', regNo);
-                localStorage.setItem('gttc_user_role', 'staff');
-                window.location.href = 'index-staff.html';
-                return;
-            }
-
-            // UID not linked yet — fallback to regNo
-            const legacyUser = localStorage.getItem('gttc_current_user');
-            if (legacyUser) {
-                await loadDashboardByRegNo(legacyUser);
-            } else {
-                window.location.href = 'login.html';
-            }
-
-        } catch (err) {
-            console.error('Auth-UID load error:', err);
-            const legacyUser = localStorage.getItem('gttc_current_user');
-            if (legacyUser) await loadDashboardByRegNo(legacyUser);
-            else window.location.href = 'login.html';
-        }
-    }
 
     /**
-     * Fallback load: by Registration Number (legacy key)
+     * Fallback load: by Registration Number
      */
     async function loadDashboardByRegNo(regNo) {
         try {
@@ -2093,21 +2083,16 @@
                 return;
             }
             const role = localStorage.getItem('gttc_user_role');
+            const colName = (role === 'staff' || role === 'fees_admin') ? 'staff' : 'students';
 
-            // Fees Admin: Show admin-style dashboard directly
-            if (role === 'fees_admin' || localStorage.getItem('gttc_fees_admin') === '1') {
-                renderAdminDashboard();
-                return;
-            }
+            const { data: user, error } = await supabase.from(colName).select('*').eq('regNo', regNo).maybeSingle();
 
-            const colName = (role === 'staff') ? 'staff' : 'students';
-
-            const doc = await db.collection(colName).doc(regNo).get();
-            if (!doc.exists) {
+            if (!user) {
                 window.location.href = 'login.html';
                 return;
             }
-            renderDashboard(doc.data(), regNo);
+            renderDashboard(user, regNo);
+            updateSyncStatus();
         } catch (err) {
             console.error('RegNo load error:', err);
             window.location.href = 'login.html';
@@ -2168,37 +2153,34 @@
     function listenForChatNotifs() {
         const lastSeen = localStorage.getItem('gttc_last_chat_time') || 0;
         const currentUserId = localStorage.getItem('gttc_current_user');
-        db.collection('messages')
-            .orderBy('timestamp', 'desc')
-            .limit(1)
-            .onSnapshot(snap => {
-                if (!snap.empty) {
-                    const msg = snap.docs[0].data();
-                    if (msg.senderId !== currentUserId && msg.timestamp) {
-                        const msgTime = msg.timestamp.toMillis ? msg.timestamp.toMillis() : Date.now();
-                        if (msgTime > lastSeen) {
-                            document.getElementById('chatNotif').style.display = 'block';
-                        }
+
+        supabase.channel('chat-dots')
+            .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'messages' }, payload => {
+                const msg = payload.new;
+                if (msg.senderId !== currentUserId && msg.receiverId === currentUserId) {
+                    const msgTime = new Date(msg.created_at).getTime();
+                    if (msgTime > lastSeen) {
+                        document.getElementById('chatNotif').style.display = 'block';
                     }
                 }
-            });
+            })
+            .subscribe();
     }
 
-    // NOTIFICATION TOAST LOGIC
+    // NOTIFICATION TOAST LOGIC (Supabase)
     function startNotificationListener(uid) {
-        db.collection('notifications')
-            .where('to', '==', uid)
-            .orderBy('timestamp', 'desc')
-            .limit(1)
-            .onSnapshot(snap => {
-                if (!snap.empty) {
-                    const n = snap.docs[0].data();
-                    const ts = n.timestamp ? n.timestamp.toMillis() : Date.now();
-                    if (Date.now() - ts < 15000) {
-                        showToast(n);
-                    }
+        supabase.channel('user-notifications')
+            .on('postgres_changes', {
+                event: 'INSERT',
+                schema: 'public',
+                table: 'notifications',
+                filter: `to=eq.${uid}`
+            }, payload => {
+                if (payload.new) {
+                    showToast(payload.new);
                 }
-            });
+            })
+            .subscribe();
     }
 
     function showToast(n) {
@@ -2218,14 +2200,21 @@
     let nbIndex = 0;
 
     function listenToNoticeBoard() {
-        db.collection('notices').orderBy('timestamp', 'desc').limit(7).onSnapshot(snap => {
-            const wrapper = document.getElementById('nbSlider');
-            const dots = document.getElementById('nbDots');
-            if (!wrapper) return;
+        const wrapper = document.getElementById('nbSlider');
+        const dots = document.getElementById('nbDots');
+        if (!wrapper) return;
 
+        const loadNotices = async () => {
+            const { data: notices, error } = await supabase
+                .from('notices')
+                .select('*')
+                .order('timestamp', { ascending: false })
+                .limit(7);
+
+            if (error) return;
             if (nbInterval) clearInterval(nbInterval);
 
-            if (snap.empty) {
+            if (!notices || notices.length === 0) {
                 wrapper.innerHTML = '<div class="nb-item"><h2>No Notices.</h2><p>Humnabad Staff will update soon.</p></div>';
                 dots.innerHTML = '';
                 return;
@@ -2234,8 +2223,7 @@
             wrapper.innerHTML = '';
             dots.innerHTML = '';
 
-            snap.docs.forEach((doc, i) => {
-                const data = doc.data();
+            notices.forEach((data, i) => {
                 const item = document.createElement('div');
                 item.className = 'nb-item';
                 item.onclick = () => viewSpecificNotice(data);
@@ -2259,43 +2247,37 @@
                     `;
                 }
 
-                item.innerHTML = `
-                    ${mediaHtml}
-                `;
-                // Assign notice data to item for easier access
+                item.innerHTML = mediaHtml;
                 item.dataset.title = data.title || "Smart Notice Board";
                 item.onclick = () => viewSpecificNotice(data);
-
                 wrapper.appendChild(item);
 
-                // Add Dot
                 const dot = document.createElement('div');
                 dot.className = `nb-dot ${i === 0 ? 'active' : ''}`;
                 dots.appendChild(dot);
             });
 
-            // Set initial header title
-            if (snap.docs[0]) {
-                document.getElementById('nb-header-title').innerText = snap.docs[0].data().title || "Smart Notice Board";
+            if (notices[0]) {
+                document.getElementById('nb-header-title').innerText = notices[0].title || "Smart Notice Board";
             }
-
-            // Start Auto Slider
             nbIndex = 0;
             startNbAuto();
+        };
 
-            // Scroll Sync
-            wrapper.onscroll = () => {
-                const idx = Math.round(wrapper.scrollLeft / wrapper.clientWidth);
-                updateDots(idx);
-                nbIndex = idx;
+        loadNotices();
+        supabase.channel('notices-sync').on('postgres_changes', { event: '*', schema: 'public', table: 'notices' }, () => {
+            loadNotices();
+        }).subscribe();
 
-                // Update header title based on current slide
-                const currentSlide = wrapper.children[idx];
-                if (currentSlide && currentSlide.dataset.title) {
-                    document.getElementById('nb-header-title').innerText = currentSlide.dataset.title.toUpperCase();
-                }
-            };
-        });
+        wrapper.onscroll = () => {
+            const idx = Math.round(wrapper.scrollLeft / wrapper.clientWidth);
+            updateDots(idx);
+            nbIndex = idx;
+            const currentSlide = wrapper.children[idx];
+            if (currentSlide && currentSlide.dataset.title) {
+                document.getElementById('nb-header-title').innerText = currentSlide.dataset.title.toUpperCase();
+            }
+        };
     }
 
     function updateDots(idx) {
@@ -2531,23 +2513,22 @@
             if (res.ok) {
                 const issue = await res.json();
 
-                // ALSO SAVE TO FIRESTORE FOR SUPER ADMIN HUB
+                // ALSO SAVE TO SUPABASE FOR SUPER ADMIN HUB
                 try {
-                    await db.collection('support_tickets').add({
+                    await supabase.from('support_tickets').insert({
                         ticketId: issue.number,
                         regNo: userReg,
-                        name: userObj.fullName || 'Anonymous',
+                        name: profile?.fullName || 'Anonymous',
                         category: _helpCategory,
                         description: problem,
-                        timestamp: firebase.firestore.FieldValue.serverTimestamp(),
                         status: 'OPEN',
                         priority: 'LOW',
                         githubUrl: issue.html_url,
                         userRole: localStorage.getItem('gttc_user_role') || 'student',
-                        userBranch: userObj.branch || userObj.course || 'Unknown',
-                        userSem: userObj.semester || 'Unknown'
+                        userBranch: profile?.course || profile?.branch || 'Unknown',
+                        userSem: profile?.semester || 'Unknown'
                     });
-                } catch (ferr) { console.error("Firestore Support Sync Error:", ferr); }
+                } catch (ferr) { console.error("Supabase Support Sync Error:", ferr); }
 
                 showHelpStatus(`✅ Complaint submitted! Ticket #${issue.number}`, '#00e676');
                 btn.innerHTML = '<i class="fas fa-check"></i> Submitted!';
@@ -2625,6 +2606,7 @@
     });
 
 </script>
+<script src="gttc-pro-features.js"></script>
 </body>
 
 </html>
