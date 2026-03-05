@@ -1,0 +1,14 @@
+rules_version = '2';
+service firebase.storage {
+  match /b/{bucket}/o {
+
+    // ─── ALL FILES: Allow read/write ───
+    // App uses custom Firestore-based auth (no Firebase Auth tokens)
+    // This allows students & staff to upload photos and videos freely
+    match /{allPaths=**} {
+      allow read: if true;
+      allow write: if true;
+    }
+
+  }
+}
