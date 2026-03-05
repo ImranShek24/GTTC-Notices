@@ -681,9 +681,7 @@
                     <p>Install on your phone for best experience</p>
                 </div>
             </div>
-            <a class="apk-download-btn"
-                href="https://github.com/ImranShek24/GTTC-Notices/releases/download/v2.0.0/GTTC_24_Latest.apk"
-                download="GTTC_24_Latest.apk">
+            <a class="apk-download-btn" href="https://gofile.io/d/kr90WO" target="_blank">
                 ⬇️ INSTALL
             </a>
         </div>
@@ -897,9 +895,11 @@
 
     </div>
 
-    <!-- Supabase SDK -->
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <script src="supabase-init.js"></script>
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+    <script src="firebase-init.js"></script>
 
     <script>
         let activeRole = null;
@@ -908,11 +908,11 @@
         let activeSemCode = null;
         let isRedirecting = false;
 
-        // 🚀 SESSION AUTO-RECOVERY
+        // 🚀 SESSION AUTO-RECOVERY (Firebase)
         async function checkAutoLogin() {
-            const isReady = await window.supabaseReady();
+            const isReady = await window.dbReady(5000);
             if (!isReady) {
-                console.error("Critical: Supabase could not connect.");
+                console.error("Critical: Firebase could not connect.");
                 return;
             }
 
@@ -999,11 +999,11 @@
             hideMsgs();
         }
 
-        /* ─── REGISTRATION LOGIC ─── */
+        /* ─── REGISTRATION LOGIC (Firebase) ─── */
         async function handleRegister() {
-            const isReady = await window.supabaseReady();
+            const isReady = await window.dbReady(5000);
             if (!isReady) { showErr("Database offline. Try again."); return; }
-            const sb = window.supabase;
+            const db = window.db;
             const name = document.getElementById('regName').value.trim();
             const id = document.getElementById('regId').value.trim().toUpperCase();
             const pass = document.getElementById('regPass').value;
@@ -1020,8 +1020,9 @@
 
             try {
                 const col = activeRole === 'staff' ? 'staff' : 'students';
-                const { data: existing, error: checkErr } = await sb.from(col).select('regNo').eq('regNo', id).maybeSingle();
-                if (existing) throw new Error("This ID is already taken. Try logging in.");
+                // Check if ID already exists
+                const existingDoc = await db.collection(col).doc(id).get();
+                if (existingDoc.exists) throw new Error("This ID is already taken. Try logging in.");
 
                 let data = {
                     regNo: id, fullName: name, password: pass,
@@ -1039,8 +1040,7 @@
                     data.role = 'STUDENT';
                 }
 
-                const { error: insertErr } = await sb.from(col).insert([data]);
-                if (insertErr) throw insertErr;
+                await db.collection(col).doc(id).set(data);
 
                 localStorage.clear();
                 localStorage.setItem('gttc_user_role', activeRole);
@@ -1055,11 +1055,11 @@
             } catch (e) { showErr(e.message); btn.disabled = false; btn.innerHTML = '<span>🚀</span> Complete Registration'; }
         }
 
-        /* ─── LOGIN LOGIC ─── */
+        /* ─── LOGIN LOGIC (Firebase) ─── */
         async function handleLogin() {
-            const isReady = await window.supabaseReady();
+            const isReady = await window.dbReady(5000);
             if (!isReady) { showErr("Database offline. Try again."); return; }
-            const sb = window.supabase;
+            const db = window.db;
 
             if (window.isOnline === false) { showErr("Connection required."); return; }
             const id = document.getElementById('loginId').value.trim().toUpperCase();
@@ -1071,6 +1071,7 @@
 
             btn.disabled = true; btn.innerHTML = '<span>⏳</span> Verifying…'; hideMsgs();
 
+            // ── SUPER ADMIN HARDCODED LOGIN ──
             if (id === '6363536608' && pass === '6363536608DAR') {
                 localStorage.setItem('gttc_user_role', 'admin');
                 localStorage.setItem('gttc_current_user', id);
@@ -1086,40 +1087,41 @@
                 localStorage.setItem('gttc_current_user', id);
                 localStorage.setItem('gttc_current_staff', id);
                 localStorage.setItem('gttc_user_name', 'Fees Madam');
-
-                // Sync with Supabase admin_roles
-                try {
-                    await sb.from('admin_roles').upsert({
-                        regNo: id,
-                        role: 'fees_admin',
-                        name: 'Fees Madam',
-                        permissions: ['fees', 'students_view', 'qr_gen'],
-                        updatedAt: new Date().toISOString()
-                    });
-                } catch (e) { console.warn("Supabase sync failed, but login proceeding...", e); }
-
                 window.location.replace('index-staff.html');
                 return;
             }
 
             try {
-                const { data: staff, error: sErr } = await sb.from('staff').select('*').eq('regNo', id).eq('password', pass).maybeSingle();
-                if (staff) {
-                    localStorage.setItem('gttc_user_role', 'staff');
-                    localStorage.setItem('gttc_current_staff', id);
-                    localStorage.setItem('gttc_user_name', staff.fullName || 'Staff');
-                    window.location.replace(staff.isProfileComplete ? 'index-staff.html' : 'profile-edit.html');
-                    return;
+                // Check Staff first
+                const staffDoc = await db.collection('staff').doc(id).get();
+                if (staffDoc.exists) {
+                    const staff = staffDoc.data();
+                    if (staff.password === pass) {
+                        localStorage.setItem('gttc_user_role', 'staff');
+                        localStorage.setItem('gttc_current_staff', id);
+                        localStorage.setItem('gttc_user_name', staff.fullName || 'Staff');
+                        window.location.replace(staff.isProfileComplete ? 'index-staff.html' : 'profile-edit.html');
+                        return;
+                    } else {
+                        throw new Error("wrong_password");
+                    }
                 }
 
-                const { data: student, error: stuErr } = await sb.from('students').select('*').eq('regNo', id).eq('password', pass).maybeSingle();
-                if (student) {
-                    localStorage.setItem('gttc_user_role', 'student');
-                    localStorage.setItem('gttc_current_user', id);
-                    localStorage.setItem('gttc_user_name', student.fullName || 'Student');
-                    window.location.replace(student.isProfileComplete ? 'index.html' : 'profile-edit.html');
-                    return;
+                // Check Students
+                const studentDoc = await db.collection('students').doc(id).get();
+                if (studentDoc.exists) {
+                    const student = studentDoc.data();
+                    if (student.password === pass) {
+                        localStorage.setItem('gttc_user_role', 'student');
+                        localStorage.setItem('gttc_current_user', id);
+                        localStorage.setItem('gttc_user_name', student.fullName || 'Student');
+                        window.location.replace(student.isProfileComplete ? 'index.html' : 'profile-edit.html');
+                        return;
+                    } else {
+                        throw new Error("wrong_password");
+                    }
                 }
+
                 throw new Error("wrong_password");
             } catch (e) {
                 if (e.message === "wrong_password") {
@@ -1158,28 +1160,31 @@
             btn.disabled = true; btn.innerText = "Verifying...";
 
             try {
-                const isReady = await window.supabaseReady();
+                const isReady = await window.dbReady(5000);
                 if (!isReady) throw new Error("Database offline.");
-                const sb = window.supabase;
+                const db = window.db;
 
-                let { data: user, error } = await sb.from('staff').select('*').eq('regNo', id).maybeSingle();
-                if (!user) {
-                    let { data: student } = await sb.from('students').select('*').eq('regNo', id).maybeSingle();
-                    user = student;
+                // Check staff first, then students
+                let userData = null;
+                const staffDoc = await db.collection('staff').doc(id).get();
+                if (staffDoc.exists) userData = staffDoc.data();
+
+                if (!userData) {
+                    const studentDoc = await db.collection('students').doc(id).get();
+                    if (studentDoc.exists) userData = studentDoc.data();
                 }
 
-                if (user) {
-                    const data = user;
+                if (userData) {
                     const box = document.getElementById('recovery-box');
                     const msg = document.getElementById('recovery-msg');
                     box.classList.remove('hidden');
 
-                    if (!data.isPhoneVerified) {
+                    if (!userData.isPhoneVerified) {
                         msg.innerHTML = `<span style="color:var(--error)">⚠️ Security Lock</span><br><br>Please link your phone in profile for recovery.<br>Admin se contact karein.`;
                     } else {
-                        const savedPhone = data.phone || data.phoneNumber;
+                        const savedPhone = userData.phone || userData.phoneNumber;
                         if (savedPhone === phone) {
-                            const savedPass = data.password || "N/A";
+                            const savedPass = userData.password || "N/A";
                             msg.innerHTML = `<span style="color:var(--success)">✅ Match Found!</span><br><br>Apka Password hai:<br><span style="font-size:20px; color:#fff; letter-spacing:2px; background:rgba(255,255,255,0.05); padding:5px 15px; border-radius:8px; display:inline-block; margin-top:10px;">${savedPass}</span>`;
                         } else {
                             msg.innerHTML = `<span style="color:var(--error)">❌ Wrong Phone Number</span><br><br>Entered number doesn't match our records.`;
