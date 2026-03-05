@@ -1494,11 +1494,9 @@
             Shek 24</span></div>
     </div>
 
-    <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-auth-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-firestore-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-messaging-compat.js"></script>
-    <script src="firebase-init.js"></script>
+    <!-- Supabase SDK -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="supabase-init.js"></script>
     <script src="gttc-notify.js"></script>
 
     <script>
@@ -1561,60 +1559,44 @@
             const txt = document.getElementById('syncStatusText');
             if (!navigator.onLine) { dot.className = 'sync-dot error'; txt.textContent = 'Offline'; return; }
             dot.className = 'sync-dot syncing';
-            db.collection('_ping').limit(1).get().then(() => {
-                dot.className = 'sync-dot';
-                txt.textContent = 'Node perfectly synced ✓';
-            }).catch(() => {
-                if (auth.currentUser) { dot.className = 'sync-dot'; txt.textContent = 'Connected ✓'; }
-                else { dot.className = 'sync-dot error'; txt.textContent = 'Sync Error'; }
+
+            window.supabaseReady().then(ok => {
+                if (ok) {
+                    dot.className = 'sync-dot';
+                    txt.textContent = 'Supabase Cloud — Synced ✓';
+                } else {
+                    dot.className = 'sync-dot error';
+                    txt.textContent = 'Sync Error — Unreachable';
+                }
             });
         }
 
         // Logout
         function handleLogout() {
             if (!confirm("Logout GTTC 24?")) return;
-            auth.signOut().then(() => {
-                localStorage.clear();
-                sessionStorage.clear();
-                window.location.href = 'login.html';
-            });
+            localStorage.clear();
+            sessionStorage.clear();
+            window.location.href = 'login.html';
         }
 
-        // Auth Logic
-        auth.onAuthStateChanged(async (firebaseUser) => {
+        // Auth Logic (Supabase Style)
+        async function initStaffApp() {
+            const isReady = await window.supabaseReady();
             const isSuper = localStorage.getItem('gttc_superadmin') === '1';
             if (isSuper) {
-                // Admin dashboard is in index.html, redirect there
                 window.location.href = 'index.html';
                 return;
             }
 
-            if (firebaseUser) {
-                await loadStaffHome(firebaseUser.uid);
+            const staffId = localStorage.getItem('gttc_current_staff');
+            if (staffId) {
+                await loadStaffHomeByDocId(staffId);
+                startNotificationListener(staffId);
             } else {
-                const legacy = localStorage.getItem('gttc_current_staff');
-                if (legacy) await loadStaffHomeByDocId(legacy);
-                else window.location.href = 'login.html';
+                window.location.href = 'login.html';
             }
-        });
-
-        async function loadStaffHome(uid) {
-            try {
-                const snap = await db.collection('staff').where('uid', '==', uid).limit(1).get();
-                if (!snap.empty) {
-                    const staff = snap.docs[0].data();
-                    const staffId = snap.docs[0].id;
-                    localStorage.setItem('gttc_current_staff', staffId);
-                    localStorage.setItem('gttc_user_role', 'staff');
-                    renderUI(staff, staffId);
-                    startNotificationListener(staffId);
-                } else {
-                    const legacy = localStorage.getItem('gttc_current_staff');
-                    if (legacy) await loadStaffHomeByDocId(legacy);
-                    else window.location.href = 'login.html';
-                }
-            } catch (e) { console.error(e); }
         }
+        initStaffApp();
 
         async function loadStaffHomeByDocId(docId) {
             if (docId === '8805423312') {
@@ -1626,8 +1608,8 @@
                 }, docId);
                 return;
             }
-            const doc = await db.collection('staff').doc(docId).get();
-            if (doc.exists) renderUI(doc.data(), docId);
+            const { data: staff, error } = await supabase.from('staff').select('*').eq('regNo', docId).maybeSingle();
+            if (staff) renderUI(staff, docId);
             else window.location.href = 'login.html';
         }
 
@@ -1656,23 +1638,35 @@
                 GTTC_NOTIFY.startForegroundListener(staffId);
             });
 
-            // ── Live Badge: Count unread messages sent to this staff member
-            db.collection('messages')
-                .where('receiverId', '==', staffId)
-                .where('read', '==', false)
-                .onSnapshot(snap => {
-                    const count = snap.size;
-                    const dot = document.getElementById('chatNotif');
-                    const badge = document.getElementById('chatBadge');
-                    if (dot) dot.style.display = count > 0 ? 'block' : 'none';
-                    if (badge) {
-                        badge.textContent = count > 9 ? '9+' : count;
-                        badge.style.display = count > 0 ? 'flex' : 'none';
-                    }
-                    if ('setAppBadge' in navigator) {
-                        count > 0 ? navigator.setAppBadge(count) : navigator.clearAppBadge();
-                    }
-                });
+            // ── Live Badge: Count unread messages sent to this staff member (Supabase Realtime)
+            const updateStaffUnread = async () => {
+                const { count, error } = await supabase
+                    .from('messages')
+                    .select('*', { count: 'exact', head: true })
+                    .eq('receiverId', staffId)
+                    .eq('read', false);
+
+                if (error) return;
+                const dot = document.getElementById('chatNotif');
+                const badge = document.getElementById('chatBadge');
+                if (dot) dot.style.display = count > 0 ? 'block' : 'none';
+                if (badge) {
+                    badge.textContent = count > 9 ? '9+' : count;
+                    badge.style.display = count > 0 ? 'flex' : 'none';
+                }
+            };
+            updateStaffUnread();
+
+            supabase.channel('staff-unread-msgs')
+                .on('postgres_changes', {
+                    event: '*',
+                    schema: 'public',
+                    table: 'messages',
+                    filter: `receiverId=eq.${staffId}`
+                }, payload => {
+                    updateStaffUnread();
+                })
+                .subscribe();
         }
 
         function openProfile() { document.getElementById('staffModal').style.display = 'flex'; }
@@ -1792,15 +1786,15 @@
                 loader.style.display = 'block';
                 btn.disabled = true;
 
-                // Change: Move to 'notices' collection for Slider
-                await db.collection('notices').add({
+                // Change: Move to 'notices' table for Slider (Supabase)
+                await supabase.from('notices').insert([{
                     title: text ? (text.length > 20 ? text.substring(0, 20) + '...' : text) : (ghUrl ? (isPdf ? "📄 PDF Notice" : "📷 Photo Notice") : "Notice"),
                     fullText: text,
                     imageUrl: isPdf ? null : (ghUrl || null),
                     pdfUrl: isPdf ? ghUrl : null,
                     senderName: "Madam",
-                    timestamp: firebase.firestore.FieldValue.serverTimestamp()
-                });
+                    timestamp: new Date().toISOString()
+                }]);
 
                 // Clear fields
                 document.getElementById('nt-text').value = '';
@@ -1831,15 +1825,21 @@
         let nbIndex = 0;
 
         function listenToNoticeBoard() {
-            // Listen to 'notices' collection for Multi-Notice Slider
-            db.collection('notices').orderBy('timestamp', 'desc').limit(7).onSnapshot(snap => {
-                const wrapper = document.getElementById('nbSlider');
-                const dots = document.getElementById('nbDots');
-                if (!wrapper) return;
+            const wrapper = document.getElementById('nbSlider');
+            const dots = document.getElementById('nbDots');
+            if (!wrapper) return;
 
+            const loadNotices = async () => {
+                const { data: notices, error } = await supabase
+                    .from('notices')
+                    .select('*')
+                    .order('timestamp', { ascending: false })
+                    .limit(7);
+
+                if (error) return;
                 if (nbInterval) clearInterval(nbInterval);
 
-                if (snap.empty) {
+                if (!notices || notices.length === 0) {
                     wrapper.innerHTML = '<div class="nb-item"><h2>No Active Notices.</h2><p>Dashed box se upload karo!</p></div>';
                     dots.innerHTML = '';
                     return;
@@ -1848,9 +1848,7 @@
                 wrapper.innerHTML = '';
                 dots.innerHTML = '';
 
-                const docs = snap.docs;
-                docs.forEach((doc, i) => {
-                    const data = doc.data();
+                notices.forEach((data, i) => {
                     const item = document.createElement('div');
                     item.className = 'nb-item';
 
@@ -1877,44 +1875,44 @@
 
                     item.innerHTML = `
                         ${mediaHtml}
-                        <div class="nb-slide-delete" onclick="deleteSpecificNotice('${doc.id}', '${data.imageUrl || data.pdfUrl || ''}')">
+                        <div class="nb-slide-delete" onclick="deleteSpecificNotice('${data.id}', '${data.imageUrl || data.pdfUrl || ''}')">
                             <i class="fas fa-trash"></i>
                         </div>
                     `;
-                    // Assign notice data to item for easier access
-                    item.dataset.title = data.title || "Smart Notice Board";
-                    item.onclick = () => viewSpecificNotice(data);
-
+                    item.dataset.title = (data.title || "Notice").toUpperCase();
+                    item.onclick = (e) => {
+                        if (e.target.closest('.nb-slide-delete')) return;
+                        viewSpecificNotice(data);
+                    };
                     wrapper.appendChild(item);
 
-                    // Add Dot
                     const dot = document.createElement('div');
                     dot.className = `nb-dot ${i === 0 ? 'active' : ''}`;
                     dots.appendChild(dot);
                 });
 
-                // Set initial header title
-                if (docs[0]) {
-                    document.getElementById('nb-header-title').innerText = docs[0].data().title || "Smart Notice Board";
+                if (notices[0]) {
+                    document.getElementById('nb-header-title').innerText = (notices[0].title || "Smart Notice Board").toUpperCase();
                 }
 
-                // Start Auto Slider
                 nbIndex = 0;
                 startNbAuto();
+            };
 
-                // Manual Scroll Sync
-                wrapper.onscroll = () => {
-                    const idx = Math.round(wrapper.scrollLeft / wrapper.clientWidth);
-                    updateDots(idx);
-                    nbIndex = idx;
+            loadNotices();
+            supabase.channel('notices-sync').on('postgres_changes', { event: '*', schema: 'public', table: 'notices' }, () => {
+                loadNotices();
+            }).subscribe();
 
-                    // Update header title based on current slide
-                    const currentSlide = wrapper.children[idx];
-                    if (currentSlide && currentSlide.dataset.title) {
-                        document.getElementById('nb-header-title').innerText = currentSlide.dataset.title.toUpperCase();
-                    }
-                };
-            });
+            wrapper.onscroll = () => {
+                const idx = Math.round(wrapper.scrollLeft / wrapper.clientWidth);
+                updateDots(idx);
+                nbIndex = idx;
+                const currentSlide = wrapper.children[idx];
+                if (currentSlide && currentSlide.dataset.title) {
+                    document.getElementById('nb-header-title').innerText = currentSlide.dataset.title;
+                }
+            };
         }
 
         function startNbAuto() {
@@ -1956,8 +1954,8 @@
         async function deleteSpecificNotice(docId, imgUrl) {
             if (!confirm('Kya aap is notice ko permanent delete karna chahte hain?')) return;
             try {
-                // 1. Delete Firestore Doc
-                await db.collection('notices').doc(docId).delete();
+                // 1. Delete Supabase Doc
+                await supabase.from('notices').delete().eq('id', docId);
 
                 // 2. Clear GH image if it's there
                 if (imgUrl && imgUrl.includes('notices')) {
@@ -2095,40 +2093,34 @@
         listenToNoticeBoard();
         listenForChatNotifs();
 
-        // RED DOT LOGIC
+        // RED DOT LOGIC (Supabase)
         function listenForChatNotifs() {
             const currentUserId = localStorage.getItem('gttc_current_staff');
             const lastSeen = localStorage.getItem('gttc_last_chat_time') || 0;
-            db.collection('messages')
-                .orderBy('timestamp', 'desc')
-                .limit(1)
-                .onSnapshot(snap => {
-                    if (!snap.empty) {
-                        const msg = snap.docs[0].data();
-                        if (msg.senderId !== currentUserId && msg.timestamp) {
-                            const msgTime = msg.timestamp.toMillis ? msg.timestamp.toMillis() : Date.now();
-                            if (msgTime > lastSeen) {
-                                document.getElementById('chatNotif').style.display = 'block';
-                            }
-                        }
+
+            supabase.channel('staff-chat-dots').on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'messages' }, payload => {
+                const msg = payload.new;
+                if (msg.senderId !== currentUserId && msg.receiverId === currentUserId) {
+                    const msgTime = new Date(msg.created_at).getTime();
+                    if (msgTime > lastSeen) {
+                        document.getElementById('chatNotif').style.display = 'block';
                     }
-                });
+                }
+            }).subscribe();
         }
-        // NOTIFICATION TOAST LOGIC
+
+        // NOTIFICATION TOAST LOGIC (Supabase)
         function startNotificationListener(uid) {
-            db.collection('notifications')
-                .where('to', '==', uid)
-                .orderBy('timestamp', 'desc')
-                .limit(1)
-                .onSnapshot(snap => {
-                    if (!snap.empty) {
-                        const n = snap.docs[0].data();
-                        const ts = n.timestamp ? n.timestamp.toMillis() : Date.now();
-                        if (Date.now() - ts < 15000) {
-                            showToast(n);
-                        }
-                    }
-                });
+            supabase.channel('staff-notifications').on('postgres_changes', {
+                event: 'INSERT',
+                schema: 'public',
+                table: 'notifications',
+                filter: `to=eq.${uid}`
+            }, payload => {
+                if (payload.new) {
+                    showToast(payload.new);
+                }
+            }).subscribe();
         }
 
         function showToast(n) {
