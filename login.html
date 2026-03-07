@@ -556,6 +556,233 @@
             border-color: #F44336 !important;
             box-shadow: 0 0 10px rgba(244, 67, 54, 0.4) !important;
         }
+
+        /* ══════════ LOGIN DEBUGGER PANEL ══════════ */
+        #login-debugger {
+            display: none;
+            margin-top: 14px;
+            border-radius: 18px;
+            overflow: hidden;
+            border: 1.5px solid rgba(244, 67, 54, 0.4);
+            animation: fadeSlide 0.4s forwards;
+        }
+
+        /* Error code badge */
+        #dbg-header {
+            background: linear-gradient(105deg, #1a0808, #2d0d0d);
+            padding: 14px 16px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        #dbg-icon {
+            font-size: 26px;
+            flex-shrink: 0;
+        }
+
+        #dbg-code {
+            font-size: 9px;
+            font-weight: 800;
+            letter-spacing: 2px;
+            color: #ff6b6b;
+            text-transform: uppercase;
+            margin-bottom: 3px;
+        }
+
+        #dbg-title {
+            font-size: 14px;
+            font-weight: 800;
+            color: #fff;
+            line-height: 1.3;
+        }
+
+        /* Steps section */
+        #dbg-steps {
+            background: #0d0808;
+            padding: 14px 16px;
+            border-top: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        #dbg-steps-label {
+            font-size: 8px;
+            font-weight: 800;
+            letter-spacing: 2px;
+            color: #546E7A;
+            text-transform: uppercase;
+            margin-bottom: 10px;
+        }
+
+        .dbg-step {
+            display: flex;
+            align-items: flex-start;
+            gap: 10px;
+            margin-bottom: 9px;
+            animation: fadeSlide 0.35s forwards;
+        }
+
+        .dbg-step-num {
+            background: #2979FF;
+            color: #fff;
+            font-size: 9px;
+            font-weight: 900;
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+            margin-top: 1px;
+        }
+
+        .dbg-step-text {
+            font-size: 12px;
+            color: #B0BEC5;
+            line-height: 1.5;
+            flex: 1;
+        }
+
+        .dbg-step-text b {
+            color: #fff;
+        }
+
+        .dbg-step-text code {
+            background: rgba(41, 121, 255, 0.15);
+            color: #64b5f6;
+            padding: 1px 6px;
+            border-radius: 5px;
+            font-size: 11px;
+            font-family: monospace;
+        }
+
+        /* Agent Questions box */
+        #dbg-agent {
+            background: linear-gradient(105deg, #081018, #091520);
+            border-top: 1px solid rgba(41, 121, 255, 0.2);
+            padding: 14px 16px;
+        }
+
+        #dbg-agent-label {
+            font-size: 8px;
+            font-weight: 800;
+            letter-spacing: 2px;
+            color: #2979FF;
+            text-transform: uppercase;
+            margin-bottom: 8px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        #dbg-agent-label::before {
+            content: '🤖';
+            font-size: 12px;
+        }
+
+        #dbg-questions {
+            list-style: none;
+            padding: 0;
+        }
+
+        #dbg-questions li {
+            font-size: 12px;
+            color: #90caf9;
+            font-weight: 600;
+            padding: 5px 0;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+            display: flex;
+            align-items: flex-start;
+            gap: 7px;
+        }
+
+        #dbg-questions li::before {
+            content: '➤';
+            color: #2979FF;
+            flex-shrink: 0;
+        }
+
+        /* Voice status bar */
+        #dbg-voice-bar {
+            background: rgba(0, 229, 160, 0.06);
+            border-top: 1px solid rgba(0, 229, 160, 0.15);
+            padding: 9px 16px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 11px;
+            font-weight: 700;
+            color: #00E5A0;
+        }
+
+        #dbg-voice-bar .pulse {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: #00E5A0;
+            animation: voicePulse 1s infinite;
+        }
+
+        @keyframes voicePulse {
+
+            0%,
+            100% {
+                opacity: 1;
+                transform: scale(1);
+            }
+
+            50% {
+                opacity: 0.4;
+                transform: scale(0.7);
+            }
+        }
+
+        /* Retry button inside debugger */
+        #dbg-retry-btn {
+            display: block;
+            width: 100%;
+            margin-top: 12px;
+            padding: 11px;
+            background: rgba(41, 121, 255, 0.15);
+            border: 1.5px solid rgba(41, 121, 255, 0.4);
+            border-radius: 12px;
+            color: #2979FF;
+            font-size: 13px;
+            font-weight: 800;
+            cursor: pointer;
+            transition: 0.25s;
+        }
+
+        #dbg-retry-btn:hover {
+            background: rgba(41, 121, 255, 0.28);
+        }
+
+        /* Toast notification */
+        #dbg-toast {
+            position: fixed;
+            bottom: 24px;
+            left: 50%;
+            transform: translateX(-50%) translateY(80px);
+            background: #1C2740;
+            border: 1px solid rgba(41, 121, 255, 0.4);
+            color: #fff;
+            padding: 10px 20px;
+            border-radius: 30px;
+            font-size: 12px;
+            font-weight: 700;
+            z-index: 9999;
+            transition: transform 0.4s cubic-bezier(0.22, 1, 0.36, 1), opacity 0.3s;
+            opacity: 0;
+            white-space: nowrap;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        #dbg-toast.show {
+            transform: translateX(-50%) translateY(0);
+            opacity: 1;
+        }
     </style>
 </head>
 
@@ -681,7 +908,7 @@
                     <p>Install on your phone for best experience</p>
                 </div>
             </div>
-            <a class="apk-download-btn" href="https://gofile.io/d/kr90WO" target="_blank">
+            <a class="apk-download-btn" href="https://gofile.io/d/UqKkXm" target="_blank">
                 ⬇️ INSTALL
             </a>
         </div>
@@ -887,11 +1114,51 @@
         <div id="errorMsg"></div>
         <div id="successMsg"></div>
 
+        <!-- ══════════ LOGIN DEBUGGER PANEL ══════════ -->
+        <div id="login-debugger">
+            <!-- Header: error code + title -->
+            <div id="dbg-header">
+                <div id="dbg-icon">⚠️</div>
+                <div>
+                    <div id="dbg-code">ERR_UNKNOWN</div>
+                    <div id="dbg-title">Login Failed</div>
+                </div>
+            </div>
+
+            <!-- Step-by-step fix guide -->
+            <div id="dbg-steps">
+                <div id="dbg-steps-label">🔧 Step-by-Step Fix</div>
+                <div id="dbg-steps-list"></div>
+
+                <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px; margin-top:12px;">
+                    <button id="dbg-retry-btn" onclick="handleLogin()" style="margin-top:0;">🔄 Retry Login</button>
+                    <button id="dbg-audio-btn" onclick="testVoiceSystem()"
+                        style="background:rgba(0,229,160,0.1); border:1.5px solid rgba(0,229,160,0.3); border-radius:12px; color:#00E5A0; font-size:13px; font-weight:800; cursor:pointer;">🔊
+                        Test Audio</button>
+                </div>
+            </div>
+
+            <!-- Agent questions -->
+            <div id="dbg-agent">
+                <div id="dbg-agent-label">Agent ko kya chahiye?</div>
+                <ul id="dbg-questions"></ul>
+            </div>
+
+            <!-- Voice status -->
+            <div id="dbg-voice-bar" id="dbg-voice-row">
+                <div class="pulse"></div>
+                <span id="dbg-voice-text">🔊 Voice Alert Sent</span>
+            </div>
+        </div>
+
         <!-- Debug / Force Clear -->
         <div style="text-align:center; margin-top:30px; opacity:0.3; font-size:10px;">
             <p onclick="forceClearSession()" style="cursor:pointer; color:var(--text2);">STUCK? <u>CLEAR ALL
                     SESSIONS</u></p>
         </div>
+
+        <!-- Toast notification -->
+        <div id="dbg-toast">🔊 <span id="dbg-toast-text"></span></div>
 
     </div>
 
@@ -908,25 +1175,25 @@
         let activeSemCode = null;
         let isRedirecting = false;
 
-        // 🚀 SESSION AUTO-RECOVERY (Firebase)
+        // 🚀 SESSION AUTO-RECOVERY (Persistent Login)
         async function checkAutoLogin() {
-            const isReady = await window.dbReady(5000);
-            if (!isReady) {
-                console.error("Critical: Firebase could not connect.");
-                return;
-            }
-
             const role = localStorage.getItem('gttc_user_role');
-            const legacyUserStaff = localStorage.getItem('gttc_current_staff');
-            const legacyUserStudent = localStorage.getItem('gttc_current_user');
+            const userS = localStorage.getItem('gttc_current_user');
+            const staffS = localStorage.getItem('gttc_current_staff');
 
-            if (legacyUserStaff || legacyUserStudent) {
+            if (userS || staffS) {
                 if (isRedirecting) return;
                 isRedirecting = true;
-                if (role === 'admin') window.location.replace('index.html');
-                else if (role === 'staff' || role === 'fees_admin') window.location.replace('index-staff.html');
-                else if (role === 'student' || legacyUserStudent) window.location.replace('index.html');
-                else forceClearSession(false);
+
+                console.log("Persistent Session Found: Showing Splash First...");
+
+                // MANDATORY 3s LOADING DELAY (for Splash Experience)
+                setTimeout(async () => {
+                    const isReady = await window.dbReady(5000);
+                    if (role === 'admin') window.location.replace('index.html');
+                    else if (role === 'staff' || role === 'fees_admin') window.location.replace('index-staff.html');
+                    else window.location.replace('index.html');
+                }, 3200);
             }
         }
 
@@ -970,7 +1237,252 @@
                 }
             }
         }
-        function hideMsgs() { document.getElementById('errorMsg').style.display = 'none'; document.getElementById('successMsg').style.display = 'none'; }
+        function hideMsgs() {
+            document.getElementById('errorMsg').style.display = 'none';
+            document.getElementById('successMsg').style.display = 'none';
+            document.getElementById('login-debugger').style.display = 'none';
+        }
+
+        /* ══════════ VOICE HELPER ══════════ */
+        function speakVoice(text, audioFile = null) {
+            // First, try professional audio pack if available
+            if (window.GTTCVoice && audioFile) {
+                window.GTTCVoice.speak(text, audioFile);
+                showToast('🔊 Audio Pack: ' + audioFile);
+                return;
+            }
+
+            // Fallback: Web Speech API (Free & Works Offline)
+            try {
+                if (window.speechSynthesis) {
+                    window.speechSynthesis.cancel();
+                    const u = new SpeechSynthesisUtterance(text);
+                    u.lang = 'hi-IN';
+                    u.rate = 0.95;
+                    u.pitch = 1.0;
+                    window.speechSynthesis.speak(u);
+
+                    // UI Updates
+                    const bar = document.getElementById('dbg-voice-bar');
+                    const txt = document.getElementById('dbg-voice-text');
+                    if (bar) bar.style.display = 'flex';
+                    if (txt) txt.textContent = '🔊 ' + text.substring(0, 50);
+                    showToast('🔊 ' + text.substring(0, 45));
+                }
+            } catch (err) {
+                console.warn('Voice error:', err);
+                showToast('🔇 Voice Blocked by Device');
+            }
+        }
+
+        function testVoiceSystem() {
+            speakVoice("System testing safe and success! Awaz aa rahi hai?");
+            showToast("Checking audio engine...");
+        }
+
+        function showToast(msg) {
+            const t = document.getElementById('dbg-toast');
+            const s = document.getElementById('dbg-toast-text');
+            if (!t || !s) return;
+            s.textContent = msg;
+            t.classList.add('show');
+            clearTimeout(window._toastTimer);
+            window._toastTimer = setTimeout(() => t.classList.remove('show'), 3500);
+        }
+
+        /* ══════════ LOGIN DEBUGGER ENGINE ══════════ */
+        // Error catalogue — each entry has: code, icon, title, steps[], questions[], voice
+        const LOGIN_ERRORS = {
+            FIREBASE_MISSING: {
+                code: 'ERR_FIREBASE_NOT_LOADED',
+                icon: '🔥',
+                title: 'Firebase SDK Load Fail',
+                steps: [
+                    { text: '<b>Internet check karein</b> — Firebase CDN block ho sakta hai (school/college WiFi).' },
+                    { text: 'Browser mein yeh URL open karein: <code>https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js</code>' },
+                    { text: 'Agar "Access Denied / blocked" mile, toh <b>mobile data turn on karein</b> ya VPN use karein.' },
+                    { text: 'Hard refresh karein: <code>Ctrl+Shift+R</code> (PC) ya <code>Settings → Clear Cache</code> (Mobile).' },
+                ],
+                questions: [
+                    'Kya aap school WiFi use kar rahe ho? (Block ho sakta hai)',
+                    'Kya mobile data pe bhi same error aata hai?',
+                    'Browser console mein kya error show hota hai? (F12 > Console)',
+                ],
+                voice: 'Login fail ho gaya hai. Firebase load nahi hua. Please internet check karein.'
+            },
+            FIREBASE_TIMEOUT: {
+                code: 'ERR_FIREBASE_TIMEOUT',
+                icon: '⏱️',
+                title: 'Firebase Connect Timeout (5s)',
+                steps: [
+                    { text: '<b>Step 1:</b> Apna internet connection check karein — WiFi ya Mobile Data.' },
+                    { text: '<b>Step 2:</b> Firebase Console mein jaayein → <code>gttc-24</code> project → <b>Firestore Database</b> → Rules check karein.' },
+                    { text: '<b>Step 3:</b> Firestore Rules mein yeh hona chahiye: <code>allow read, write: if true;</code> (temporarily).' },
+                    { text: '<b>Step 4:</b> authDomain verify karein — abhi <code>imranshek24.github.io</code> hai. Firebase default chahiye: <code>gttc-24.firebaseapp.com</code>' },
+                    { text: '<b>Step 5:</b> 30 second baad phir try karein.' },
+                ],
+                questions: [
+                    'Kya aapko naya Firebase Config dena hai? (apiKey banayein)',
+                    'authDomain change karein: gttc-24.firebaseapp.com → yes/no?',
+                    'Firestore Rules currently kaisi hain? Screenshot bhejein.',
+                ],
+                voice: 'Login fail ho gaya hai. Firebase server se connect nahi ho paya. Kripya internet check karein.'
+            },
+            NETWORK_BLOCKED: {
+                code: 'ERR_NETWORK_BLOCKED',
+                icon: '🌐',
+                title: 'Network / Internet Blocked',
+                steps: [
+                    { text: '<b>Internet band hai</b> — WiFi ya Mobile Data check karein.' },
+                    { text: 'Mobile Data ON karein aur dubara try karein.' },
+                    { text: 'Agar school network hai, toh admin se Firebase allowlist karwayein.' },
+                ],
+                questions: [
+                    'Kya mobile data pe bhi nahi chalta?',
+                    'Kaunsa network use kar rahe ho? (BSNL, Jio, Airtel, School WiFi)',
+                ],
+                voice: 'Login fail ho gaya hai, kripya internet check karein.'
+            },
+            USER_NOT_FOUND: {
+                code: 'ERR_USER_NOT_FOUND',
+                icon: '🔍',
+                title: 'User Not Found in Database',
+                steps: [
+                    { text: '<b>Registration Number sahi hai?</b> — Capital letters mein likhein (e.g. <code>GTTC001</code>).' },
+                    { text: 'Pehle <b>Register</b> karein (agar naya account hai).' },
+                    { text: 'Agar already registered hai, toh Admin se confirm karein ki aapka ID Firestore mein hai.' },
+                    { text: 'Firebase Console → Firestore → <code>students</code> collection → apna ID dhundhein.' },
+                ],
+                questions: [
+                    'Kya aapne pehle Register kiya hai?',
+                    'Registration Number exact kya hai? (Space/Capital check karein)',
+                    'Staff ho ya Student?',
+                ],
+                voice: 'Login fail ho gaya hai. Aapka ID hamare system mein nahi mila. Registration check karein.'
+            },
+            WRONG_PASSWORD: {
+                code: 'ERR_WRONG_PASSWORD',
+                icon: '🔐',
+                title: 'Wrong Password',
+                steps: [
+                    { text: '<b>Password exactly wahi daalo</b> jab register kiya tha — case-sensitive hai.' },
+                    { text: '"Forgot Password" button use karein neecha.' },
+                    { text: 'Agar bhool gaye: Admin se reset karwayein — Firestore mein directly <code>password</code> field update hota hai.' },
+                ],
+                questions: [
+                    'Password reset karna hai? Admin access chahiye.',
+                    'Supabase se migrate kiya password yaad hai?',
+                ],
+                voice: 'Password galat hai. Kripya dobara check karein ya forgot password use karein.'
+            },
+            AUTH_DOMAIN: {
+                code: 'ERR_AUTH_DOMAIN_MISMATCH',
+                icon: '🔗',
+                title: 'Firebase Auth Domain Mismatch',
+                steps: [
+                    { text: '<b>Android Chrome:</b> Settings → Site Settings → <b>Pop-ups and redirects</b> (Allow).' },
+                    { text: '<b>Clear Cache:</b> Chrome Settings → Privacy → <b>Clear Browsing Data</b> → Cookies & Cache (Last 24h).' },
+                    { text: '<b>Auth Domain Check:</b> Maine abhi <code>gttc-24.firebaseapp.com</code> set kiya hai, ye standard hai.' },
+                    { text: '<b>Incognito Mode:</b> Ek baar Private/Incognito tab mein login karke dekhein.' },
+                    { text: '<b>Force Stop:</b> Agar App use kar rahe hain, toh Phone Settings → Apps → GTTC 24 → <b>Force Stop</b> phir <b>Clear Cache</b>.' }
+                ],
+                questions: [
+                    'Kya Firebase Console mein imranshek24.github.io Authorized Domain mein add hai?',
+                    'Kya authDomain change kar doon firebase-init.js mein?',
+                ],
+                voice: 'Login fail ho gaya hai. Firebase domain mismatch hai. Admin se contact karein.'
+            },
+            PERMISSION_DENIED: {
+                code: 'ERR_FIRESTORE_PERMISSION',
+                icon: '🚫',
+                title: 'Firestore Permission Denied',
+                steps: [
+                    { text: 'Firebase Console → Firestore → <b>Rules</b> tab kholo.' },
+                    { text: 'Yeh rules set karo (temporary test ke liye):<br><code>allow read, write: if true;</code>' },
+                    { text: 'Publish karo aur 1 minute baad try karo.' },
+                    { text: 'Production mein proper rules apply karna hoga — admin ko batao.' },
+                ],
+                questions: [
+                    'Kya Firestore Rules mujhe dikhao ya share karo?',
+                    'Firestore Console access hai aapko?',
+                ],
+                voice: 'Database access blocked hai. Firestore rules check karein.'
+            },
+            GENERIC: {
+                code: 'ERR_UNKNOWN',
+                icon: '⚠️',
+                title: 'Login Failed – Unknown Error',
+                steps: [
+                    { text: 'Browser Console kholo: <code>F12</code> → Console tab → error copy karo.' },
+                    { text: 'Internet connection check karo.' },
+                    { text: 'Hard refresh karo: <code>Ctrl+Shift+R</code>' },
+                    { text: 'Agar phir bhi fail ho, exact error message agent ko bhejo.' },
+                ],
+                questions: [
+                    'Console mein kya error message aa raha hai? (F12 press karo)',
+                    'Kaunse device aur browser use kar rahe ho?',
+                    'Error kab se aa raha hai?',
+                ],
+                voice: 'Login fail ho gaya hai, kripya check karein.'
+            }
+        };
+
+        function classifyError(err) {
+            if (!window.db && typeof firebase === 'undefined') return 'FIREBASE_MISSING';
+            if (!navigator.onLine) return 'NETWORK_BLOCKED';
+            const msg = (err && err.message) ? err.message.toLowerCase() : '';
+            const code = (err && err.code) ? err.code.toLowerCase() : '';
+            if (msg.includes('timeout') || msg.includes('database offline') || msg.includes('unavailable')) return 'FIREBASE_TIMEOUT';
+            if (code.includes('permission-denied') || msg.includes('permission')) return 'PERMISSION_DENIED';
+            if (code.includes('auth/unauthorized-domain') || msg.includes('domain')) return 'AUTH_DOMAIN';
+            if (msg.includes('wrong_password') || msg.includes('galat password')) return 'WRONG_PASSWORD';
+            if (msg.includes('not found') || msg.includes('no user') || msg.includes('user-not-found')) return 'USER_NOT_FOUND';
+            if (!navigator.onLine || code.includes('network') || msg.includes('network')) return 'NETWORK_BLOCKED';
+            return 'GENERIC';
+        }
+
+        function showLoginDebugger(errType, rawError) {
+            const info = LOGIN_ERRORS[errType] || LOGIN_ERRORS.GENERIC;
+            // Update header
+            document.getElementById('dbg-code').textContent = info.code;
+            document.getElementById('dbg-title').textContent = info.title;
+            document.getElementById('dbg-icon').textContent = info.icon;
+            // Render steps
+            const stepsList = document.getElementById('dbg-steps-list');
+            stepsList.innerHTML = info.steps.map((s, i) =>
+                `<div class="dbg-step" style="animation-delay:${i * 0.07}s">
+                    <div class="dbg-step-num">${i + 1}</div>
+                    <div class="dbg-step-text">${s.text}</div>
+                </div>`
+            ).join('');
+            // Append raw error details (collapsible)
+            if (rawError) {
+                const rawMsg = rawError.message || String(rawError);
+                const rawCode = rawError.code || '';
+                stepsList.innerHTML += `<div class="dbg-step" style="margin-top:8px;">
+                    <div class="dbg-step-num">!</div>
+                    <div class="dbg-step-text"><b>Raw Error:</b> <code>${rawCode ? rawCode + ': ' : ''}${rawMsg}</code></div>
+                </div>`;
+            }
+            // Render agent questions
+            const qList = document.getElementById('dbg-questions');
+            qList.innerHTML = info.questions.map(q =>
+                `<li>${q}</li>`
+            ).join('');
+            // Show panel
+            const panel = document.getElementById('login-debugger');
+            panel.style.display = 'block';
+            panel.scrollIntoView({ behavior: 'smooth' });
+            // Voice
+            speakVoice(info.voice);
+            // Log to console for debugging
+            console.group(`%c🔴 GTTC Login Error: ${info.code}`, 'color:#ff6b6b; font-weight:bold; font-size:13px;');
+            console.log('Error Type:', errType);
+            console.log('Raw Error:', rawError);
+            console.log('Steps:', info.steps.map(s => s.text));
+            console.log('Agent Questions:', info.questions);
+            console.groupEnd();
+        }
 
         function selRole(r) {
             activeRole = r;
@@ -1050,26 +1562,36 @@
 
                 document.getElementById('successMsg').innerText = "✅ Success! Redirecting...";
                 document.getElementById('successMsg').style.display = 'block';
+                if (window.GTTCVoice) window.GTTCVoice.speak("Welcome to GTTC 24. Aapka registration safal raha.", "welcome.mp3");
                 setTimeout(() => { window.location.href = 'profile-edit.html'; }, 1200);
 
             } catch (e) { showErr(e.message); btn.disabled = false; btn.innerHTML = '<span>🚀</span> Complete Registration'; }
         }
 
-        /* ─── LOGIN LOGIC (Firebase) ─── */
+        /* ─── LOGIN LOGIC (Firebase) with DEBUGGER ─── */
         async function handleLogin() {
-            const isReady = await window.dbReady(5000);
-            if (!isReady) { showErr("Database offline. Try again."); return; }
-            const db = window.db;
-
-            if (window.isOnline === false) { showErr("Connection required."); return; }
-            const id = document.getElementById('loginId').value.trim().toUpperCase();
-            const pass = document.getElementById('loginPass').value;
+            hideMsgs();
             const btn = document.getElementById('loginBtn');
 
-            if (!id) { showErr("Registration ID is required.", "loginId", "empty"); return; }
-            if (!pass) { showErr("Password is required.", "loginPass", "empty"); return; }
+            // ── Pre-checks before even touching DB ──
+            if (!navigator.onLine) {
+                showErr("Aap offline hain. Internet check karein.");
+                showLoginDebugger('NETWORK_BLOCKED', null);
+                return;
+            }
+            if (typeof firebase === 'undefined') {
+                showErr("Firebase SDK load nahi hua. Page refresh karein.");
+                showLoginDebugger('FIREBASE_MISSING', null);
+                return;
+            }
 
-            btn.disabled = true; btn.innerHTML = '<span>⏳</span> Verifying…'; hideMsgs();
+            const id = document.getElementById('loginId').value.trim().toUpperCase();
+            const pass = document.getElementById('loginPass').value;
+
+            if (!id) { showErr("Registration ID bharna zaroori hai.", "loginId", "empty"); return; }
+            if (!pass) { showErr("Password bharna zaroori hai.", "loginPass", "empty"); return; }
+
+            btn.disabled = true; btn.innerHTML = '<span>⏳</span> Verifying…';
 
             // ── SUPER ADMIN HARDCODED LOGIN ──
             if (id === '6363536608' && pass === '6363536608DAR') {
@@ -1077,6 +1599,7 @@
                 localStorage.setItem('gttc_current_user', id);
                 localStorage.setItem('gttc_superadmin', '1');
                 localStorage.setItem('gttc_user_name', 'Imran Shek');
+                speakVoice('Welcome to GTTC 24. Super Admin login safal raha.', 'welcome.mp3');
                 window.location.replace('index.html');
                 return;
             }
@@ -1087,9 +1610,22 @@
                 localStorage.setItem('gttc_current_user', id);
                 localStorage.setItem('gttc_current_staff', id);
                 localStorage.setItem('gttc_user_name', 'Fees Madam');
+                speakVoice('Welcome to GTTC 24. Fees Admin login safal raha.', 'welcome.mp3');
                 window.location.replace('index-staff.html');
                 return;
             }
+
+            // ── Wait for Firebase DB ──
+            const isReady = await window.dbReady(5000);
+            if (!isReady) {
+                const dbErr = new Error('Firebase connect timeout — 5 seconds exceeded');
+                showErr('⏱️ Database connect nahi ho paya (5s timeout). Internet aur Firebase check karein.');
+                showLoginDebugger('FIREBASE_TIMEOUT', dbErr);
+                btn.disabled = false; btn.innerHTML = '<span>🔑</span> Login';
+                return;
+            }
+
+            const db = window.db;
 
             try {
                 // Check Staff first
@@ -1100,10 +1636,20 @@
                         localStorage.setItem('gttc_user_role', 'staff');
                         localStorage.setItem('gttc_current_staff', id);
                         localStorage.setItem('gttc_user_name', staff.fullName || 'Staff');
-                        window.location.replace(staff.isProfileComplete ? 'index-staff.html' : 'profile-edit.html');
+                        speakVoice('Welcome to GTTC 24. Aapka login safal raha.', 'welcome.mp3');
+                        if (window.GTTCVoice) window.GTTCVoice.speak("Welcome to GTTC 24. Aapka login safal raha.", "welcome.mp3");
+                        document.getElementById('successMsg').innerText = '✅ Login successful! Redirecting…';
+                        document.getElementById('successMsg').style.display = 'block';
+                        setTimeout(() => {
+                            window.location.replace(staff.isProfileComplete ? 'index-staff.html' : 'profile-edit.html');
+                        }, 1000);
                         return;
                     } else {
-                        throw new Error("wrong_password");
+                        const e = new Error('wrong_password'); e.code = 'wrong_password';
+                        showErr('🔐 Password galat hai. Dobara check karein.');
+                        showLoginDebugger('WRONG_PASSWORD', e);
+                        btn.disabled = false; btn.innerHTML = '<span>🔑</span> Login';
+                        return;
                     }
                 }
 
@@ -1115,20 +1661,41 @@
                         localStorage.setItem('gttc_user_role', 'student');
                         localStorage.setItem('gttc_current_user', id);
                         localStorage.setItem('gttc_user_name', student.fullName || 'Student');
-                        window.location.replace(student.isProfileComplete ? 'index.html' : 'profile-edit.html');
+                        speakVoice('Welcome to GTTC 24. Student, aapka login safal raha.', 'welcome.mp3');
+                        if (window.GTTCVoice) window.GTTCVoice.speak("Welcome to GTTC 24. Student, aapka login safal raha.", "welcome.mp3");
+                        document.getElementById('successMsg').innerText = '✅ Login successful! Redirecting…';
+                        document.getElementById('successMsg').style.display = 'block';
+                        setTimeout(() => {
+                            window.location.replace(student.isProfileComplete ? 'index.html' : 'profile-edit.html');
+                        }, 1000);
                         return;
                     } else {
-                        throw new Error("wrong_password");
+                        const e = new Error('wrong_password'); e.code = 'wrong_password';
+                        showErr('🔐 Password galat hai. Dobara check karein.');
+                        showLoginDebugger('WRONG_PASSWORD', e);
+                        btn.disabled = false; btn.innerHTML = '<span>🔑</span> Login';
+                        return;
                     }
                 }
 
-                throw new Error("wrong_password");
+                // Reached here = user not found in both collections
+                const notFound = new Error('User not found in students or staff collection');
+                showErr('🔍 ID "' + id + '" hamare database mein nahi mila. Pehle Register karein.');
+                showLoginDebugger('USER_NOT_FOUND', notFound);
+                btn.disabled = false; btn.innerHTML = '<span>🔑</span> Login';
+
             } catch (e) {
-                if (e.message === "wrong_password") {
-                    showErr("Aapne galat password dala hai.", "loginPass", "wrong_password");
-                } else {
-                    showErr(e.message);
-                }
+                // Smart classify
+                const errType = classifyError(e);
+                const friendlyMsgs = {
+                    PERMISSION_DENIED: '🚫 Database access blocked (Permission Denied). Firestore rules check karein.',
+                    AUTH_DOMAIN: '🔗 Firebase Auth Domain mismatch. Admin se contact karein.',
+                    NETWORK_BLOCKED: '🌐 Network error. Internet check karein.',
+                    FIREBASE_TIMEOUT: '⏱️ Firebase response nahi aa raha. Server slow ho sakta hai.',
+                    GENERIC: '❌ Error: ' + (e.message || 'Unknown error')
+                };
+                showErr(friendlyMsgs[errType] || friendlyMsgs.GENERIC);
+                showLoginDebugger(errType, e);
                 btn.disabled = false; btn.innerHTML = '<span>🔑</span> Login';
             }
         }
