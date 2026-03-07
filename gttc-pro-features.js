@@ -8,7 +8,7 @@
 (function () {
     // 1. SPLASH SCREEN INJECTION
     const splashHTML = `
-    <div id="gttc-splash" style="position:fixed; inset:0; background:#050a14; z-index:99999; display:flex; flex-direction:column; align-items:center; justify-content:center; transition: opacity 0.6s ease-out;">
+    <div id="gttc-splash" onclick="unlockAudioAndHideSplash()" style="position:fixed; inset:0; background:#050a14; z-index:99999; display:flex; flex-direction:column; align-items:center; justify-content:center; transition: opacity 0.6s ease-out; cursor:pointer;">
         <div style="position:relative; width:120px; height:120px; display:flex; align-items:center; justify-content:center; margin-bottom:20px;">
             <div style="position:absolute; inset:0; border:4px solid #2979FF; border-radius:30px; animation: splashPulse 2s infinite ease-in-out;"></div>
             <img src="gttc-logo.png" style="width:80px; height:80px; object-fit:contain; border-radius:10px;">
@@ -16,7 +16,17 @@
         <h1 style="color:#fff; font-size:32px; font-weight:950; letter-spacing:4px; margin:0; text-shadow:0 0 20px rgba(41,121,255,0.4);">GTTC 24</h1>
         <p style="color:rgba(41,121,255,0.8); font-size:12px; font-weight:800; letter-spacing:2px; margin-top:10px; text-transform:uppercase;">Build by ImranShek24</p>
         
+        <button id="gttc-start-btn" onclick="unlockAudioAndHideSplash()" 
+            style="margin-top:25px; padding:16px 45px; background:linear-gradient(135deg, #0091ff, #00d2ff); color:#fff; border-radius:50px; font-weight:900; font-size:16px; letter-spacing:1px; cursor:pointer; box-shadow:0 10px 30px rgba(0,145,255,0.4); border:none; z-index:100; animation: gttcPulse 2s infinite; outline:none;">
+            START GTTC 24 🔊
+        </button>
+
         <style>
+            @keyframes gttcPulse {
+                0% { transform: scale(1); box-shadow: 0 0 0 0 rgba(0, 145, 255, 0.7); }
+                70% { transform: scale(1.05); box-shadow: 0 0 0 15px rgba(0, 145, 255, 0); }
+                100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(0, 145, 255, 0); }
+            }
             @keyframes splashPulse {
                 0% { transform: scale(1); opacity: 0.5; box-shadow: 0 0 0 0 rgba(41,121,255,0.4); }
                 50% { transform: scale(1.1); opacity: 1; box-shadow: 0 0 30px 10px rgba(41,121,255,0.2); }
@@ -52,31 +62,91 @@
     </style>
     `;
 
-    // 3. VOICE ENGINE
+    // 3. VOICE ENGINE (Optimized for Android APK)
+    const CACHE_BUST = Date.now();
+    const AUDIO_BASE = `assets/audio/`;
+    let audioUnlocked = false;
+
+    // Helper to unlock Audio Session on Android/Mobile
+    window.unlockAudio = async function () {
+        if (audioUnlocked) return;
+        try {
+            // Wake up Web Audio API Context
+            if (window.AudioContext || window.webkitAudioContext) {
+                const ctx = new (window.AudioContext || window.webkitAudioContext)();
+                if (ctx.state === 'suspended') await ctx.resume();
+            }
+
+            // High-priority Audio Session Unlock
+            const silent = new Audio("data:audio/wav;base64,UklGRigAAABXQVZFRm10IBAAAAABAAEARKwAAIhYAQACABAAZGF0YQQAAAAAAA== ");
+            silent.volume = 0.1;
+            await silent.play();
+            audioUnlocked = true;
+            console.log("GTTC: Mobile Audio Engine Unlocked 🔊");
+            return true;
+        } catch (e) {
+            console.warn("Audio unlock failed:", e);
+            return false;
+        }
+    }
+
+    window.unlockAudioAndHideSplash = async function () {
+        // First, explicitly unlock audio on the user gesture
+        const success = await window.unlockAudio();
+        console.log("Audio Unlock requested, result:", success);
+
+        const splash = document.getElementById('gttc-splash');
+        if (splash) {
+            splash.style.opacity = '0';
+            setTimeout(() => {
+                splash.remove();
+                // 🔊 DELAYED PLAY: Wait 500ms after splash removal for Android OS stability
+                setTimeout(() => {
+                    const isDashboard = window.location.pathname.includes('index');
+                    if (isDashboard && !sessionStorage.getItem('gttc_greeted')) {
+                        window.GTTCVoice.speak("Welcome to GTTC 24. Safe and Secure.", "welcome.mp3");
+                        sessionStorage.setItem('gttc_greeted', 'true');
+                    }
+                }, 500);
+            }, 600);
+        }
+    }
+
+
     window.GTTCVoice = {
-        speak: function (text) {
+        speak: async function (text, audioFile = null) {
+            await unlockAudio(); // Ensure unlocked
+
+            // Priority 1: GitHub Audio File with Cache Busting
+            if (audioFile) {
+                const audio = new Audio(AUDIO_BASE + audioFile);
+                audio.play().catch((err) => {
+                    console.warn("Audio pack failed, falling back to TTS:", err);
+                    this.tts(text);
+                });
+                return;
+            }
+            this.tts(text);
+        },
+
+        tts: function (text) {
             if ('speechSynthesis' in window) {
-                // Cancel current speech to avoid queue buildup
                 window.speechSynthesis.cancel();
-
                 const utterance = new SpeechSynthesisUtterance(text);
-                utterance.rate = 0.95; // Slightly faster for professional feel
-                utterance.pitch = 1.0;
-                utterance.volume = 1.0;
-
+                utterance.rate = 0.95;
                 const voices = window.speechSynthesis.getVoices();
-                // Prefer Google UK English Male or Female if possible for "Professional" feel
-                const profVoice = voices.find(v => v.lang.includes('en-GB') || (v.lang.includes('en-US') && v.name.includes('Natural')));
+                const profVoice = voices.find(v => v.lang.includes('en-GB') || (v.lang.includes('en-US')));
                 if (profVoice) utterance.voice = profVoice;
-
                 window.speechSynthesis.speak(utterance);
             }
         },
+
         playNotifSound: function () {
-            const audio = new Audio('https://assets.mixkit.co/active_storage/sfx/2869/2869-preview.mp3');
+            const audio = new Audio('assets/audio/notification.mp3');
             audio.volume = 0.4;
             audio.play().catch(e => { /* silent skip */ });
         },
+
         errorAlert: function (fieldId, messageType, customText = "") {
             const messages = {
                 "wrong_password": "Aapne galat password dala hai, kripya check karein.",
@@ -86,8 +156,14 @@
                 "invalid_id": "Kripya sahi registration id bhariye."
             };
 
+            const audioMap = {
+                "wrong_password": "error_pass.mp3",
+                "empty": "error_empty.mp3",
+                "mobile": "error_mobile.mp3"
+            };
+
             const speechText = messages[messageType] || customText || "Kripya sahi jaankari bhariye.";
-            this.speak(speechText);
+            this.speak(speechText, audioMap[messageType]);
 
             if (fieldId) {
                 const el = document.getElementById(fieldId);
@@ -96,8 +172,6 @@
                     el.style.borderColor = "#F44336";
                     el.style.boxShadow = "0 0 10px rgba(244, 67, 54, 0.4)";
                     el.classList.add('shake-error');
-
-                    // Remove error styling after 3 seconds
                     setTimeout(() => {
                         el.style.borderColor = "";
                         el.style.boxShadow = "";
@@ -147,26 +221,16 @@
             // Inject Splash Screen ONLY on first entry of session
             document.body.insertAdjacentHTML('afterbegin', splashHTML);
 
-            // Remove splash after 3 seconds
-            setTimeout(() => {
-                const splash = document.getElementById('gttc-splash');
-                if (splash) {
-                    splash.style.opacity = '0';
-                    setTimeout(() => splash.remove(), 600);
-                }
-            }, 3000);
+            // NOTE: Auto-hide is disabled to force the user to click the START button.
+            // This is the ONLY reliable way to unlock audio on Android WebView.
 
-            // 🔊 VOICE: Chrome Autoplay Policy - must trigger on FIRST USER CLICK
-            const voiceGreet = () => {
-                if (!sessionStorage.getItem('gttc_greeted')) {
-                    GTTCVoice.speak("Welcome to GTTC 24. Safe and Secure GTTC.");
-                    sessionStorage.setItem('gttc_greeted', 'true');
-                }
-                document.removeEventListener('click', voiceGreet);
-                document.removeEventListener('touchstart', voiceGreet);
-            };
-            document.addEventListener('click', voiceGreet, { once: true });
-            document.addEventListener('touchstart', voiceGreet, { once: true });
+            // Special case for Login Button interaction (backup unlock)
+            const loginBtn = document.getElementById('loginBtn');
+            if (loginBtn) {
+                loginBtn.addEventListener('click', async () => {
+                    await unlockAudio();
+                });
+            }
         }
 
         // 🔥 Wait for Firebase db (replaces Supabase)
@@ -251,6 +315,14 @@
         if (bell && show) bell.classList.add('notif-shake');
         else if (bell) bell.classList.remove('notif-shake');
     }
+
+    // 🚀 GLOBAL LOGOUT (Forces Re-login)
+    window.gttcLogout = function () {
+        localStorage.clear();
+        sessionStorage.clear();
+        window.location.replace('login.html');
+    };
+
 
 })();
 
