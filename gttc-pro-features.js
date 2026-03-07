@@ -102,9 +102,9 @@
                 splash.remove();
                 // 🔊 DELAYED PLAY: Wait 500ms after splash removal for Android OS stability
                 setTimeout(() => {
-                    const isWelcomePage = window.location.pathname.includes('index') || window.location.pathname.includes('login');
+                    const isWelcomePage = window.location.pathname.includes('index') || window.location.pathname.includes('login') || window.location.pathname === '/' || window.location.pathname === '';
                     if (isWelcomePage && !sessionStorage.getItem('gttc_greeted')) {
-                        window.GTTCVoice.speak("Welcome to GTTC 24. Safe and Secure.", "welcome.mp3");
+                        window.GTTCVoice.speak("Welcome", "daily_welcome.mp3");
                         sessionStorage.setItem('gttc_greeted', 'true');
                     }
                 }, 500);
@@ -124,7 +124,7 @@
                 audio.play().catch((err) => {
                     console.warn("Audio playback blocked or failed:", err);
                     // Silent fail if it's the welcome audio to avoid fallback TTS on start
-                    if (audioFile !== "welcome.mp3") {
+                    if (audioFile !== "welcome.mp3" && audioFile !== "daily_welcome.mp3") {
                         this.tts(text);
                     }
                 });
