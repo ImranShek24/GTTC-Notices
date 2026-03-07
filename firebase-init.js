@@ -3,7 +3,7 @@
 
 const firebaseConfig = {
   apiKey: "AIzaSyAPP0HuNBSHNRTykEgexzERdT6ntxgNor0",
-  authDomain: "imranshek24.github.io",
+  authDomain: "gttc-24.firebaseapp.com",
   projectId: "gttc-24",
   storageBucket: "gttc-24.firebasestorage.app",
   messagingSenderId: "314962618124",
