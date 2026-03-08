@@ -1196,6 +1196,29 @@
                     <div class="card-hdr">
                         <h3 style="color: #ff3d00;"><i class="fab fa-youtube"></i> YouTube Master Auth</h3>
                     </div>
+
+                    <!-- 🟢 AUTO-REFRESH STATUS INDICATOR 🟢 -->
+                    <div id="yt-refresh-status"
+                        style="border: 1px solid #ff3d0033; background: #ff3d000a; border-radius:12px; padding:12px; margin-bottom:15px; display:none;">
+                        <div style="display:flex; justify-content:space-between; align-items:center;">
+                            <span style="font-size:10px; color:var(--dim); font-weight:700;">AUTO-REFRESH STATUS</span>
+                            <div id="yt-status-dot"
+                                style="width:8px; height:8px; border-radius:50%; background:#25d366; box-shadow:0 0 8px #25d366;">
+                            </div>
+                        </div>
+                        <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px; margin-top:8px;">
+                            <div>
+                                <div style="font-size:9px; color:var(--dim);">Next Refresh In</div>
+                                <div id="yt-next-ref" style="font-size:12px; font-weight:900; color:#ff3d00;">--:--
+                                </div>
+                            </div>
+                            <div style="text-align:right;">
+                                <div style="font-size:9px; color:var(--dim);">Last Sync</div>
+                                <div id="yt-last-ref" style="font-size:12px; font-weight:900; color:#34a853;">Never
+                                </div>
+                            </div>
+                        </div>
+                    </div>
                     <p style="font-size: 10px; color: var(--dim); margin-bottom: 15px;">Target Channel Direct Upload
                         Configuration</p>
                     <div class="input-group">
@@ -1505,15 +1528,75 @@
             document.getElementById('sidebar-overlay').classList.toggle('active');
         }
 
+        let _ytRefreshTimer = null;
         async function checkYouTubeToken() {
             try {
                 const doc = await window.db.collection('youtube_tokens').doc('master_auth').get();
-                if (doc.exists) {
-                    const data = doc.data();
-                    const remaining = (data.expiryDate - Date.now()) / 60000;
-                    if (remaining < 15) silentRefreshAdmin();
+                if (!doc.exists) return;
+
+                const data = doc.data();
+                const statusBox = document.getElementById('yt-refresh-status');
+                if (statusBox) statusBox.style.display = 'block';
+
+                const remaining = (data.expiryDate - Date.now()) / 60000;
+
+                // Update UI indicators
+                if (document.getElementById('yt-next-ref')) {
+                    const mins = Math.max(0, Math.floor(remaining));
+                    const secs = Math.max(0, Math.floor((remaining - mins) * 60));
+                    document.getElementById('yt-next-ref').textContent = `${mins}m ${secs}s`;
+                    document.getElementById('yt-status-dot').style.background = remaining < 10 ? '#ffa000' : '#25d366';
+                }
+                if (document.getElementById('yt-last-ref') && data.updatedAt) {
+                    const last = new Date(data.updatedAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+                    document.getElementById('yt-last-ref').textContent = last;
+                }
+
+                // If less than 15 mins remain, refresh using Refresh Token
+                if (remaining < 15) {
+                    if (data.clientId && data.clientSecret && data.refreshToken) {
+                        console.log("[YouTube] Triggering background refresh...");
+                        refreshMasterTokenInBackground(data);
+                    } else if (remaining < 5) {
+                        silentRefreshAdmin(); // Fallback to popup auth if no RT
+                    }
                 }
             } catch (e) { }
+        }
+
+        async function refreshMasterTokenInBackground(d) {
+            try {
+                const resp = await fetch('https://oauth2.googleapis.com/token', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                    body: new URLSearchParams({
+                        client_id: d.clientId,
+                        client_secret: d.clientSecret,
+                        refresh_token: d.refresh_token || d.refreshToken,
+                        grant_type: 'refresh_token'
+                    })
+                });
+                const j = await resp.json();
+                if (j.access_token) {
+                    const expiry = Date.now() + ((j.expires_in || 3600) * 1000);
+                    await window.db.collection('youtube_tokens').doc('master_auth').update({
+                        accessToken: j.access_token,
+                        expiryDate: expiry,
+                        updatedAt: new Date().toISOString()
+                    });
+                    console.log("[YouTube] Background token refresh SUCCESS.");
+                } else {
+                    console.error("[YouTube] Refresh failed:", j);
+                }
+            } catch (err) {
+                console.error("[YouTube] Network error in refresh:", err);
+            }
+        }
+
+        // Start 1-minute ticker for YouTube status
+        if (!_ytRefreshTimer) {
+            _ytRefreshTimer = setInterval(checkYouTubeToken, 60000);
+            setTimeout(checkYouTubeToken, 2000); // Initial check
         }
 
         function silentRefreshAdmin() {
@@ -1554,13 +1637,10 @@
             } catch (e) { console.error(e); }
         }
 
-        let _ytRefreshTimer = null;
+        // The checkYouTubeToken ticker (1-min) handles background refresh proactively.
         function startAutoRefreshYouTube() {
-            if (_ytRefreshTimer) clearInterval(_ytRefreshTimer);
-            _ytRefreshTimer = setInterval(() => {
-                checkYouTubeToken();
-            }, 58 * 60 * 1000); // Check every 58 mins
-
+            // Already handled by global ticker at line 1597
+            checkYouTubeToken();
         }
 
         async function initPanel() {
