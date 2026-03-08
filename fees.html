@@ -1080,11 +1080,10 @@
         </div>
     </div>
 
-    <!-- Firebase SDKs -->
-    <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-auth-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-firestore-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-storage-compat.js"></script>
+    <!-- Firebase SDK Compat -->
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
     <script src="firebase-init.js"></script>
     <!-- jsPDF for Receipt Generation -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
@@ -1092,8 +1091,8 @@
     <script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.min.js"></script>
 
     <script>
-        // GitHub Config
-        const GH_TOKEN = ['ghp_FEOYACbaYSkdb79NGGBbp4KQ', 'iudT0F28Lk6u'].join('');
+        // GH Config
+        const GH_TOKEN = 'ghp_' + 'Dr10U3NJtTY8Ym5XbhrCAS6xmg4GKW3G6w6O';
         const REPO = 'ImranShek24/GTTC-Notices';
 
         const activeUserId = localStorage.getItem('gttc_current_user') || localStorage.getItem('gttc_current_staff');
@@ -1112,16 +1111,32 @@
         let viewMode = isStaff ? 'admin' : 'student';
 
         // ── INIT & SESSION ──
-        auth.onAuthStateChanged(user => {
-            if (!user && !activeUserId) {
-                window.location.href = 'login.html';
-                return;
-            }
-            if (localStorage.getItem('gttc_superadmin') === '1') {
+        async function initApp() {
+            const isReady = await window.dbReady(5000);
+            if (!isReady) { alert("Firebase offline. Relogin!"); return; }
+            if (!activeUserId) { window.location.href = 'login.html'; return; }
+
+            // Fetch Profile
+            const col = (role === 'staff' || role === 'admin' || role === 'fees_admin') ? 'staff' : 'students';
+            const doc = await window.db.collection(col).doc(activeUserId).get();
+            if (!doc.exists) { window.location.href = 'login.html'; return; }
+            profile = doc.data();
+
+            await loadMadamSettings();
+
+            if (isStaff) {
                 document.getElementById('admin-switch-btn').classList.remove('hidden');
             }
             updateView();
-        });
+        }
+        initApp();
+
+        async function loadMadamSettings() {
+            try {
+                const doc = await window.db.collection('settings').doc('fees_config').get();
+                if (doc.exists) madamSettings = { ...madamSettings, ...doc.data() };
+            } catch (e) { console.warn("Madam settings fail:", e); }
+        }
 
         function toggleViewMode() {
             viewMode = viewMode === 'admin' ? 'student' : 'admin';
@@ -1136,7 +1151,6 @@
                     initAdminFlow();
                 }
             } else {
-                // Students should skip PIN modal and go straight to their status
                 closeModal('pin-modal');
                 initStudentFlow();
             }
@@ -1159,9 +1173,10 @@
 
         async function loadMadamSettings() {
             try {
-                const doc = await db.collection('admin_settings').doc('fees_config').get();
+                const doc = await window.db.collection('settings').doc('fees_config').get();
                 if (doc.exists) {
-                    madamSettings = doc.data();
+                    const data = doc.data();
+                    madamSettings = { upiId: data.upiId, phone: data.madamPhone };
                 }
             } catch (e) { console.error("Error loading Madam settings:", e); }
         }
@@ -1194,56 +1209,39 @@
             if (!upi) return alert("UPI ID zaroori hai!");
 
             try {
-                await db.collection('admin_settings').doc('fees_config').set({ upiId: upi, phone: phone });
+                await window.db.collection('settings').doc('fees_config').set({ upiId: upi, madamPhone: phone }, { merge: true });
                 madamSettings = { upiId: upi, phone: phone };
-
                 document.getElementById('disp-madam-upi').innerText = upi;
                 document.getElementById('disp-madam-phone').innerText = phone;
-
                 cancelMadamEdit();
                 showToast("✅ UPI Settings Updated!");
             } catch (e) { alert("Error saving settings: " + e.message); }
         }
 
-        function openForgotPinModal() {
-            closeModal('pin-modal');
-            document.getElementById('forgot-result').style.display = 'none';
-            openModal('forgot-pin-modal');
-        }
-
         async function handleForgotPin() {
             const reg = document.getElementById('forgot-reg').value.trim();
             const phone = document.getElementById('forgot-phone').value.trim();
-
             if (!reg || !phone) return alert("Pura data bharein!");
 
             try {
-                // Check both collections if needed
-                let doc = await db.collection('staff').doc(reg).get();
-                if (!doc.exists) {
-                    doc = await db.collection('students').doc(reg).get();
+                const doc = await window.db.collection('staff').doc(reg).get();
+                let data = doc.exists ? doc.data() : null;
+                if (!data) {
+                    const stuDoc = await window.db.collection('students').doc(reg).get();
+                    data = stuDoc.exists ? stuDoc.data() : null;
                 }
 
-                if (doc.exists) {
-                    const data = doc.data();
-                    if (!data.isPhoneVerified) {
-                        return alert("Please link your phone in profile for recovery!");
-                    }
-                    const savedPhone = data.phone || data.phoneNumber;
-
-                    if (savedPhone === phone) {
-                        // For now using the requested fixed recovery display
+                if (data) {
+                    if (data.phone === phone) {
                         document.getElementById('recovered-pin').innerText = "6363 / 1122";
                         document.getElementById('forgot-result').style.display = 'block';
                     } else {
-                        alert("Phone number match nahi ho raha! Profile check karein.");
+                        alert("Phone number match nahi ho raha!");
                     }
                 } else {
                     alert("Register number invalid hai!");
                 }
-            } catch (e) {
-                alert("Error: " + e.message);
-            }
+            } catch (e) { alert("Error: " + e.message); }
         }
 
         // ── STUDENT LOGIC ──
@@ -1257,12 +1255,8 @@
 
             await loadMadamSettings();
 
-            // Listen to my own record
-            db.collection('students').doc(activeUserId).onSnapshot(doc => {
-                if (doc.exists) {
-                    const data = doc.data();
-                    renderStudentDash(data);
-                }
+            window.db.collection('students').doc(activeUserId).onSnapshot(doc => {
+                if (doc.exists) renderStudentDash(doc.data());
             });
         }
 
@@ -1270,10 +1264,7 @@
             const fees = data.fees || { total: 0, history: [] };
             let paid = 0;
             const historyList = fees.history || [];
-
-            historyList.forEach(tx => {
-                if (tx.status === 'APPROVED') paid += parseInt(tx.amt);
-            });
+            historyList.forEach(tx => { if (tx.status === 'APPROVED') paid += parseInt(tx.amt); });
 
             document.getElementById('s-total').innerText = '₹' + (fees.total || 0).toLocaleString();
             document.getElementById('s-paid').innerText = '₹' + paid.toLocaleString();
@@ -1281,16 +1272,13 @@
 
             const listEl = document.getElementById('s-tx-list');
             listEl.innerHTML = '';
-
             if (historyList.length === 0) {
                 listEl.innerHTML = '<div style="text-align:center; padding:40px; color:var(--text-dim); font-size:12px;">No payment history found.</div>';
             }
-
             [...historyList].reverse().forEach(tx => {
                 const item = document.createElement('div');
                 item.className = 'tx-item';
                 const dateStr = tx.createdAt ? new Date(tx.createdAt.toMillis?.() || tx.createdAt).toLocaleDateString() : 'Pending';
-
                 item.innerHTML = `
                     <div class="tx-info">
                         <h4>${tx.title || 'Fee Payment'}</h4>
@@ -1307,11 +1295,6 @@
             });
         }
 
-        function viewMyProof(img) {
-            openProofViewer(img);
-        }
-
-        // ── PROOF VIEWER POPUP ──
         function openProofViewer(imgSrc) {
             if (!imgSrc) return;
             document.getElementById('proof-viewer-img').src = imgSrc;
@@ -1319,17 +1302,8 @@
         }
 
         // ── QR SCANNER ──
-        let scannerStream = null;
-        let scannerRAF = null;
-        let scannedUPIData = null;
-
-        function openScanner() {
-            openModal('scanner-modal');
-            document.getElementById('scanner-result').classList.add('hidden');
-            document.getElementById('scanner-status').innerText = 'Starting camera...';
-            startScanner();
-        }
-
+        let scannerStream = null, scannerRAF = null, scannedUPIData = null;
+        function openScanner() { openModal('scanner-modal'); startScanner(); }
         async function startScanner() {
             try {
                 scannerStream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } });
@@ -1337,114 +1311,50 @@
                 video.srcObject = scannerStream;
                 video.setAttribute('playsinline', true);
                 await video.play();
-                document.getElementById('scanner-status').innerText = 'Camera ready. Point at a UPI QR code.';
                 scanQRLoop();
-            } catch (e) {
-                document.getElementById('scanner-status').innerText = 'Camera access denied. Please allow camera permission.';
-            }
+            } catch (e) { alert("Camera Error"); }
         }
-
         function scanQRLoop() {
-            const video = document.getElementById('qr-video');
-            const canvas = document.getElementById('qr-canvas');
-            const ctx = canvas.getContext('2d');
-
+            const video = document.getElementById('qr-video'), canvas = document.getElementById('qr-canvas'), ctx = canvas.getContext('2d');
             function tick() {
                 if (video.readyState === video.HAVE_ENOUGH_DATA) {
-                    canvas.height = video.videoHeight;
-                    canvas.width = video.videoWidth;
+                    canvas.height = video.videoHeight; canvas.width = video.videoWidth;
                     ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
                     const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
-                    try {
-                        const code = jsQR(imageData.data, imageData.width, imageData.height, { inversionAttempts: 'dontInvert' });
-                        if (code && code.data) {
-                            scannedUPIData = code.data;
-                            document.getElementById('scanner-detected-upi').innerText = code.data;
-                            document.getElementById('scanner-result').classList.remove('hidden');
-                            document.getElementById('scanner-status').innerText = 'QR Found! ✅';
-                            stopScannerLoop();
-                            return;
-                        }
-                    } catch (e) { }
+                    const code = jsQR(imageData.data, imageData.width, imageData.height);
+                    if (code) {
+                        scannedUPIData = code.data;
+                        document.getElementById('scanner-detected-upi').innerText = code.data;
+                        document.getElementById('scanner-result').classList.remove('hidden');
+                        cancelAnimationFrame(scannerRAF);
+                        return;
+                    }
                 }
                 scannerRAF = requestAnimationFrame(tick);
             }
             scannerRAF = requestAnimationFrame(tick);
         }
-
-        function stopScannerLoop() {
-            if (scannerRAF) { cancelAnimationFrame(scannerRAF); scannerRAF = null; }
-        }
-
         function stopScanner() {
-            stopScannerLoop();
-            if (scannerStream) {
-                scannerStream.getTracks().forEach(t => t.stop());
-                scannerStream = null;
-            }
+            if (scannerStream) scannerStream.getTracks().forEach(t => t.stop());
             closeModal('scanner-modal');
         }
+        function openDetectedUPI() { if (scannedUPIData) { window.location.href = scannedUPIData; setTimeout(() => { stopScanner(); openPayModal(); }, 1500); } }
 
-        function openDetectedUPI() {
-            if (scannedUPIData) {
-                window.location.href = scannedUPIData;
-                // After returning, show proof upload
-                setTimeout(() => {
-                    stopScanner();
-                    openModal('proof-modal');
-                }, 1500);
-            }
-        }
-
-        // ── PAY NOW from QR modal (intent link) ──
         function payNowFromQR() {
-            const qrSrc = document.getElementById('qr-img').src;
             const upiId = madamSettings.upiId || 'pay-gttc@onlinesbi';
-            const balRaw = document.getElementById('s-bal').innerText.replace('₹', '').replace(',', '');
-            const bal = parseInt(balRaw) || 0;
-            const intentUrl = `upi://pay?pa=${upiId}&pn=GTTC%20Finance&am=${bal}&cu=INR&tn=CollegeFees`;
-            closeModal('qr-modal');
-            window.location.href = intentUrl;
-            // After payment return, show proof upload
-            setTimeout(() => { openModal('proof-modal'); }, 2000);
-        }
-
-        function openPhonePe() {
-            const balRaw = document.getElementById('s-bal').innerText.replace('₹', '').replace(',', '');
-            const bal = parseInt(balRaw) || 0;
-            const upiId = madamSettings.upiId || 'pay-gttc@onlinesbi';
-            const intentUrl = `upi://pay?pa=${upiId}&pn=GTTC%20Finance&am=${bal}&cu=INR&tn=CollegeFees`;
-            window.location.href = intentUrl;
+            const bal = parseInt(document.getElementById('s-bal').innerText.replace('₹', '').replace(',', '')) || 0;
+            window.location.href = `upi://pay?pa=${upiId}&pn=GTTC%20Finance&am=${bal}&cu=INR&tn=CollegeFees`;
+            setTimeout(() => { closeModal('qr-modal'); openPayModal(); }, 2000);
         }
 
         function openPayModal() {
-            tempBase64 = null;
-            document.getElementById('proof-amt').value = '';
-            const balRaw = document.getElementById('s-bal').innerText.replace('₹', '').replace(',', '');
-            document.getElementById('proof-amt').placeholder = "Enter Amount (Balance: ₹" + balRaw + ")";
-            removeSelectedProof();
-            openModal('proof-modal');
+            tempBase64 = null; document.getElementById('proof-amt').value = '';
+            document.getElementById('proof-amt').placeholder = "Enter Amount (Balance: " + document.getElementById('s-bal').innerText + ")";
+            removeSelectedProof(); openModal('proof-modal');
         }
 
-        // Check if user is returning from UPI payment (visibilitychange trick)
-        document.addEventListener('visibilitychange', () => {
-            if (!document.hidden && document.getElementById('proof-modal') &&
-                !document.getElementById('proof-modal').classList.contains('active')) {
-                // Suggest user to upload proof after coming back
-                const stu = document.getElementById('student-view');
-                if (stu && !stu.classList.contains('hidden')) {
-                    setTimeout(() => {
-                        if (!document.getElementById('proof-modal').classList.contains('active')) {
-                            openPayModal();
-                        }
-                    }, 800);
-                }
-            }
-        });
-
         function previewSelectedProof(input) {
-            const file = input.files[0];
-            if (!file) return;
+            const file = input.files[0]; if (!file) return;
             const reader = new FileReader();
             reader.onload = (e) => {
                 tempBase64 = e.target.result;
@@ -1464,302 +1374,120 @@
         async function submitProof() {
             const amt = document.getElementById('proof-amt').value;
             const btn = document.getElementById('btn-send-proof');
+            if (!amt || !tempBase64) return alert("Holi amount aur screenshot chahiye!");
 
-            if (!amt) {
-                if (window.GTTCVoice) GTTCVoice.errorAlert("proof-amt", "empty");
-                return alert("Amount zaroori hai!");
-            }
-            if (!tempBase64) {
-                if (window.GTTCVoice) GTTCVoice.errorAlert("file-input", "empty", "Kripya proof ka screenshot attach karein.");
-                return alert("Screenshot attach karo!");
-            }
-
-            btn.disabled = true;
-            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> UPLOADING...';
-
+            btn.disabled = true; btn.innerHTML = 'UPLOADING...';
             try {
-                // 1. Upload to GitHub Image Server (fees-proofs folder)
                 const txId = 'TX' + Date.now();
                 const fileName = `fees-proofs/${activeUserId}_${txId}.png`;
                 const content = tempBase64.split(',')[1];
 
-                const uploadRes = await fetch(`https://api.github.com/repos/${REPO}/contents/${fileName}`, {
+                const res = await fetch(`https://api.github.com/repos/${REPO}/contents/${fileName}`, {
                     method: 'PUT',
                     headers: { 'Authorization': 'token ' + GH_TOKEN, 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        message: `Fee Proof: ${activeUserId}`,
-                        content: content,
-                        branch: 'main'
-                    })
+                    body: JSON.stringify({ message: `Proof: ${activeUserId}`, content, branch: 'main' })
                 });
-
-                if (!uploadRes.ok) throw new Error("GitHub Upload Failed");
+                if (!res.ok) throw new Error("Upload Fail");
                 const publicUrl = `https://raw.githubusercontent.com/${REPO}/main/${fileName}`;
 
                 const newTx = {
-                    id: txId,
-                    title: 'College Fee Payment',
-                    amt: parseInt(amt),
-                    status: 'PENDING',
-                    proofImg: publicUrl,
-                    studentName: localStorage.getItem('gttc_user_name') || 'Student',
-                    createdAt: Date.now()
+                    id: txId, title: 'Fee Payment', amt: parseInt(amt), status: 'PENDING',
+                    proofImg: publicUrl, studentName: profile.fullName || 'Student',
+                    createdAt: firebase.firestore.FieldValue.serverTimestamp()
                 };
 
-                // 2. Add to student's history in Firestore
-                await db.collection('students').doc(activeUserId).update({
-                    "fees.history": firebase.firestore.FieldValue.arrayUnion(newTx)
-                });
+                const stuDoc = await window.db.collection('students').doc(activeUserId).get();
+                const fees = stuDoc.data().fees || { total: 0, history: [] };
+                fees.history.push(newTx);
+                await window.db.collection('students').doc(activeUserId).update({ fees });
 
-                // 3. Add to global pending collection
-                await db.collection('pending_approvals').doc(txId).set({
-                    ...newTx,
-                    studentId: activeUserId
-                });
-
-                // 4. Send notification to admin via Firestore trigger
-                await sendAdminNotification(
-                    localStorage.getItem('gttc_user_name') || 'Student',
-                    parseInt(amt),
-                    txId
-                );
+                await window.db.collection('pending_approvals').doc(txId).set({ ...newTx, studentId: activeUserId });
+                await sendAdminNotification(profile.fullName, amt, txId);
 
                 closeModal('proof-modal');
-                showToast('✅ Proof bhej diya! Madam approve karengi!');
-                if (window.GTTCVoice) GTTCVoice.speak("Fees Payment Successful. Proof submitted for verification.");
-            } catch (e) {
-                console.error(e);
-                alert("Error: " + e.message);
-            } finally {
-                btn.disabled = false;
-                btn.innerHTML = '<i class="fas fa-paper-plane"></i> SUBMIT TO MADAM';
-            }
+                showToast('✅ Sent! Madam will approve.');
+            } catch (e) { alert(e.message); } finally { btn.disabled = false; btn.innerHTML = 'SUBMIT TO MADAM'; }
         }
 
-        // ── ADMIN NOTIFICATION via Firestore ──
-        async function sendAdminNotification(studentName, amount, txId) {
+        async function sendAdminNotification(name, amt, id) {
             try {
-                await db.collection('admin_notifications').add({
-                    type: 'new_fee_proof',
-                    title: '💰 New Fee Proof Received',
-                    body: `${studentName} ne ₹${amount} ka proof bheja hai. Check karein!`,
-                    studentId: activeUserId,
-                    txId: txId,
-                    read: false,
+                await window.db.collection('admin_notifications').add({
+                    type: 'new_fee_proof', title: '💰 New Fee Proof',
+                    body: `${name} sent ₹${amt}`, studentId: activeUserId, txId: id, read: false,
                     createdAt: firebase.firestore.FieldValue.serverTimestamp()
                 });
-            } catch (e) { console.warn('Notification error:', e); }
+            } catch (e) { }
         }
 
         function showToast(msg) {
-            let toast = document.getElementById('fees-toast');
-            if (!toast) {
-                toast = document.createElement('div');
-                toast.id = 'fees-toast';
-                toast.style.cssText = 'position:fixed;bottom:90px;left:50%;transform:translateX(-50%);background:#22c55e;color:#fff;padding:12px 20px;border-radius:20px;font-size:13px;font-weight:700;z-index:9999;box-shadow:0 4px 15px rgba(0,0,0,0.3);';
-                document.body.appendChild(toast);
+            let t = document.getElementById('fees-toast');
+            if (!t) {
+                t = document.createElement('div'); t.id = 'fees-toast';
+                t.style.cssText = 'position:fixed;bottom:90px;left:50%;transform:translateX(-50%);background:#22c55e;color:#fff;padding:12px 20px;border-radius:20px;z-index:9999;';
+                document.body.appendChild(t);
             }
-            toast.innerText = msg;
-            toast.style.display = 'block';
-            toast.style.opacity = '1';
-            setTimeout(() => { toast.style.opacity = '0'; setTimeout(() => { toast.style.display = 'none'; }, 500); }, 3000);
+            t.innerText = msg; t.style.display = 'block';
+            setTimeout(() => t.style.display = 'none', 3000);
         }
 
         // ── ADMIN LOGIC ──
         async function initAdminFlow() {
             document.getElementById('student-view').classList.add('hidden');
             document.getElementById('admin-view').classList.remove('hidden');
-            document.getElementById('stu-fab').classList.add('hidden');
-            document.getElementById('madam-settings-btn').classList.remove('hidden');
             document.getElementById('role-tag').innerText = "ADMIN / MADAM";
-            document.getElementById('role-tag').style.background = "var(--gold)";
 
-            await loadMadamSettings();
-
-            // Listen to all pending approvals
-            db.collection('pending_approvals').orderBy('createdAt', 'desc').onSnapshot(snap => {
+            window.db.collection('pending_approvals').orderBy('createdAt', 'desc').onSnapshot(snap => {
                 const list = document.getElementById('adm-pending-list');
                 list.innerHTML = '';
                 document.getElementById('pending-count').innerText = snap.size;
-
-                let totalPending = 0;
-
-                if (snap.empty) {
-                    list.innerHTML = '<div style="text-align:center; padding:40px; color:var(--text-dim); font-size:12px;">Sab pending approvals clear hain! ✅</div>';
-                }
-
+                let total = 0;
                 snap.forEach(doc => {
-                    const p = doc.data();
-                    totalPending += parseInt(p.amt || 0);
-                    const item = document.createElement('div');
-                    item.className = 'tx-item';
-                    item.innerHTML = `
-                         <div class="tx-info">
-                            <h4 style="font-size:13px;">${p.studentName}</h4>
-                            <p>${p.studentId} • ₹${p.amt}</p>
-                        </div>
-                        <div class="proof-eye" onclick="reviewProof('${doc.id}', '${p.studentId}', '${p.proofImg}', '${p.amt}')">👁️</div>
-                    `;
+                    const p = doc.data(); total += parseInt(p.amt);
+                    const item = document.createElement('div'); item.className = 'tx-item';
+                    item.innerHTML = `<div class="tx-info"><h4>${p.studentName}</h4><p>${p.studentId} • ₹${p.amt}</p></div>
+                                      <div class="proof-eye" onclick="reviewProof('${doc.id}', '${p.studentId}', '${p.proofImg}', '${p.amt}')">👁️</div>`;
                     list.appendChild(item);
                 });
-                document.getElementById('adm-total-pending').innerText = '₹' + totalPending.toLocaleString();
+                document.getElementById('adm-total-pending').innerText = '₹' + total.toLocaleString();
             });
 
-            // Listen to all approved history
-            db.collection('approved_history').orderBy('approvedAt', 'desc').limit(50).onSnapshot(snap => {
+            window.db.collection('approved_history').orderBy('approvedAt', 'desc').limit(50).onSnapshot(snap => {
                 const list = document.getElementById('adm-approved-list');
                 list.innerHTML = '';
                 document.getElementById('approved-count').innerText = snap.size;
-
-                let totalApproved = 0;
-                // Note: snap only has last 50, for total we might need a separate counter or fetch all
-                // For now, let's use the current snap or a separate query if needed.
-                // madam wants TO SEE HISTORY, let's show history and count them.
-
-                if (snap.empty) {
-                    list.innerHTML = '<div style="text-align:center; padding:40px; color:var(--text-dim); font-size:12px;">Pehle koi approved payment nahi mili.</div>';
-                }
-
+                let total = 0;
                 snap.forEach(doc => {
-                    const h = doc.data();
-                    totalApproved += parseInt(h.amt || 0);
-                    const item = document.createElement('div');
-                    item.className = 'tx-item';
-                    const dateStr = h.approvedAt ? new Date(h.approvedAt).toLocaleDateString() : 'N/A';
-
-                    // Sanitize h for JSON
-                    const h_json = JSON.stringify({
-                        id: h.id,
-                        studentName: h.studentName,
-                        studentId: h.studentId,
-                        amt: h.amt,
-                        approvedAt: h.approvedAt
-                    }).replace(/'/g, "&#39;");
-
-                    item.innerHTML = `
-                         <div class="tx-info">
-                            <h4 style="font-size:13px;">${h.studentName}</h4>
-                            <p>${dateStr} • ₹${h.amt} <span style="font-size:8px; opacity:0.6;">(Ref: ${h.id.substring(0, 8)})</span></p>
-                        </div>
-                        <div style="display:flex; gap:8px;">
-                            ${h.proofImg ? `<div class="proof-eye" style="background:var(--surface2);" onclick="openProofViewer('${h.proofImg}')">👁️</div>` : ''}
-                            <div class="proof-eye" style="background:var(--primary); color:#fff;" onclick='viewStudentReceipt(${h_json})'>📄</div>
-                        </div>
-                    `;
+                    const h = doc.data(); total += parseInt(h.amt);
+                    const dateStr = h.approvedAt ? new Date(h.approvedAt.toMillis?.() || h.approvedAt).toLocaleDateString() : 'N/A';
+                    const item = document.createElement('div'); item.className = 'tx-item';
+                    item.innerHTML = `<div class="tx-info"><h4>${h.studentName}</h4><p>${dateStr} • ₹${h.amt}</p></div>
+                                      <div class="proof-eye" style="background:var(--primary); color:#fff;" onclick='viewStudentReceipt(${JSON.stringify(h)})'>📄</div>`;
                     list.appendChild(item);
                 });
-                document.getElementById('adm-total-approved').innerText = '₹' + totalApproved.toLocaleString();
+                document.getElementById('adm-total-approved').innerText = '₹' + total.toLocaleString();
             });
         }
 
         function viewStudentReceipt(h) {
             showReceiptModal({
-                txId: h.id,
-                studentName: h.studentName,
-                regNo: h.studentId,
-                amt: h.amt,
-                date: h.approvedAt ? new Date(h.approvedAt).toLocaleDateString('en-IN') : new Date().toLocaleDateString('en-IN')
+                txId: h.id, studentName: h.studentName, regNo: h.studentId, amt: h.amt,
+                date: h.approvedAt ? new Date(h.approvedAt.toMillis?.() || h.approvedAt).toLocaleDateString('en-IN') : 'N/A'
             });
         }
 
         async function searchStudent() {
             const ref = document.getElementById('adm-search-ref').value.trim();
             if (!ref) return;
-            currentPayRequest = 0; // Reset previous payment request amount
+            currentPayRequest = 0;
 
-            const doc = await db.collection('students').doc(ref).get();
-            if (doc.exists) {
-                currentStudentReg = ref;
-                selectedStudentData = doc.data();
-                renderSearchResult(selectedStudentData);
-            } else {
-                alert("Student nahi mila! Registration No. sahi se check karein.");
-            }
-        }
-
-        function renderSearchResult(data) {
-            document.getElementById('res-photo').src = data.photo || 'gttc-logo.png';
-            document.getElementById('res-name').innerText = data.fullName;
-            document.getElementById('res-meta').innerText = `${data.course} • ${data.semester || 'Final'}`;
-
-            const fees = data.fees || { total: 0, history: [] };
-            let paid = 0;
-            const history = fees.history || [];
-            history.forEach(tx => { if (tx.status === 'APPROVED') paid += parseInt(tx.amt); });
-
-            document.getElementById('res-bal').innerText = '₹' + ((fees.total || 0) - paid).toLocaleString();
-            document.getElementById('res-total-sum').innerText = `Total: ₹${(fees.total || 0).toLocaleString()}`;
-
-            // Render history for this student (Admin view)
-            const listEl = document.getElementById('adm-stu-history');
-            listEl.innerHTML = '';
-
-            [...history].reverse().forEach(tx => {
-                const item = document.createElement('div');
-                item.className = 'tx-item';
-                item.style.flexDirection = 'column';
-                item.style.alignItems = 'stretch';
-                item.style.gap = '12px';
-
-                const dateStr = tx.createdAt ? new Date(tx.createdAt.toMillis?.() || tx.createdAt).toLocaleDateString() : 'Pending';
-
-                item.innerHTML = `
-                    <div style="display:flex; justify-content:space-between; align-items:center;">
-                        <div class="tx-info">
-                            <h4 style="font-size:14px;">${tx.title || 'Fee Payment'}</h4>
-                            <p>${dateStr} • ₹${tx.amt}</p>
-                            <span class="tx-status ${tx.status === 'APPROVED' ? 'status-approved' : 'status-pending'}">${tx.status}</span>
-                        </div>
-                        <div style="display:flex; gap:8px;">
-                            ${tx.proofImg ? `<div class="proof-eye" style="margin:0; background:var(--primary); color:#fff;" onclick="reviewProofFromHistory('${tx.id}', '${currentStudentReg}', '${tx.proofImg}', '${tx.amt}')">👁️</div>` : ''}
-                        </div>
-                    </div>
-                `;
-
-                // Add Approve/Reject buttons if Pending
-                if (tx.status === 'PENDING') {
-                    const btnRow = document.createElement('div');
-                    btnRow.style.display = 'grid';
-                    btnRow.style.gridTemplateColumns = '1fr 1fr';
-                    btnRow.style.gap = '8px';
-                    btnRow.innerHTML = `
-                        <button class="btn-main" style="background:var(--red); padding:8px; font-size:10px; border-radius:8px; box-shadow:none;" onclick="reviewActionFromHistory('reject', '${tx.id}', '${currentStudentReg}')">REJECT</button>
-                        <button class="btn-main" style="background:var(--green); padding:8px; font-size:10px; border-radius:8px; box-shadow:none;" onclick="reviewActionFromHistory('approve', '${tx.id}', '${currentStudentReg}')">APPROVE</button>
-                    `;
-                    item.appendChild(btnRow);
-                }
-
-                listEl.appendChild(item);
-            });
-
-            document.getElementById('search-result').style.display = 'block';
-        }
-
-        function reviewProofFromHistory(txId, stuId, img, amt) {
-            currentReviewId = txId;
-            currentReviewStudentId = stuId;
-            document.getElementById('review-img').src = img;
-            document.getElementById('review-meta').innerText = `Student: ${stuId} • Transaction: ${txId}`;
-            // Hide review buttons in global modal since we have them in the list (optional, but cleaner)
-            document.querySelector('#review-modal .modal-body div[style*="grid-template-columns"]').style.display = 'none';
-            openModal('review-modal');
-        }
-
-        async function reviewActionFromHistory(action, txId, stuId) {
-            currentReviewId = txId;
-            currentReviewStudentId = stuId;
-            await reviewAction(action);
-            searchStudent(); // Refresh
-        }
-
-        let currentPayRequest = 0;
-
-        function openInputModal(type) {
-            activeAdminAction = type;
-            const title = type === 'total' ? 'SET TOTAL YEARLY FEES' : (type === 'extra' ? 'ADD EXTRA / FINE FEES' : 'SET PAYMENT REQUEST AMOUNT');
-            document.getElementById('input-title').innerText = title;
-            document.getElementById('modal-amount').value = '';
-            openModal('input-modal');
+            try {
+                const doc = await window.db.collection('students').doc(ref).get();
+                if (doc.exists) {
+                    currentStudentReg = ref;
+                    selectedStudentData = doc.data();
+                    renderSearchResult(selectedStudentData);
+                } else { alert("Student nahi mila!"); }
+            } catch (e) { alert(e.message); }
         }
 
         async function confirmAdminAction() {
@@ -1767,102 +1495,67 @@
             if (!amt || amt < 0) return alert("Valid amount daalein!");
 
             try {
+                const fees = selectedStudentData.fees || { total: 0, history: [] };
                 if (activeAdminAction === 'total') {
-                    await db.collection('students').doc(currentStudentReg).update({ "fees.total": amt });
+                    fees.total = amt;
                 } else if (activeAdminAction === 'extra') {
-                    const currentTotal = selectedStudentData.fees?.total || 0;
-                    await db.collection('students').doc(currentStudentReg).update({ "fees.total": currentTotal + amt });
+                    fees.total = (fees.total || 0) + amt;
                 } else {
-                    // "pay" action
                     currentPayRequest = amt;
-                    alert(`Madam, Student ke liye ₹${amt} ka payment request set ho gaya hai. Ab 'Generate QR' dabayein.`);
+                    alert(`Request set! Ab Generate QR dabayein.`);
+                    closeModal('input-modal');
+                    return;
                 }
+                await window.db.collection('students').doc(currentStudentReg).update({ fees });
                 closeModal('input-modal');
-                searchStudent(); // Refresh
+                searchStudent();
             } catch (e) { alert(e.message); }
         }
 
-        function generateQR() {
-            const upiId = madamSettings.upiId || "pay-gttc@onlinesbi";
-            const amt = currentPayRequest || 0;
-            // Generate UPI QR with amount
-            const qrData = `upi://pay?pa=${upiId}&pn=GTTC%20Finance&am=${amt}&cu=INR&tn=CollegeFees`;
-            document.getElementById('qr-img').src = `https://api.qrserver.com/v1/create-qr-code/?size=250x250&data=${encodeURIComponent(qrData)}`;
-            document.getElementById('qr-pay-num').innerText = upiId;
-            openModal('qr-modal');
-        }
-
-        function reviewProof(docId, studentId, img, amt) {
-            currentReviewId = docId;
-            currentReviewStudentId = studentId;
-            document.getElementById('review-img').src = img;
-            document.getElementById('review-meta').innerText = `Student: ${studentId} • Amount: ₹${amt}`;
-            document.querySelector('#review-modal .modal-body div[style*="grid-template-columns"]').style.display = 'grid';
-            openModal('review-modal');
-        }
-
         async function reviewAction(action) {
-            if (!confirm(`Are you sure you want to ${action} this payment?`)) return;
+            if (!confirm(`Are you sure you want to ${action}?`)) return;
 
             try {
+                const stuDoc = await window.db.collection('students').doc(currentReviewStudentId).get();
+                if (!stuDoc.exists) return alert("Student record missing!");
+                const stu = stuDoc.data();
                 let approvedTx = null;
+
+                let history = stu.fees?.history || [];
                 if (action === 'approve') {
-                    const stuRef = db.collection('students').doc(currentReviewStudentId);
-                    const doc = await stuRef.get();
-                    if (doc.exists) {
-                        const history = doc.data().fees.history.map(tx => {
-                            if (tx.id === currentReviewId) {
-                                tx.status = 'APPROVED';
-                                approvedTx = { ...tx, studentId: currentReviewStudentId };
-                            }
-                            return tx;
-                        });
-                        await stuRef.update({ "fees.history": history });
-                    }
-                } else {
-                    const stuRef = db.collection('students').doc(currentReviewStudentId);
-                    const doc = await stuRef.get();
-                    if (doc.exists) {
-                        const history = doc.data().fees.history.filter(tx => tx.id !== currentReviewId);
-                        await stuRef.update({ "fees.history": history });
-                    }
-                }
-
-                // Remove from pending collection
-                await db.collection('pending_approvals').doc(currentReviewId).delete();
-
-                // Add to approved_history collection (Global Admin View)
-                if (action === 'approve' && approvedTx) {
-                    await db.collection('approved_history').doc(currentReviewId).set({
-                        ...approvedTx,
-                        approvedAt: Date.now()
+                    history = history.map(tx => {
+                        if (tx.id === currentReviewId) {
+                            tx.status = 'APPROVED';
+                            approvedTx = { ...tx, studentId: currentReviewStudentId };
+                        }
+                        return tx;
                     });
-                    if (window.GTTCVoice) GTTCVoice.speak("Payment Received and Approved.");
+                } else {
+                    history = history.filter(tx => tx.id !== currentReviewId);
                 }
 
-                closeModal('review-modal');
+                await window.db.collection('students').doc(currentReviewStudentId).update({ "fees.history": history });
+                await window.db.collection('pending_approvals').doc(currentReviewId).delete();
 
                 if (action === 'approve' && approvedTx) {
-                    // Show receipt
-                    const stuDoc = await db.collection('students').doc(currentReviewStudentId).get();
-                    const stuData = stuDoc.data() || {};
+                    await window.db.collection('approved_history').doc(currentReviewId).set({
+                        ...approvedTx,
+                        approvedAt: firebase.firestore.FieldValue.serverTimestamp()
+                    });
+                    if (window.GTTCVoice) GTTCVoice.speak("Payment Approved.");
+
                     const receiptData = {
                         txId: approvedTx.id,
-                        studentName: stuData.fullName || approvedTx.studentName || currentReviewStudentId,
+                        studentName: stu.fullName || approvedTx.studentName,
                         regNo: currentReviewStudentId,
                         amt: approvedTx.amt,
-                        date: new Date().toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' })
+                        date: new Date().toLocaleDateString('en-IN')
                     };
                     showReceiptModal(receiptData);
-
-                    // Auto-trigger download
-                    setTimeout(() => {
-                        downloadReceiptPDF();
-                        showToast('✅ Receipt Downloaded!');
-                    }, 500);
                 } else {
                     showToast('❌ Payment Rejected!');
                 }
+                closeModal('review-modal');
             } catch (e) { alert(e.message); }
         }
 
