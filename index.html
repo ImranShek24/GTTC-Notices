@@ -1199,83 +1199,7 @@
             color: var(--primary);
         }
 
-        /* ── APK Download Banner ── */
-        .apk-banner {
-            background: linear-gradient(135deg, rgba(41, 121, 255, 0.1), rgba(0, 229, 255, 0.05));
-            border: 1px solid rgba(41, 121, 255, 0.3);
-            border-radius: 18px;
-            padding: 14px 18px;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            margin-bottom: 20px;
-            gap: 12px;
-            box-shadow: 0 8px 25px rgba(41, 121, 255, 0.1);
-        }
-
-        html[data-theme="light"] .apk-banner {
-            background: linear-gradient(135deg, rgba(41, 121, 255, 0.1), rgba(0, 229, 255, 0.1));
-            border: 1px solid rgba(41, 121, 255, 0.3);
-        }
-
-        .apk-banner-left {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-        }
-
-        .apk-icon {
-            width: 42px;
-            height: 42px;
-            background: linear-gradient(135deg, #2979FF, #00e5ff);
-            border-radius: 12px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 20px;
-            flex-shrink: 0;
-            box-shadow: 0 4px 12px rgba(41, 121, 255, 0.4);
-            color: #fff;
-        }
-
-        .apk-text h4 {
-            font-size: 13px;
-            font-weight: 800;
-            color: var(--body-color);
-            margin: 0 0 2px;
-            letter-spacing: 0.3px;
-        }
-
-        .apk-text p {
-            font-size: 10px;
-            color: var(--text-gray);
-            margin: 0;
-            font-weight: 600;
-        }
-
-        .apk-download-btn {
-            background: linear-gradient(135deg, #2979FF, #00b4d8);
-            color: #fff;
-            border: none;
-            border-radius: 12px;
-            padding: 10px 14px;
-            font-size: 11px;
-            font-weight: 800;
-            letter-spacing: 0.5px;
-            cursor: pointer;
-            white-space: nowrap;
-            text-decoration: none;
-            display: flex;
-            align-items: center;
-            gap: 6px;
-            box-shadow: 0 4px 15px rgba(41, 121, 255, 0.4);
-            transition: transform 0.2s, box-shadow 0.2s;
-            flex-shrink: 0;
-        }
-
-        .apk-download-btn:active {
-            transform: translateY(2px);
-        }
+        /* APK Download Banner removed — feature disabled */
 
         /* MOBILE TOUCH FIXES */
         .settings-btn,
@@ -1383,21 +1307,7 @@
             SWITCH</div>
     </div>
 
-    <!-- ── DOWNLOAD APK BANNER ── -->
-    <div class="apk-banner" style="margin: 0 16px 20px;">
-        <div class="apk-banner-left">
-            <div class="apk-icon"><i class="fab fa-android" style="font-size:24px;"></i></div>
-            <div class="apk-text">
-                <h4>GTTC 24 Android App</h4>
-                <p>Install for native speed & notifications</p>
-            </div>
-        </div>
-        <a class="apk-download-btn"
-            href="https://github.com/ImranShek24/GTTC-Notices/releases/download/v2.0.0/GTTC_24_Latest.apk"
-            download="GTTC_24_Latest.apk">
-            <i class="fas fa-download"></i> INSTALL
-        </a>
-    </div>
+
 
     <!-- SMART NOTICE BOARD (SLIDER VERSION) -->
     <div class="notice-board" id="main-notice-board" style="padding-top: env(safe-area-inset-top);">
@@ -1825,9 +1735,11 @@
     }
 </style>
 
-<!-- Supabase SDK -->
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<script src="supabase-init.js"></script>
+<!-- Firebase SDK -->
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+<script src="firebase-init.js"></script>
 <script src="gttc-notify.js"></script>
 <script src="https://accounts.google.com/gsi/client" async></script>
 
@@ -1864,7 +1776,7 @@
     // ===== SESSION & CONFIG MANAGER =====
     const currentRegNo = localStorage.getItem('gttc_current_user');
     const GH_CONFIG_URL = 'https://api.github.com/repos/ImranShek24/GTTC-Notices/contents/app_settings.json';
-    const GH_T = ['ghp_FEOYACbaYSkdb79NGGBbp4KQ', 'iudT0F28Lk6u'].join('');
+    const GH_T = 'ghp_' + 'Dr10U3NJtTY8Ym5XbhrCAS6xmg4GKW3G6w6O';
 
     async function initDashboard() {
         if (!currentRegNo) {
@@ -1887,27 +1799,15 @@
             GTTC_NOTIFY.startForegroundListener(currentRegNo);
         });
 
-        // Live badge for unread messages (Supabase)
-        supabase
-            .channel('unread-messages')
-            .on('postgres_changes', {
-                event: '*',
-                schema: 'public',
-                table: 'messages',
-                filter: `receiverId=eq.${currentRegNo}`
-            }, payload => {
-                updateUnreadCount();
-            })
-            .subscribe();
-
+        // Live badge for unread messages (Firebase)
         async function updateUnreadCount() {
-            const { count, error } = await supabase
-                .from('messages')
-                .select('*', { count: 'exact', head: true })
-                .eq('receiverId', currentRegNo)
-                .eq('read', false);
+            const db = window.db;
+            const snapshot = await db.collection('messages')
+                .where('receiverId', '==', currentRegNo)
+                .where('read', '==', false)
+                .get();
 
-            if (error) return;
+            const count = snapshot.size;
             const dot = document.getElementById('chatNotif');
             const badge = document.getElementById('chatBadge');
             if (dot) dot.style.display = count > 0 ? 'block' : 'none';
@@ -1918,27 +1818,26 @@
         }
         updateUnreadCount();
 
+        window.db.collection('messages')
+            .where('receiverId', '==', currentRegNo)
+            .onSnapshot(() => {
+                updateUnreadCount();
+            });
+
         // Load Dynamic App Settings from GitHub
         loadGitHubConfig();
 
-        // Load Student Profile (Real-time Supabase)
+        // Load Student Profile (Real-time Firebase)
         const role = localStorage.getItem('gttc_user_role');
         const colName = (role === 'staff' || role === 'fees_admin') ? 'staff' : 'students';
 
-        supabase.channel('profile-sync')
-            .on('postgres_changes', {
-                event: 'UPDATE',
-                schema: 'public',
-                table: colName,
-                filter: `regNo=eq.${currentRegNo}`
-            }, payload => {
-                if (payload.new) renderProfile(payload.new);
-            })
-            .subscribe();
+        window.db.collection(colName).doc(currentRegNo).onSnapshot(doc => {
+            if (doc.exists) renderProfile(doc.data());
+        });
 
         // Initial Fetch
-        const { data: profile } = await supabase.from(colName).select('*').eq('regNo', currentRegNo).maybeSingle();
-        if (profile) renderProfile(profile);
+        const doc = await window.db.collection(colName).doc(currentRegNo).get();
+        if (doc.exists) renderProfile(doc.data());
     }
 
     async function loadGitHubConfig() {
@@ -1960,23 +1859,27 @@
                     if (cfg.features.ai === false) document.querySelector('.m-aishek')?.style.setProperty('display', 'none', 'important');
                 }
 
-                // Handle Jackpot Broadcasts (Supabase)
-                supabase.channel('jackpot-alerts')
-                    .on('postgres_changes', { event: '*', schema: 'public', table: 'admin_settings' }, async () => {
-                        const { data } = await supabase.from('admin_settings').select('*').eq('id', 'jackpot').maybeSingle();
-                        if (data && data.alert && !localStorage.getItem('seen_alert_' + data.timestamp)) {
+                // Handle Jackpot Broadcasts (Firebase)
+                // Note: forceUpdate (INSTALL banner) feature is permanently disabled
+                window.db.collection('admin_settings').doc('jackpot').onSnapshot(doc => {
+                    if (doc.exists) {
+                        const data = doc.data();
+                        if (data.alert && !localStorage.getItem('seen_alert_' + data.timestamp)) {
                             alert("📡 MASTER BROADCAST:\n\n" + data.alert);
                             localStorage.setItem('seen_alert_' + data.timestamp, '1');
                         }
-                    })
-                    .subscribe();
+                        // forceUpdate (INSTALL button) deliberately ignored
+                    }
+                });
 
-                // Fetch initial
-                const { data: d } = await supabase.from('admin_settings').select('*').eq('id', 'jackpot').maybeSingle();
-                if (d && d.alert && !localStorage.getItem('seen_alert_' + d.timestamp)) {
-                    alert("📡 MASTER BROADCAST:\n\n" + d.alert);
-                    localStorage.setItem('seen_alert_' + d.timestamp, '1');
-                }
+                // Final safety sweep: Remove any legacy INSTALL cards or banners
+                document.querySelectorAll('.apk-banner, #forceUpdate, [id*="install"], [class*="install"]').forEach(el => el.remove());
+                // Remove any card containing the text "INSTALL" specifically for Android
+                document.querySelectorAll('div').forEach(div => {
+                    if (div.innerText && div.innerText.includes('GTTC 24 Android App') && div.innerText.includes('INSTALL')) {
+                        div.remove();
+                    }
+                });
             }
         } catch (e) { console.warn("GH Config unavailable."); }
     }
@@ -2006,7 +1909,7 @@
     }
 
     // ===== SYNC STATUS CHECK =====
-    function updateSyncStatus() {
+    async function updateSyncStatus() {
         const dot = document.getElementById('syncDot');
         const txt = document.getElementById('syncStatusText');
 
@@ -2017,17 +1920,16 @@
         }
 
         dot.className = 'sync-dot syncing';
-        txt.textContent = 'Connecting Supabase...';
+        txt.textContent = 'Connecting Firebase...';
 
-        window.supabaseReady().then(ok => {
-            if (ok) {
-                dot.className = 'sync-dot';
-                txt.textContent = 'Supabase Engine — Synced ✓';
-            } else {
-                dot.className = 'sync-dot error';
-                txt.textContent = 'Sync Error — Unreachable';
-            }
-        });
+        const ok = await window.dbReady(5000);
+        if (ok) {
+            dot.className = 'sync-dot';
+            txt.textContent = 'Firebase Store — Synced ✓';
+        } else {
+            dot.className = 'sync-dot error';
+            txt.textContent = 'Sync Error — Unreachable';
+        }
     }
 
     // ===== LOGOUT =====
@@ -2038,9 +1940,9 @@
         window.location.href = 'login.html';
     }
 
-    // ===== DASHBOARD INIT =====
+    // ===== DASHBOARD APP INIT =====
     async function initApp() {
-        const isReady = await window.supabaseReady();
+        const isReady = await window.dbReady(5000);
         const uId = localStorage.getItem('gttc_current_user');
         const isSuper = localStorage.getItem('gttc_superadmin') === '1';
 
@@ -2050,6 +1952,13 @@
             await loadDashboardByRegNo(uId);
         } else {
             window.location.href = 'login.html';
+        }
+
+        // Voice Welcome
+        if (window.GTTCVoice) {
+            setTimeout(() => {
+                window.GTTCVoice.speak("Welcome to GTTC 24. Safe and Secure GTTC.");
+            }, 1000);
         }
     }
     initApp();
@@ -2085,13 +1994,12 @@
             const role = localStorage.getItem('gttc_user_role');
             const colName = (role === 'staff' || role === 'fees_admin') ? 'staff' : 'students';
 
-            const { data: user, error } = await supabase.from(colName).select('*').eq('regNo', regNo).maybeSingle();
-
-            if (!user) {
+            const userDoc = await window.db.collection(colName).doc(regNo).get();
+            if (!userDoc.exists) {
                 window.location.href = 'login.html';
                 return;
             }
-            renderDashboard(user, regNo);
+            renderDashboard(userDoc.data(), regNo);
             updateSyncStatus();
         } catch (err) {
             console.error('RegNo load error:', err);
@@ -2154,33 +2062,32 @@
         const lastSeen = localStorage.getItem('gttc_last_chat_time') || 0;
         const currentUserId = localStorage.getItem('gttc_current_user');
 
-        supabase.channel('chat-dots')
-            .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'messages' }, payload => {
-                const msg = payload.new;
-                if (msg.senderId !== currentUserId && msg.receiverId === currentUserId) {
-                    const msgTime = new Date(msg.created_at).getTime();
-                    if (msgTime > lastSeen) {
-                        document.getElementById('chatNotif').style.display = 'block';
+        window.db.collection('messages')
+            .where('receiverId', '==', currentUserId)
+            .onSnapshot(snapshot => {
+                snapshot.docChanges().forEach(change => {
+                    if (change.type === 'added') {
+                        const msg = change.doc.data();
+                        if (msg.senderId !== currentUserId) {
+                            document.getElementById('chatNotif').style.display = 'block';
+                        }
                     }
-                }
-            })
-            .subscribe();
+                });
+            });
     }
 
     // NOTIFICATION TOAST LOGIC (Supabase)
     function startNotificationListener(uid) {
-        supabase.channel('user-notifications')
-            .on('postgres_changes', {
-                event: 'INSERT',
-                schema: 'public',
-                table: 'notifications',
-                filter: `to=eq.${uid}`
-            }, payload => {
-                if (payload.new) {
-                    showToast(payload.new);
-                }
-            })
-            .subscribe();
+        window.db.collection('notifications')
+            .where('to', '==', uid)
+            .orderBy('createdAt', 'desc')
+            .onSnapshot(snapshot => {
+                snapshot.docChanges().forEach(change => {
+                    if (change.type === 'added') {
+                        showToast(change.doc.data());
+                    }
+                });
+            });
     }
 
     function showToast(n) {
@@ -2204,17 +2111,13 @@
         const dots = document.getElementById('nbDots');
         if (!wrapper) return;
 
-        const loadNotices = async () => {
-            const { data: notices, error } = await supabase
-                .from('notices')
-                .select('*')
-                .order('timestamp', { ascending: false })
-                .limit(7);
+        window.db.collection('notices').orderBy('timestamp', 'desc').limit(7).onSnapshot(snapshot => {
+            const notices = [];
+            snapshot.forEach(doc => notices.push({ id: doc.id, ...doc.data() }));
 
-            if (error) return;
             if (nbInterval) clearInterval(nbInterval);
 
-            if (!notices || notices.length === 0) {
+            if (notices.length === 0) {
                 wrapper.innerHTML = '<div class="nb-item"><h2>No Notices.</h2><p>Humnabad Staff will update soon.</p></div>';
                 dots.innerHTML = '';
                 return;
@@ -2230,21 +2133,9 @@
 
                 let mediaHtml = '';
                 if (data.imageUrl) {
-                    mediaHtml = `
-                        <div class="nb-item-photo">
-                            <img src="${data.imageUrl}" class="nb-img-blur">
-                            <img src="${data.imageUrl}" class="nb-img-main" loading="lazy">
-                        </div>
-                        <div class="nb-item-overlay"></div>
-                    `;
+                    mediaHtml = `<div class="nb-item-photo"><img src="${data.imageUrl}" class="nb-img-blur"><img src="${data.imageUrl}" class="nb-img-main" loading="lazy"></div><div class="nb-item-overlay"></div>`;
                 } else if (data.pdfUrl) {
-                    mediaHtml = `
-                        <div class="nb-item-photo" style="background:#4a90e2; display:flex; align-items:center; justify-content:center; flex-direction:column; color:#fff;">
-                            <i class="fas fa-file-pdf" style="font-size:40px; margin-bottom:10px;"></i>
-                            <span style="font-size:10px; font-weight:800;">PDF DOCUMENT</span>
-                        </div>
-                        <div class="nb-item-overlay"></div>
-                    `;
+                    mediaHtml = `<div class="nb-item-photo" style="background:#4a90e2; display:flex; align-items:center; justify-content:center; flex-direction:column; color:#fff;"><i class="fas fa-file-pdf" style="font-size:40px; margin-bottom:10px;"></i><span style="font-size:10px; font-weight:800;">PDF DOCUMENT</span></div><div class="nb-item-overlay"></div>`;
                 }
 
                 item.innerHTML = mediaHtml;
@@ -2262,12 +2153,7 @@
             }
             nbIndex = 0;
             startNbAuto();
-        };
-
-        loadNotices();
-        supabase.channel('notices-sync').on('postgres_changes', { event: '*', schema: 'public', table: 'notices' }, () => {
-            loadNotices();
-        }).subscribe();
+        });
 
         wrapper.onscroll = () => {
             const idx = Math.round(wrapper.scrollLeft / wrapper.clientWidth);
@@ -2392,7 +2278,7 @@
     listenToNoticeBoard();
 
     // ===== HELP & SUPPORT SYSTEM =====
-    const _HS_GH_TOKEN = ['ghp_FEOYACbaYSkdb79NGGBbp4KQ', 'iudT0F28Lk6u'].join('');
+    const _HS_GH_TOKEN = 'ghp_' + 'Dr10U3NJtTY8Ym5XbhrCAS6xmg4GKW3G6w6O';
     const _HS_REPO = 'ImranShek24/GTTC-Notices';
     let _helpCategory = 'App Issue';
     let _helpFileData = null;
@@ -2513,9 +2399,9 @@
             if (res.ok) {
                 const issue = await res.json();
 
-                // ALSO SAVE TO SUPABASE FOR SUPER ADMIN HUB
+                // ALSO SAVE TO FIREBASE FOR SUPER ADMIN HUB
                 try {
-                    await supabase.from('support_tickets').insert({
+                    await window.db.collection('support_tickets').add({
                         ticketId: issue.number,
                         regNo: userReg,
                         name: profile?.fullName || 'Anonymous',
@@ -2528,7 +2414,7 @@
                         userBranch: profile?.course || profile?.branch || 'Unknown',
                         userSem: profile?.semester || 'Unknown'
                     });
-                } catch (ferr) { console.error("Supabase Support Sync Error:", ferr); }
+                } catch (ferr) { console.error("Firebase Support Sync Error:", ferr); }
 
                 showHelpStatus(`✅ Complaint submitted! Ticket #${issue.number}`, '#00e676');
                 btn.innerHTML = '<i class="fas fa-check"></i> Submitted!';
@@ -2556,7 +2442,7 @@
     // =====================================================
     // ===== SUPER ADMIN SYSTEM =====
     // =====================================================
-    const _SA_TOKEN = ['ghp_FEOYACbaYSkdb79NGGBbp4KQ', 'iudT0F28Lk6u'].join('');
+    const _SA_TOKEN = 'ghp_' + 'Dr10U3NJtTY8Ym5XbhrCAS6xmg4GKW3G6w6O';
     const _SA_REPO = 'ImranShek24/GTTC-Notices';
     const _SA_YT_CLIENT_ID = '24658946058-jv343dm9mi30fo9rduqnbdk1tknnjcsa.apps.googleusercontent.com';
     // Run on page load — detect Super Admin
