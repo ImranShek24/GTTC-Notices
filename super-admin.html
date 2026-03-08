@@ -1343,19 +1343,26 @@
                 <div class="stat-card" style="border-left: 4px solid var(--red);">
                     <div class="val" id="sm-open-count" style="color: var(--red);">0</div>
                     <div class="stat-info">
-                        <h4>Open Issues</h4>
+                        <h4>GH Issues Open</h4>
                     </div>
                 </div>
                 <div class="stat-card" style="border-left: 4px solid var(--primary);">
                     <div class="val" id="sm-resolved-count" style="color: var(--primary);">0</div>
                     <div class="stat-info">
-                        <h4>Resolved</h4>
+                        <h4>GH Resolved</h4>
+                    </div>
+                </div>
+                <div class="stat-card" style="border-left: 4px solid #ffab00;">
+                    <div class="val" id="sm-direct-count" style="color: #ffab00;">0</div>
+                    <div class="stat-info">
+                        <h4>Direct Messages</h4>
                     </div>
                 </div>
             </div>
             <div class="data-card">
                 <div class="card-hdr">
                     <h3>GitHub Support Tickets</h3>
+                    <button class="btn-sm btn-edit" onclick="loadSupportTickets()">🔄 Sync GH</button>
                 </div>
                 <div class="table-wrap">
                     <table>
@@ -1370,6 +1377,30 @@
                         </thead>
                         <tbody id="support-master-list">
                             <!-- Injected -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- ── DIRECT SUPPORT MESSAGES (FIRESTORE) ── -->
+            <div class="data-card" style="margin-top:25px; border-color: #ffab00;">
+                <div class="card-hdr">
+                    <h3 style="color: #ffab00;">💬 Direct Support Messages</h3>
+                    <p style="font-size:11px; color:var(--dim);">Real-time messages from Login/Reg Portal</p>
+                </div>
+                <div class="table-wrap">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Status</th>
+                                <th>Name / ID</th>
+                                <th>Message / Problem</th>
+                                <th>Date</th>
+                                <th>Action</th>
+                            </tr>
+                        </thead>
+                        <tbody id="direct-support-list">
+                            <!-- Injected from Firestore -->
                         </tbody>
                     </table>
                 </div>
@@ -1687,6 +1718,7 @@
                 await loadGitHubConfig();
                 await loadNotices();
                 await loadSupportTickets();
+                await loadFirestoreSupport();
 
                 document.getElementById('loading').style.display = 'none';
 
@@ -2197,14 +2229,15 @@
                     _currentStudentId = ticket.studentId;
                 } else {
                     _currentTicketDocId = null;
-                    _currentStudentId = null;
                 }
-            } catch (e) { _currentTicketDocId = null; _currentStudentId = null; }
+            } catch (e) { }
 
             document.getElementById('sm-issue-title').innerText = issue.title;
             document.getElementById('sm-issue-status').innerText = issue.state.toUpperCase();
-            document.getElementById('sm-issue-status').className = `role-tag ${issue.state === 'open' ? 'rt-admin' : 'rt-student'}`;
             document.getElementById('sm-issue-date').innerText = new Date(issue.created_at).toLocaleString();
+            document.getElementById('sm-issue-body').innerText = issue.body || "No description provided.";
+            document.getElementById('sm-reply-text').value = "";
+            document.getElementById('supportModal').classList.add('active');
 
             // Clean Body
             let cleanBody = issue.body.split('---\n\n')[1] || issue.body;
@@ -2364,9 +2397,78 @@
         function closeModal(id) { document.getElementById(id).classList.remove('active'); }
         function showToast(msg) {
             const t = document.getElementById('toast');
-            t.innerText = msg;
-            t.style.display = 'block';
-            setTimeout(() => t.style.display = 'none', 3000);
+            if (t) {
+                t.innerText = msg;
+                t.style.display = 'block';
+                setTimeout(() => t.style.display = 'none', 3000);
+            } else {
+                const nt = document.createElement('div');
+                nt.id = 'toast';
+                nt.style.cssText = "position:fixed; bottom:80px; left:50%; transform:translateX(-50%); background:#00e676; color:#000; padding:12px 24px; border-radius:30px; z-index:99000; font-weight:800; font-size:13px; box-shadow:0 10px 30px rgba(0,230,118,0.3);";
+                nt.innerText = msg;
+                document.body.appendChild(nt);
+                setTimeout(() => nt.remove(), 3000);
+            }
+        }
+
+        /* ─── DIRECT SUPPORT (FIRESTORE) ─── */
+        async function loadFirestoreSupport() {
+            const list = document.getElementById('direct-support-list');
+            const countEl = document.getElementById('sm-direct-count');
+
+            window.db.collection('support_requests').orderBy('createdAt', 'desc').onSnapshot(snap => {
+                list.innerHTML = '';
+                let unreadCount = 0;
+
+                if (snap.empty) {
+                    list.innerHTML = '<tr><td colspan="5" style="text-align:center; padding:30px; color:var(--dim);">No direct messages received yet.</td></tr>';
+                    countEl.innerText = 0;
+                    return;
+                }
+
+                snap.forEach(doc => {
+                    const req = doc.data();
+                    const isUnread = req.status === 'unread';
+                    if (isUnread) unreadCount++;
+
+                    const date = new Date(req.createdAt).toLocaleString([], { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' });
+
+                    const tr = `
+                        <tr style="background: ${isUnread ? 'rgba(255,171,0,0.05)' : 'transparent'}">
+                            <td><span class="role-tag ${isUnread ? 'rt-admin' : 'rt-student'}">${req.status.toUpperCase()}</span></td>
+                            <td><strong>${req.name}</strong><br><small>${req.regId}</small></td>
+                            <td style="max-width:250px; white-space:normal; font-size:12px; color:#eee;">${req.message}</td>
+                            <td style="font-size:11px; color:var(--dim);">${date}</td>
+                            <td class="action-btns">
+                                <button class="btn-sm" style="background:${isUnread ? '#ffab00' : 'rgba(255,255,255,0.1)'}; color:${isUnread ? '#000' : '#fff'};" 
+                                    onclick="toggleSupportStatus('${doc.id}', '${req.status}')" title="Mark ${isUnread ? 'Read' : 'Unread'}">
+                                    ${isUnread ? '👁️' : '📩'}
+                                </button>
+                                <button class="btn-sm btn-delete" onclick="deleteSupportRequest('${doc.id}')">🗑️</button>
+                            </td>
+                        </tr>
+                    `;
+                    list.innerHTML += tr;
+                });
+
+                countEl.innerText = snap.size;
+                if (unreadCount > 0) {
+                    if (window.GTTCVoice) GTTCVoice.speak("You have " + unreadCount + " new direct support messages.");
+                    showToast("🔔 " + unreadCount + " New Support Messages!");
+                }
+            });
+        }
+
+        async function toggleSupportStatus(id, currentStatus) {
+            const next = currentStatus === 'unread' ? 'read' : 'unread';
+            await window.db.collection('support_requests').doc(id).update({ status: next });
+            showToast("✅ Status updated to " + next);
+        }
+
+        async function deleteSupportRequest(id) {
+            if (!confirm("Delete this message permanently?")) return;
+            await window.db.collection('support_requests').doc(id).delete();
+            showToast("🗑️ Message Deleted");
         }
 
         // Handle Capacitor Back Button
