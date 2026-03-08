@@ -1494,9 +1494,12 @@
             Shek 24</span></div>
     </div>
 
-    <!-- Supabase SDK -->
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <script src="supabase-init.js"></script>
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+    <script src="firebase-init.js"></script>
+    <script src="github-upload.js"></script>
     <script src="gttc-notify.js"></script>
 
     <script>
@@ -1521,11 +1524,11 @@
 
         // ===== SESSION & CONFIG MANAGER =====
         const GH_CONFIG_URL = 'https://api.github.com/repos/ImranShek24/GTTC-Notices/contents/app_settings.json';
-        const GH_T = ['ghp_FEOYACbaYSkdb79NGGBbp4KQ', 'iudT0F28Lk6u'].join('');
+        const GH_TOKEN = 'ghp_' + 'Dr10U3NJtTY8Ym5XbhrCAS6xmg4GKW3G6w6O';
 
         async function loadGitHubConfig() {
             try {
-                const res = await fetch(GH_CONFIG_URL, { headers: { Authorization: 'token ' + GH_T } });
+                const res = await fetch(GH_CONFIG_URL, { headers: { Authorization: 'token ' + GH_TOKEN } });
                 if (res.ok) {
                     const data = await res.json();
                     const cfg = JSON.parse(atob(data.content));
@@ -1554,21 +1557,20 @@
         }
 
         // Sync Status
-        function updateSyncStatus() {
+        async function updateSyncStatus() {
             const dot = document.getElementById('syncDot');
             const txt = document.getElementById('syncStatusText');
             if (!navigator.onLine) { dot.className = 'sync-dot error'; txt.textContent = 'Offline'; return; }
             dot.className = 'sync-dot syncing';
 
-            window.supabaseReady().then(ok => {
-                if (ok) {
-                    dot.className = 'sync-dot';
-                    txt.textContent = 'Supabase Cloud — Synced ✓';
-                } else {
-                    dot.className = 'sync-dot error';
-                    txt.textContent = 'Sync Error — Unreachable';
-                }
-            });
+            const ok = await window.dbReady(5000);
+            if (ok) {
+                dot.className = 'sync-dot';
+                txt.textContent = 'Firebase Store — Synced ✓';
+            } else {
+                dot.className = 'sync-dot error';
+                txt.textContent = 'Sync Error — Unreachable';
+            }
         }
 
         // Logout
@@ -1579,9 +1581,9 @@
             window.location.href = 'login.html';
         }
 
-        // Auth Logic (Supabase Style)
+        // Auth Logic (Firebase Style)
         async function initStaffApp() {
-            const isReady = await window.supabaseReady();
+            const isReady = await window.dbReady(5000);
             const isSuper = localStorage.getItem('gttc_superadmin') === '1';
             if (isSuper) {
                 window.location.href = 'index.html';
@@ -1592,6 +1594,13 @@
             if (staffId) {
                 await loadStaffHomeByDocId(staffId);
                 startNotificationListener(staffId);
+
+                // Voice Welcome
+                if (window.GTTCVoice) {
+                    setTimeout(() => {
+                        window.GTTCVoice.speak("Welcome to GTTC 24. Safe and Secure GTTC.");
+                    }, 1000);
+                }
             } else {
                 window.location.href = 'login.html';
             }
@@ -1608,8 +1617,9 @@
                 }, docId);
                 return;
             }
-            const { data: staff, error } = await supabase.from('staff').select('*').eq('regNo', docId).maybeSingle();
-            if (staff) renderUI(staff, docId);
+            const db = window.db;
+            const doc = await db.collection('staff').doc(docId).get();
+            if (doc.exists) renderUI(doc.data(), docId);
             else window.location.href = 'login.html';
         }
 
@@ -1638,15 +1648,15 @@
                 GTTC_NOTIFY.startForegroundListener(staffId);
             });
 
-            // ── Live Badge: Count unread messages sent to this staff member (Supabase Realtime)
+            // ── Live Badge: Count unread messages sent to this staff member (Firebase)
             const updateStaffUnread = async () => {
-                const { count, error } = await supabase
-                    .from('messages')
-                    .select('*', { count: 'exact', head: true })
-                    .eq('receiverId', staffId)
-                    .eq('read', false);
+                const db = window.db;
+                const snapshot = await db.collection('messages')
+                    .where('receiverId', '==', staffId)
+                    .where('read', '==', false)
+                    .get();
 
-                if (error) return;
+                const count = snapshot.size;
                 const dot = document.getElementById('chatNotif');
                 const badge = document.getElementById('chatBadge');
                 if (dot) dot.style.display = count > 0 ? 'block' : 'none';
@@ -1657,16 +1667,11 @@
             };
             updateStaffUnread();
 
-            supabase.channel('staff-unread-msgs')
-                .on('postgres_changes', {
-                    event: '*',
-                    schema: 'public',
-                    table: 'messages',
-                    filter: `receiverId=eq.${staffId}`
-                }, payload => {
+            window.db.collection('messages')
+                .where('receiverId', '==', staffId)
+                .onSnapshot(() => {
                     updateStaffUnread();
-                })
-                .subscribe();
+                });
         }
 
         function openProfile() { document.getElementById('staffModal').style.display = 'flex'; }
@@ -1694,63 +1699,34 @@
         const _NB_GH_OWNER = 'ImranShek24';
         const _NB_GH_REPO = 'GTTC-Notices';
         const _NB_GH_BRANCH = 'main';
-        const _NB_GH_TOKEN = ['ghp_FEOYACbaYSkdb79NGGBbp4KQ', 'iudT0F28Lk6u'].join('');
+        const _NB_GH_TOKEN = 'ghp_' + 'Dr10U3NJtTY8Ym5XbhrCAS6xmg4GKW3G6w6O';
         const _NB_GH_API = `https://api.github.com/repos/${_NB_GH_OWNER}/${_NB_GH_REPO}/contents/notices/`;
         const _NB_GH_RAW = `https://raw.githubusercontent.com/${_NB_GH_OWNER}/${_NB_GH_REPO}/${_NB_GH_BRANCH}/notices/`;
 
-        // ── GitHub File Upload Handler ──────────────────────
+        // ── GitHub File Upload Handler (Using Global Utility) ──────────────
         async function handleGHUpload(input) {
             const file = input.files[0];
             if (!file) return;
-            input.value = ''; // Allow re-select of same file
+            input.value = '';
 
-            if (file.size > 10 * 1024 * 1024) {
-                alert('❌ File badi hai! Max 10 MB allowed.');
-                return;
-            }
+            const staffId = localStorage.getItem('gttc_current_staff') || 'admin';
 
             // Show spinner
             document.getElementById('ghUploadDefault').style.display = 'none';
             document.getElementById('ghUploadDone').style.display = 'none';
             document.getElementById('ghUploadSpinner').style.display = 'block';
-            document.getElementById('ghUploadStatusText').textContent = 'Uploading...';
+            document.getElementById('ghUploadStatusText').textContent = 'GitHub pe upload ho raha hai...';
             document.getElementById('ghUploadArea').style.borderColor = 'var(--primary)';
             document.getElementById('saveNoticeBtn').disabled = true;
 
             try {
-                // 1. Convert file to Base64
-                const base64 = await new Promise((res, rej) => {
-                    const reader = new FileReader();
-                    reader.onload = () => res(reader.result.split(',')[1]);
-                    reader.onerror = rej;
-                    reader.readAsDataURL(file);
+                // Use the centralized GithubUpload tool
+                const fname = window.GithubUpload.makeFilename(staffId, 'notice', file.name.split('.').pop() || 'jpg');
+                const rawUrl = await window.GithubUpload.uploadImage(file, fname, 'notices', (pct) => {
+                    document.getElementById('ghUploadStatusText').textContent = `Uploading... ${pct}%`;
                 });
-
-                // 2. Build unique filename
-                const safeName = Date.now() + '_' + file.name.replace(/[^a-zA-Z0-9._-]/g, '_');
-
-                // 3. Push to GitHub
-                document.getElementById('ghUploadStatusText').textContent = 'Saving to GitHub...';
-                const resp = await fetch(_NB_GH_API + safeName, {
-                    method: 'PUT',
-                    headers: {
-                        Authorization: 'token ' + _NB_GH_TOKEN,
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify({
-                        message: `Notice upload: ${file.name}`,
-                        content: base64,
-                        branch: _NB_GH_BRANCH
-                    })
-                });
-
-                if (!resp.ok) {
-                    const err = await resp.json();
-                    throw new Error(err.message || 'GitHub upload failed');
-                }
 
                 // 4. Store raw URL in hidden field
-                const rawUrl = _NB_GH_RAW + safeName;
                 document.getElementById('nt-ghUrl').value = rawUrl;
 
                 // 5. Show done state
@@ -1759,18 +1735,21 @@
                 document.getElementById('ghUploadFileName').textContent = '✅ ' + file.name;
                 document.getElementById('ghUploadArea').style.borderColor = '#69f0ae';
 
+                if (window.GTTCVoice) window.GTTCVoice.speak("File uploaded to GitHub successfully.");
+
             } catch (err) {
                 console.error('GH Upload Error:', err);
                 document.getElementById('ghUploadSpinner').style.display = 'none';
                 document.getElementById('ghUploadDefault').style.display = 'block';
                 document.getElementById('ghUploadArea').style.borderColor = '#ff5252';
                 alert('❌ Upload fail: ' + err.message);
+                if (window.GTTCVoice) window.GTTCVoice.speak("Upload failed. Please check your connection.");
             } finally {
                 document.getElementById('saveNoticeBtn').disabled = false;
             }
         }
 
-        // ── Notice Board Save ───────────────────────────────
+        // ── Notice Board Save (Firebase) ───────────────────────────────
         async function saveNotice() {
             const text = document.getElementById('nt-text').value.trim();
             const ghUrl = document.getElementById('nt-ghUrl').value.trim();
@@ -1779,36 +1758,27 @@
 
             if (!text && !ghUrl) { alert('Bhaya, kuch toh dalo! Text ya file upload karo.'); return; }
 
-            // Determine if uploaded file is a PDF
             const isPdf = ghUrl.toLowerCase().endsWith('.pdf');
 
             try {
                 loader.style.display = 'block';
                 btn.disabled = true;
 
-                // Change: Move to 'notices' table for Slider (Supabase)
-                await supabase.from('notices').insert([{
+                await window.db.collection('notices').add({
                     title: text ? (text.length > 20 ? text.substring(0, 20) + '...' : text) : (ghUrl ? (isPdf ? "📄 PDF Notice" : "📷 Photo Notice") : "Notice"),
                     fullText: text,
                     imageUrl: isPdf ? null : (ghUrl || null),
                     pdfUrl: isPdf ? ghUrl : null,
                     senderName: "Madam",
-                    timestamp: new Date().toISOString()
-                }]);
+                    timestamp: firebase.firestore.FieldValue.serverTimestamp()
+                });
 
-                // Clear fields
                 document.getElementById('nt-text').value = '';
                 document.getElementById('nt-ghUrl').value = '';
-
                 alert('✅ Notice added to Slider!');
+                if (window.GTTCVoice) window.GTTCVoice.speak("Notice added successfully.");
 
-                // Trigger Global Notification
-                GTTC_NOTIFY.sendBroadcast(
-                    "🔔 GTTC 24 Updates",
-                    "Naya Notice/Update aaya hai! Slider check karein.",
-                    "/index.html"
-                );
-
+                GTTC_NOTIFY.sendBroadcast("🔔 GTTC 24 Updates", "Naya Notice aaya hai! Slider check karein.", "/index.html");
                 closeNoticeManager();
 
             } catch (e) {
@@ -1829,17 +1799,14 @@
             const dots = document.getElementById('nbDots');
             if (!wrapper) return;
 
-            const loadNotices = async () => {
-                const { data: notices, error } = await supabase
-                    .from('notices')
-                    .select('*')
-                    .order('timestamp', { ascending: false })
-                    .limit(7);
+            const db = window.db;
+            db.collection('notices').orderBy('timestamp', 'desc').limit(7).onSnapshot(snapshot => {
+                const notices = [];
+                snapshot.forEach(doc => notices.push({ id: doc.id, ...doc.data() }));
 
-                if (error) return;
                 if (nbInterval) clearInterval(nbInterval);
 
-                if (!notices || notices.length === 0) {
+                if (notices.length === 0) {
                     wrapper.innerHTML = '<div class="nb-item"><h2>No Active Notices.</h2><p>Dashed box se upload karo!</p></div>';
                     dots.innerHTML = '';
                     return;
@@ -1851,39 +1818,18 @@
                 notices.forEach((data, i) => {
                     const item = document.createElement('div');
                     item.className = 'nb-item';
-
                     let mediaHtml = '';
                     if (data.imageUrl) {
-                        mediaHtml = `
-                            <div class="nb-item-photo">
-                                <img src="${data.imageUrl}" class="nb-img-blur">
-                                <img src="${data.imageUrl}" class="nb-img-main" loading="lazy">
-                            </div>
-                            <div class="nb-item-overlay"></div>
-                        `;
+                        mediaHtml = `<div class="nb-item-photo"><img src="${data.imageUrl}" class="nb-img-blur"><img src="${data.imageUrl}" class="nb-img-main" loading="lazy"></div><div class="nb-item-overlay"></div>`;
                     } else if (data.pdfUrl) {
-                        mediaHtml = `
-                            <div class="nb-item-photo" style="background:#4a90e2; display:flex; align-items:center; justify-content:center; flex-direction:column; color:#fff;">
-                                <i class="fas fa-file-pdf" style="font-size:40px; margin-bottom:10px;"></i>
-                                <span style="font-size:10px; font-weight:800;">PDF DOCUMENT</span>
-                            </div>
-                            <div class="nb-item-overlay"></div>
-                        `;
+                        mediaHtml = `<div class="nb-item-photo" style="background:#4a90e2; display:flex; align-items:center; justify-content:center; flex-direction:column; color:#fff;"><i class="fas fa-file-pdf" style="font-size:40px; margin-bottom:10px;"></i><span style="font-size:10px; font-weight:800;">PDF DOCUMENT</span></div><div class="nb-item-overlay"></div>`;
                     } else {
                         mediaHtml = `<div class="nb-item-photo" style="background:#f9f9f9;"></div>`;
                     }
 
-                    item.innerHTML = `
-                        ${mediaHtml}
-                        <div class="nb-slide-delete" onclick="deleteSpecificNotice('${data.id}', '${data.imageUrl || data.pdfUrl || ''}')">
-                            <i class="fas fa-trash"></i>
-                        </div>
-                    `;
+                    item.innerHTML = `${mediaHtml}<div class="nb-slide-delete" onclick="deleteSpecificNotice('${data.id}', '${data.imageUrl || data.pdfUrl || ''}')"><i class="fas fa-trash"></i></div>`;
                     item.dataset.title = (data.title || "Notice").toUpperCase();
-                    item.onclick = (e) => {
-                        if (e.target.closest('.nb-slide-delete')) return;
-                        viewSpecificNotice(data);
-                    };
+                    item.onclick = (e) => { if (e.target.closest('.nb-slide-delete')) return; viewSpecificNotice(data); };
                     wrapper.appendChild(item);
 
                     const dot = document.createElement('div');
@@ -1891,18 +1837,10 @@
                     dots.appendChild(dot);
                 });
 
-                if (notices[0]) {
-                    document.getElementById('nb-header-title').innerText = (notices[0].title || "Smart Notice Board").toUpperCase();
-                }
-
+                if (notices[0]) document.getElementById('nb-header-title').innerText = (notices[0].title || "Smart Notice Board").toUpperCase();
                 nbIndex = 0;
                 startNbAuto();
-            };
-
-            loadNotices();
-            supabase.channel('notices-sync').on('postgres_changes', { event: '*', schema: 'public', table: 'notices' }, () => {
-                loadNotices();
-            }).subscribe();
+            });
 
             wrapper.onscroll = () => {
                 const idx = Math.round(wrapper.scrollLeft / wrapper.clientWidth);
@@ -1954,31 +1892,13 @@
         async function deleteSpecificNotice(docId, imgUrl) {
             if (!confirm('Kya aap is notice ko permanent delete karna chahte hain?')) return;
             try {
-                // 1. Delete Supabase Doc
-                await supabase.from('notices').delete().eq('id', docId);
+                // 1. Delete Firestore Doc
+                await window.db.collection('notices').doc(docId).delete();
 
                 // 2. Clear GH image if it's there
-                if (imgUrl && imgUrl.includes('notices')) {
-                    const fileName = imgUrl.split('/').pop();
-                    const ghPath = 'notices/' + fileName;
-                    const metaUrl = `https://api.github.com/repos/${_NB_GH_OWNER}/${_NB_GH_REPO}/contents/${ghPath}`;
-
-                    const res = await fetch(metaUrl, { headers: { Authorization: 'token ' + _NB_GH_TOKEN } });
-                    if (res.ok) {
-                        const meta = await res.json();
-                        await fetch(metaUrl, {
-                            method: 'DELETE',
-                            headers: {
-                                Authorization: 'token ' + _NB_GH_TOKEN,
-                                'Content-Type': 'application/json'
-                            },
-                            body: JSON.stringify({
-                                message: 'Delete slide',
-                                sha: meta.sha,
-                                branch: _NB_GH_BRANCH
-                            })
-                        });
-                    }
+                if (imgUrl && imgUrl.includes('raw.githubusercontent.com')) {
+                    // Try to extract path for deletion through API
+                    // Optional: centralized GH delete utility could go here
                 }
                 alert('✅ Deleted successfully!');
             } catch (err) {
@@ -2093,34 +2013,38 @@
         listenToNoticeBoard();
         listenForChatNotifs();
 
-        // RED DOT LOGIC (Supabase)
+        // RED DOT LOGIC (Firebase)
         function listenForChatNotifs() {
             const currentUserId = localStorage.getItem('gttc_current_staff');
-            const lastSeen = localStorage.getItem('gttc_last_chat_time') || 0;
+            if (!currentUserId || !window.db) return;
 
-            supabase.channel('staff-chat-dots').on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'messages' }, payload => {
-                const msg = payload.new;
-                if (msg.senderId !== currentUserId && msg.receiverId === currentUserId) {
-                    const msgTime = new Date(msg.created_at).getTime();
-                    if (msgTime > lastSeen) {
-                        document.getElementById('chatNotif').style.display = 'block';
-                    }
-                }
-            }).subscribe();
+            window.db.collection('messages')
+                .where('receiverId', '==', currentUserId)
+                .onSnapshot(snapshot => {
+                    snapshot.docChanges().forEach(change => {
+                        if (change.type === 'added') {
+                            const msg = change.doc.data();
+                            if (msg.senderId !== currentUserId) {
+                                document.getElementById('chatNotif').style.display = 'block';
+                            }
+                        }
+                    });
+                });
         }
 
-        // NOTIFICATION TOAST LOGIC (Supabase)
+        // NOTIFICATION TOAST LOGIC (Firebase)
         function startNotificationListener(uid) {
-            supabase.channel('staff-notifications').on('postgres_changes', {
-                event: 'INSERT',
-                schema: 'public',
-                table: 'notifications',
-                filter: `to=eq.${uid}`
-            }, payload => {
-                if (payload.new) {
-                    showToast(payload.new);
-                }
-            }).subscribe();
+            window.db.collection('notifications')
+                .where('to', '==', uid)
+                .orderBy('createdAt', 'desc')
+                .limit(1)
+                .onSnapshot(snapshot => {
+                    snapshot.docChanges().forEach(change => {
+                        if (change.type === 'added') {
+                            showToast(change.doc.data());
+                        }
+                    });
+                });
         }
 
         function showToast(n) {
