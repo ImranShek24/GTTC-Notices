@@ -1,0 +1,2233 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport"
+        content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>Super Admin Master Dashboard 🛡️</title>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <style>
+        :root {
+            --bg: #050a14;
+            --surface: #0a1120;
+            --primary: #00e676;
+            /* Super Admin Green Signature */
+            --primary-glow: rgba(0, 230, 118, 0.35);
+            --cyan: #00E5FF;
+            --text: #ffffff;
+            --dim: #a0aec0;
+            --card-bg: #0d1626;
+            --border: rgba(255, 255, 255, 0.08);
+            --red: #ff3838;
+            --amber: #ff9800;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        body {
+            background: var(--bg);
+            color: var(--text);
+            min-height: 100vh;
+            overflow-x: hidden;
+            display: flex;
+        }
+
+        /* ── SIDEBAR ── */
+        .sidebar {
+            width: 260px;
+            background: var(--surface);
+            border-right: 1px solid var(--border);
+            display: flex;
+            flex-direction: column;
+            padding: 24px 0;
+            height: 100vh;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .side-hdr {
+            padding: 0 24px 30px;
+            text-align: center;
+        }
+
+        .logo-box {
+            background: #fff;
+            padding: 10px;
+            border-radius: 12px;
+            display: inline-block;
+            margin-bottom: 12px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+        }
+
+        .logo-box img {
+            height: 48px;
+            width: auto;
+        }
+
+        .back-ui {
+            width: 45px;
+            height: 45px;
+            background: rgba(0, 230, 118, 0.1);
+            border: 1px solid var(--primary);
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--primary);
+            cursor: pointer;
+            text-decoration: none;
+            font-size: 20px;
+            margin: 0 0 20px 24px;
+            transition: 0.3s;
+        }
+
+        .back-ui:active {
+            transform: scale(0.9);
+            background: var(--primary);
+            color: #000;
+        }
+
+        .side-title {
+            font-size: 14px;
+            font-weight: 800;
+            letter-spacing: 1px;
+            color: var(--primary);
+            text-transform: uppercase;
+        }
+
+        .nav-list {
+            list-style: none;
+            flex: 1;
+            padding: 0 16px;
+        }
+
+        .nav-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 14px 18px;
+            border-radius: 14px;
+            margin-bottom: 6px;
+            cursor: pointer;
+            font-size: 13px;
+            font-weight: 700;
+            color: var(--dim);
+            transition: 0.3s;
+        }
+
+        .nav-item:hover {
+            background: rgba(255, 255, 255, 0.04);
+            color: var(--text);
+        }
+
+        .nav-item.active {
+            background: var(--primary-glow);
+            color: var(--primary);
+            box-shadow: 0 0 15px var(--primary-glow);
+        }
+
+        .nav-item i {
+            font-size: 18px;
+            width: 24px;
+            text-align: center;
+        }
+
+        /* ── MAIN CONTENT ── */
+        .main {
+            flex: 1;
+            padding: 30px 40px;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        header.top-bar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 40px;
+        }
+
+        .top-left h1 {
+            font-size: 26px;
+            font-weight: 900;
+            letter-spacing: -0.5px;
+        }
+
+        .top-left p {
+            font-size: 12px;
+            color: var(--dim);
+            font-weight: 600;
+        }
+
+        .badge-super {
+            background: var(--primary-glow);
+            border: 1px solid var(--primary);
+            color: var(--primary);
+            font-size: 10px;
+            font-weight: 800;
+            padding: 2px 8px;
+            border-radius: 20px;
+            margin-left: 10px;
+            vertical-align: middle;
+        }
+
+        .top-right {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+
+        .user-pill {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            background: var(--surface);
+            padding: 8px 16px;
+            border-radius: 40px;
+            border: 1px solid var(--border);
+        }
+
+        .user-pill img {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            border: 2px solid var(--primary);
+        }
+
+        /* ── SECTIONS ── */
+        .section-panel {
+            display: none;
+            animation: fadeIn 0.4s ease-out;
+        }
+
+        .section-panel.active {
+            display: block;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* ── GRID CARDS ── */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+            gap: 20px;
+            margin-bottom: 35px;
+        }
+
+        .stat-card {
+            background: var(--card-bg);
+            border: 1px solid var(--border);
+            border-radius: 22px;
+            padding: 24px;
+            display: flex;
+            align-items: center;
+            gap: 18px;
+            transition: 0.3s;
+        }
+
+        .stat-card:hover {
+            border-color: var(--primary);
+            transform: translateY(-3px);
+        }
+
+        .refresh-glow {
+            color: #ff4f4f;
+            text-shadow: 0 0 10px rgba(255, 79, 79, 0.4);
+            animation: ytPulse 2s infinite;
+        }
+
+        @keyframes ytPulse {
+            0% {
+                transform: scale(1);
+                opacity: 0.7;
+            }
+
+            50% {
+                transform: scale(1.1);
+                opacity: 1;
+                text-shadow: 0 0 20px #ff4f4f;
+            }
+
+            100% {
+                transform: scale(1);
+                opacity: 0.7;
+            }
+        }
+
+        .stat-icon {
+            width: 50px;
+            height: 50px;
+            border-radius: 14px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 22px;
+        }
+
+        .si-green {
+            background: rgba(0, 230, 118, 0.1);
+            color: var(--primary);
+        }
+
+        .si-cyan {
+            background: rgba(0, 229, 255, 0.1);
+            color: var(--cyan);
+        }
+
+        .si-red {
+            background: rgba(255, 56, 56, 0.1);
+            color: var(--red);
+        }
+
+        .si-amber {
+            background: rgba(255, 152, 0, 0.1);
+            color: var(--amber);
+        }
+
+        .stat-info h4 {
+            font-size: 11px;
+            text-transform: uppercase;
+            color: var(--dim);
+            letter-spacing: 1px;
+        }
+
+        .stat-info .val {
+            font-size: 24px;
+            font-weight: 800;
+        }
+
+        /* ── DATA TABLES ── */
+        .data-card {
+            background: var(--card-bg);
+            border: 1px solid var(--border);
+            border-radius: 24px;
+            padding: 24px;
+            margin-bottom: 30px;
+        }
+
+        .card-hdr {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .card-hdr h3 {
+            font-size: 18px;
+            font-weight: 800;
+        }
+
+        .table-wrap {
+            width: 100%;
+            overflow-x: auto;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 13px;
+        }
+
+        th {
+            text-align: left;
+            padding: 12px 15px;
+            color: var(--dim);
+            font-weight: 700;
+            border-bottom: 1px solid var(--border);
+            text-transform: uppercase;
+            font-size: 10px;
+            letter-spacing: 1px;
+        }
+
+        td {
+            padding: 15px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.03);
+            vertical-align: middle;
+        }
+
+        .user-row img {
+            width: 32px;
+            height: 32px;
+            border-radius: 10px;
+            margin-right: 12px;
+            vertical-align: middle;
+        }
+
+        .role-tag {
+            font-size: 10px;
+            font-weight: 800;
+            padding: 4px 10px;
+            border-radius: 20px;
+            background: rgba(255, 255, 255, 0.05);
+        }
+
+        .rt-admin {
+            color: var(--red);
+            background: rgba(255, 56, 56, 0.1);
+        }
+
+        .rt-staff {
+            color: var(--cyan);
+            background: rgba(0, 229, 255, 0.1);
+        }
+
+        .rt-student {
+            color: var(--primary);
+            background: rgba(0, 230, 118, 0.1);
+        }
+
+        .action-btns {
+            display: flex;
+            gap: 8px;
+        }
+
+        .btn-sm {
+            padding: 8px 12px;
+            border-radius: 10px;
+            border: none;
+            cursor: pointer;
+            font-size: 16px;
+            transition: 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .btn-edit {
+            background: rgba(255, 255, 255, 0.05);
+            color: #fff;
+        }
+
+        .btn-delete {
+            background: rgba(255, 68, 68, 0.1);
+            color: var(--red);
+        }
+
+        .btn-promote {
+            background: rgba(0, 230, 118, 0.1);
+            color: var(--primary);
+        }
+
+        .btn-sm:hover {
+            transform: scale(1.1);
+        }
+
+        /* ── CONFIG CONTROLS ── */
+        .config-row {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 25px;
+        }
+
+        .input-group {
+            margin-bottom: 20px;
+        }
+
+        .input-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-size: 12px;
+            font-weight: 700;
+            color: var(--dim);
+            text-transform: uppercase;
+        }
+
+        .input-group input,
+        .input-group textarea {
+            width: 100%;
+            padding: 14px 18px;
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid var(--border);
+            border-radius: 14px;
+            color: #fff;
+            font-size: 14px;
+            outline: none;
+            transition: 0.3s;
+        }
+
+        .input-group input:focus {
+            border-color: var(--primary);
+            background: rgba(255, 255, 255, 0.06);
+        }
+
+        .switch-group {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 16px;
+            background: rgba(255, 255, 255, 0.03);
+            border-radius: 16px;
+            margin-bottom: 12px;
+        }
+
+        .switch-info h5 {
+            font-size: 14px;
+            font-weight: 800;
+        }
+
+        .switch-info p {
+            font-size: 11px;
+            color: var(--dim);
+        }
+
+        .switch {
+            position: relative;
+            display: inline-block;
+            width: 46px;
+            height: 24px;
+        }
+
+        .switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+
+        .slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: rgba(255, 255, 255, 0.1);
+            transition: .4s;
+            border-radius: 24px;
+        }
+
+        .slider:before {
+            position: absolute;
+            content: "";
+            height: 18px;
+            width: 18px;
+            left: 3px;
+            bottom: 3px;
+            background-color: white;
+            transition: .4s;
+            border-radius: 50%;
+        }
+
+        input:checked+.slider {
+            background-color: var(--primary);
+        }
+
+        input:checked+.slider:before {
+            transform: translateX(22px);
+        }
+
+        .btn-full {
+            width: 100%;
+            padding: 16px;
+            background: var(--primary);
+            color: #000;
+            border-radius: 16px;
+            font-weight: 800;
+            font-size: 15px;
+            border: none;
+            cursor: pointer;
+            box-shadow: 0 10px 25px var(--primary-glow);
+            transition: 0.3s;
+        }
+
+        .btn-full:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 15px 35px var(--primary-glow);
+        }
+
+        /* ── MODALS ── */
+        .overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.85);
+            backdrop-filter: blur(8px);
+            z-index: 1000;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            padding: 24px;
+        }
+
+        .overlay.active {
+            display: flex;
+        }
+
+        .modal {
+            background: var(--card-bg);
+            border: 1px solid var(--border);
+            border-radius: 30px;
+            width: 100%;
+            max-width: 500px;
+            padding: 30px;
+            position: relative;
+        }
+
+        .modal-close {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            font-size: 24px;
+            cursor: pointer;
+            color: var(--dim);
+        }
+
+        /* ── MOBILE TOUCH FIXES & RESPONSIVENESS ── */
+        @media (max-width: 768px) {
+            body {
+                flex-direction: column;
+                overflow-x: hidden;
+            }
+
+            .sidebar {
+                display: none;
+            }
+
+            .main {
+                padding: 10px 12px 100px;
+            }
+
+            .stats-grid {
+                grid-template-columns: 1fr 1fr;
+                gap: 10px;
+            }
+
+            .stat-card {
+                padding: 12px;
+                border-radius: 16px;
+                flex-direction: column;
+                align-items: flex-start;
+                text-align: left;
+                background: rgba(255, 255, 255, 0.03);
+            }
+
+            .stat-card .stat-icon {
+                width: 32px;
+                height: 32px;
+                font-size: 14px;
+                margin-bottom: 8px;
+            }
+
+            .stat-card h4 {
+                font-size: 9px;
+                margin-bottom: 2px;
+            }
+
+            .stat-card .val {
+                font-size: 18px;
+            }
+
+            header.top-bar {
+                margin-bottom: 20px;
+                text-align: center;
+            }
+
+            header.top-bar .top-left {
+                width: 100%;
+                text-align: center;
+            }
+
+            header.top-bar .top-right {
+                display: none;
+            }
+
+            /* Hide user pill on small phones to save space */
+
+            /* Table to Premium Cards */
+            .table-wrap {
+                overflow: visible;
+                padding: 0;
+            }
+
+            table,
+            thead,
+            tbody,
+            th,
+            td,
+            tr {
+                display: block;
+            }
+
+            thead tr {
+                position: absolute;
+                top: -9999px;
+                left: -9999px;
+            }
+
+            tr {
+                background: rgba(255, 255, 255, 0.02);
+                border: 1px solid var(--border);
+                border-radius: 20px;
+                margin-bottom: 12px;
+                padding: 15px;
+                box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+            }
+
+            td {
+                border: none;
+                position: relative;
+                padding: 8px 0 8px 45%;
+                min-height: 35px;
+                display: flex;
+                align-items: center;
+                font-size: 12px;
+                border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+                text-align: right;
+                justify-content: flex-end;
+            }
+
+            td:last-child {
+                border-bottom: none;
+                margin-top: 5px;
+                padding-top: 15px;
+                justify-content: center;
+                padding-left: 0;
+            }
+
+            td::before {
+                content: attr(data-label);
+                position: absolute;
+                left: 0;
+                width: 40%;
+                font-weight: 800;
+                color: var(--primary);
+                text-transform: uppercase;
+                font-size: 9px;
+                text-align: left;
+            }
+
+            td:last-child::before {
+                display: none;
+            }
+
+            .mobile-nav {
+                position: fixed;
+                bottom: 0;
+                left: 0;
+                right: 0;
+                height: 70px;
+                background: rgba(13, 18, 28, 0.95);
+                backdrop-filter: blur(25px);
+                border-top: 1px solid rgba(255, 255, 255, 0.08);
+                display: flex;
+                justify-content: space-around;
+                align-items: center;
+                padding-bottom: env(safe-area-inset-bottom);
+                z-index: 9999;
+            }
+
+            .m-nav-item {
+                flex: 1;
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                gap: 4px;
+                color: var(--dim);
+                cursor: pointer;
+                transition: 0.3s;
+            }
+
+            .m-nav-item.active {
+                color: var(--primary);
+            }
+
+            .m-nav-item i {
+                font-size: 18px;
+            }
+
+            .m-nav-item span {
+                font-size: 9px;
+                font-weight: 900;
+                letter-spacing: 0.5px;
+            }
+
+            .m-nav-center {
+                position: relative;
+                top: -25px;
+                width: 60px;
+                height: 60px;
+                background: linear-gradient(135deg, #ffab00, #ff6d00);
+                border-radius: 50%;
+                color: #000 !important;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                border: 4px solid var(--bg);
+                box-shadow: 0 8px 25px rgba(255, 109, 0, 0.5);
+                transform: scale(1.1);
+                animation: navPulse 3s infinite;
+            }
+
+            @keyframes navPulse {
+                0% {
+                    box-shadow: 0 0 0 0 rgba(255, 109, 0, 0.7);
+                }
+
+                70% {
+                    box-shadow: 0 0 0 15px rgba(255, 109, 0, 0);
+                }
+
+                100% {
+                    box-shadow: 0 0 0 0 rgba(255, 109, 0, 0);
+                }
+            }
+
+            .m-nav-center i {
+                font-size: 24px;
+                margin: 0;
+            }
+
+            .m-nav-center span {
+                display: none;
+            }
+        }
+
+
+
+        /* Essential Toggles */
+        .switch {
+            position: relative;
+            display: inline-block;
+            width: 50px;
+            height: 26px;
+        }
+
+        .switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+
+        .slider {
+            position: absolute;
+            cursor: pointer;
+            inset: 0;
+            background: #333;
+            transition: .4s;
+            border-radius: 34px;
+            border: 1px solid var(--border);
+        }
+
+        .slider:before {
+            position: absolute;
+            content: "";
+            height: 18px;
+            width: 18px;
+            left: 3px;
+            bottom: 3px;
+            background: white;
+            transition: .4s;
+            border-radius: 50%;
+        }
+
+        input:checked+.slider {
+            background: var(--primary);
+        }
+
+        input:checked+.slider:before {
+            transform: translateX(24px);
+        }
+
+        @media (min-width: 769px) {
+            .mobile-nav {
+                display: none;
+            }
+        }
+
+        /* Loading Spinner */
+        .loading-screen {
+            position: fixed;
+            inset: 0;
+            background: var(--bg);
+            z-index: 9999;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .spinner {
+            width: 48px;
+            height: 48px;
+            border: 4px solid var(--primary-glow);
+            border-top-color: var(--primary);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            to {
+                transform: rotate(360deg);
+            }
+        }
+
+        .toast {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            background: var(--primary);
+            color: #000;
+            padding: 14px 24px;
+            border-radius: 16px;
+            font-weight: 800;
+            font-size: 14px;
+            z-index: 5000;
+            display: none;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+            animation: slideIn 0.3s forwards;
+        }
+
+        @keyframes slideIn {
+            from {
+                transform: translateX(100%);
+                opacity: 0;
+            }
+
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+
+        /* NOTIF SHAKE */
+        @keyframes bellRing {
+
+            0%,
+            100% {
+                transform: rotate(0);
+            }
+
+            20%,
+            60% {
+                transform: rotate(15deg);
+            }
+
+            40%,
+            80% {
+                transform: rotate(-15deg);
+            }
+        }
+
+        .notif-shake {
+            animation: bellRing 0.5s ease;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div id="loading" class="loading-screen">
+        <div class="spinner"></div>
+        <p style="margin-top: 20px; font-weight: 800; font-size: 14px; color: var(--primary);">SYNCING MASTER PANEL...
+        </p>
+    </div>
+
+    <div class="sidebar-overlay" id="sidebar-overlay" onclick="toggleSidebar()"></div>
+
+    <div id="toast" class="toast">✅ Action Successful</div>
+
+    <!-- MOBILE NAVIGATION (Hidden on Desktop) -->
+    <nav class="mobile-nav" style="padding-bottom: env(safe-area-inset-bottom);">
+        <div class="m-nav-item active" onclick="showSection('dashboard', null, this)">
+            <i class="fas fa-grid"></i>
+            <span>DASH</span>
+        </div>
+        <div class="m-nav-item" onclick="showSection('users', null, this)">
+            <i class="fas fa-users-gear"></i>
+            <span>USERS</span>
+        </div>
+        <div class="m-nav-item m-nav-center" onclick="showSection('jackpot', null, this)">
+            <i class="fas fa-bolt"></i>
+        </div>
+        <div class="m-nav-item" onclick="showSection('notices', null, this)">
+            <i class="fas fa-bullhorn"></i>
+            <span>POSTS</span>
+        </div>
+        <div class="m-nav-item" onclick="showSection('help', null, this)" style="position:relative;">
+            <i class="fas fa-headset"></i>
+            <span id="support-nav-badge"
+                style="display:none;position:absolute;top:2px;right:10px;background:#ff3838;color:#fff;font-size:8px;font-weight:900;min-width:16px;height:16px;border-radius:8px;align-items:center;justify-content:center;padding:0 3px;">0</span>
+            <span>SUPPORT</span>
+        </div>
+        <div class="m-nav-item" onclick="toggleSidebar()">
+            <i class="fas fa-ellipsis-h"></i>
+            <span>MORE</span>
+        </div>
+    </nav>
+
+    <!-- SIDEBAR -->
+    <aside class="sidebar">
+        <div class="side-hdr">
+            <div class="logo-box">
+                <img src="gttc-logo.png" alt="GTTC">
+            </div>
+            <a href="javascript:history.back()" class="back-ui" title="Go Back">⬅️</a>
+            <div class="side-title">GTTC CORE ROOT</div>
+        </div>
+
+        <nav class="nav-list">
+            <li class="nav-item active" onclick="showSection('dashboard', this)">
+                <i class="fas fa-chart-pie"></i> Dashboard
+            </li>
+            <li class="nav-item" onclick="showSection('users', this)">
+                <i class="fas fa-users-gear"></i> User Hub
+            </li>
+            <li class="nav-item" onclick="showSection('config', this)">
+                <i class="fas fa-sliders"></i> App Config
+            </li>
+            <li class="nav-item" onclick="showSection('notices', this)">
+                <i class="fas fa-bullhorn"></i> Notice Board
+            </li>
+            <li class="nav-item" onclick="showSection('help', this)" style="position:relative;">
+                <i class="fas fa-headset"></i> Support Desk
+                <span id="support-nav-badge-desk"
+                    style="display:none;position:absolute;right:16px;top:50%;transform:translateY(-50%);background:#ff3838;color:#fff;font-size:8px;font-weight:900;min-width:18px;height:18px;border-radius:9px;align-items:center;justify-content:center;padding:0 4px;">0</span>
+            </li>
+            <li class="nav-item" onclick="showSection('jackpot', this)">
+                <i class="fas fa-bolt"></i> Jackpot Settings
+            </li>
+        </nav>
+
+        <div style="padding: 20px; margin-top: auto;">
+            <button class="btn-full" style="padding: 12px;" onclick="window.location.href='index.html'">
+                <i class="fas fa-arrow-left"></i> EXIT PANEL
+            </button>
+        </div>
+    </aside>
+
+    <!-- MAIN CONTENT -->
+    <main class="main">
+        <header class="top-bar" style="padding-top: calc(env(safe-area-inset-top) + 20px);">
+            <div class="top-left">
+                <h1>
+                    <div class="menu-toggle" onclick="toggleSidebar()"><i class="fas fa-bars"></i></div>
+                    <a href="index-staff.html" style="color:var(--primary); margin-left:10px; text-decoration:none;"><i
+                            class="fas fa-arrow-left"></i></a>
+                    Master Panel
+                    <span class="badge-super">ROOT</span>
+                </h1>
+                <p>Hybrid Cloud Controller System</p>
+            </div>
+            <div class="top-right">
+                <!-- Global Notification Bell -->
+                <div id="global-bell-icon" onclick="openNotifPanel()"
+                    style="cursor:pointer; position:relative; margin-right: 15px; background: rgba(0,230,118,0.1); width: 38px; height: 38px; border-radius: 50%; display: flex; align-items: center; justify-content: center; border: 1px solid rgba(0,230,118,0.2);">
+                    <i class="fas fa-bell"></i>
+                    <div id="global-badge"
+                        style="display:none; position:absolute; top:8px; right:8px; background:#ff3838; width:8px; height:8px; border-radius:50%; border:2px solid var(--surface); z-index:5;">
+                    </div>
+                </div>
+                <div id="yt-refresh-btn"
+                    style="cursor:pointer; margin-right: 15px; background: rgba(255,56,56,0.1); width: 38px; height: 38px; border-radius: 50%; display: flex; align-items: center; justify-content: center; border: 1px solid rgba(255,56,56,0.2);"
+                    onclick="silentRefreshAdmin()" title="Sync YouTube Auth">
+                    <i class="fas fa-rotate refresh-glow"></i>
+                </div>
+                <div class="user-pill">
+                    <img id="admin-dp" src="gttc-logo.png">
+                    <div>
+                        <div style="font-size: 13px; font-weight: 800;">Imran Shek</div>
+                        <div style="font-size: 9px; color: var(--primary); font-weight: 800;">ROOT ACCESS ONLINE</div>
+                    </div>
+                </div>
+            </div>
+        </header>
+
+        <!-- ── SECTION: DASHBOARD ── -->
+        <div id="sec-dashboard" class="section-panel active">
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-icon si-green"><i class="fas fa-user-graduate"></i></div>
+                    <div class="stat-info">
+                        <h4>Total Students</h4>
+                        <div class="val" id="count-students">--</div>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon si-cyan"><i class="fas fa-user-tie"></i></div>
+                    <div class="stat-info">
+                        <h4>Active Staff</h4>
+                        <div class="val" id="count-staff">--</div>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon si-amber"><i class="fas fa-envelope-open-text"></i></div>
+                    <div class="stat-info">
+                        <h4>Open Complaints</h4>
+                        <div class="val" id="count-complaints">--</div>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon si-red"><i class="fas fa-clock"></i></div>
+                    <div class="stat-info">
+                        <h4>Pending Fees</h4>
+                        <div class="val" id="count-fees">--</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="data-card">
+                <div class="card-hdr">
+                    <h3>Recent Staff Activity</h3>
+                    <button class="btn-sm btn-promote" onclick="showSection('users')">Manage All</button>
+                </div>
+                <div class="table-wrap">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Staff Name</th>
+                                <th>ID</th>
+                                <th>Assigned Class</th>
+                                <th>Status</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="staff-summary-list">
+                            <!-- Injected -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- ── SECTION: USER HUB ── -->
+        <div id="sec-users" class="section-panel">
+            <div class="data-card">
+                <div class="card-hdr">
+                    <h3>Firebase User Management</h3>
+                    <div class="action-btns">
+                        <input type="text" id="user-search" placeholder="Search by ID/Name..."
+                            style="padding: 8px 15px; border-radius:10px; border:1px solid var(--border); background:rgba(0,0,0,0.2); color:#fff; font-size:12px;">
+                    </div>
+                </div>
+                <div class="table-wrap" style="max-height: 500px;">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Name / ID</th>
+                                <th>Type</th>
+                                <th>Branch & Sem</th>
+                                <th>Control</th>
+                                <th>Action</th>
+                            </tr>
+                        </thead>
+                        <tbody id="user-master-list">
+                            <!-- Injected -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- ── SECTION: APP CONFIG ── -->
+        <div id="sec-config" class="section-panel">
+            <div class="config-row">
+                <div class="data-card">
+                    <div class="card-hdr">
+                        <h3>Live App Elements</h3>
+                    </div>
+                    <div class="input-group">
+                        <label>App Logo Link (Direct URL)</label>
+                        <input type="text" id="cfg-logo" placeholder="https://...">
+                    </div>
+                    <div class="input-group">
+                        <label>Announcement Ticker Text</label>
+                        <textarea id="cfg-ticker" rows="3"
+                            placeholder="Enter text for the moving marquee..."></textarea>
+                    </div>
+                    <button class="btn-full" onclick="saveAppSettings()">🚀 UPDATE LIVE CONFIG</button>
+                </div>
+
+                <div class="data-card">
+                    <div class="card-hdr">
+                        <h3>Feature Control</h3>
+                    </div>
+                    <div class="switch-group">
+                        <div class="switch-info">
+                            <h5>Daily Quiz Hub</h5>
+                            <p>Turn on/off quiz module for students</p>
+                        </div>
+                        <label class="switch">
+                            <input type="checkbox" id="feat-quiz" checked>
+                            <span class="slider"></span>
+                        </label>
+                    </div>
+                    <div class="switch-group">
+                        <div class="switch-info">
+                            <h5>Fees Submission</h5>
+                            <p>Enable payment proof uploads</p>
+                        </div>
+                        <label class="switch">
+                            <input type="checkbox" id="feat-fees" checked>
+                            <span class="slider"></span>
+                        </label>
+                    </div>
+                    <div class="switch-group">
+                        <div class="switch-info">
+                            <h5>GTTC AI Assistant</h5>
+                            <p>AI Assistant visibility for students/staff</p>
+                        </div>
+                        <label class="switch">
+                            <input type="checkbox" id="feat-ai" checked>
+                            <span class="slider"></span>
+                        </label>
+                    </div>
+                </div>
+
+                <!-- ── YouTube Master Control ── -->
+                <div class="data-card" style="border: 2px solid #ff000033;">
+                    <div class="card-hdr">
+                        <h3 style="color: #ff3d00;"><i class="fab fa-youtube"></i> YouTube Master Auth</h3>
+                    </div>
+                    <p style="font-size: 10px; color: var(--dim); margin-bottom: 15px;">Target Channel Direct Upload
+                        Configuration</p>
+                    <div class="input-group">
+                        <label>Google Client ID</label>
+                        <input type="password" id="yt-client-id" placeholder="246589...apps.googleusercontent.com">
+                    </div>
+                    <div class="input-group">
+                        <label>Google Client Secret</label>
+                        <input type="password" id="yt-client-secret" placeholder="GOCSPX-...">
+                    </div>
+                    <div class="input-group">
+                        <label>Refresh Token (Offline Access)</label>
+                        <input type="password" id="yt-refresh-token" placeholder="1//0...">
+                    </div>
+                    <button class="btn-full" onclick="saveYouTubeMasterTokens()"
+                        style="background: #ff3d00; color: #fff; border:none; margin-bottom: 10px;">🔒 SAVE MASTER
+                        TOKENS</button>
+
+                    <button class="btn-full" onclick="generateYouTubeAuthLink()"
+                        style="background: #34a853; color: #fff; border:none;">🔑 GENERATE AUTH LINK</button>
+
+                    <p style="font-size: 10px; color: var(--dim); margin-top: 10px; text-align: center;">1. Click
+                        Generate -> Login -> Copy 'code' from URL.<br>2. Use 'code' to get Refresh Token (if not
+                        automated).<br>Videos upload as 'Unlisted'.</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- ── SECTION: NOTICE BOARD ── -->
+        <div id="sec-notices" class="section-panel">
+            <!-- QUICK POST FORM -->
+            <div class="data-card" style="border-color: var(--primary); margin-bottom: 20px;">
+                <div class="card-hdr">
+                    <h3 style="color: var(--primary);">📢 Quick Post Master Notice</h3>
+                </div>
+                <div class="config-row" style="margin-top: 15px;">
+                    <div class="input-group">
+                        <label>Notice Title</label>
+                        <input type="text" id="nt-title" placeholder="Event: Holiday Announcement">
+                    </div>
+                </div>
+                <div class="input-group">
+                    <label>Full Content / Text Notice (Shows on Large Screen)</label>
+                    <textarea id="nt-text" rows="2"
+                        style="width:100%; background:rgba(255,255,255,0.05); border:1px solid var(--border); border-radius:8px; color:white; padding:12px;"
+                        placeholder="Type your detailed notice here..."></textarea>
+                </div>
+
+                <!-- GH Upload Area -->
+                <div id="ghUploadArea" onclick="document.getElementById('ghInput').click()"
+                    style="border: 2px dashed var(--border); border-radius:12px; padding:20px; text-align:center; cursor:pointer; margin: 15px 0;">
+                    <div id="ghUploadDefault">
+                        <i class="fas fa-cloud-upload-alt"
+                            style="font-size:30px; color:var(--primary); margin-bottom:10px;"></i>
+                        <p style="font-size:12px; color:var(--dim);">Tap to Upload Photo/PDF Notice</p>
+                    </div>
+                    <div id="ghUploadSpinner" style="display:none;">
+                        <div class="spinner" style="width:20px; height:20px; margin: 0 auto 10px;"></div>
+                        <p id="ghUploadStatusText" style="font-size:12px; color:var(--primary);">Uploading...</p>
+                    </div>
+                    <div id="ghUploadDone" style="display:none;">
+                        <i class="fas fa-check-circle" style="font-size:30px; color:#00e676; margin-bottom:10px;"></i>
+                        <p id="ghUploadFileName" style="font-size:12px; color:#00e676;">File Ready</p>
+                    </div>
+                    <input type="file" id="ghInput" hidden onchange="handleGHUpload(this)">
+                    <input type="hidden" id="nt-ghUrl">
+                </div>
+
+                <div class="config-row">
+                    <div class="input-group">
+                        <label>Target Audience (Optional)</label>
+                        <select id="nt-target"
+                            style="width:100%; background:rgba(255,255,255,0.05); border:1px solid var(--border); border-radius:8px; color:white; height:45px; padding:0 12px;">
+                            <option value="ALL">ALL DEPARTMENTS</option>
+                            <option value="DAR">DAR (Mechanical)</option>
+                            <option value="DEE">DEE (Electrical)</option>
+                            <option value="DCE">DCE (Computer Science)</option>
+                            <option value="STAFF">STAFF ONLY</option>
+                        </select>
+                    </div>
+                    <button class="btn-full" id="postBtn" onclick="saveMasterNotice()" style="margin-top: 25px;">🚀 POST
+                        TO SLIDER</button>
+                </div>
+            </div>
+
+            <div class="data-card">
+                <div class="card-hdr">
+                    <h3>Active Slider Notices</h3>
+                    <p style="font-size: 11px; color: var(--dim);">Manage live slider notices across the app.</p>
+                </div>
+                <div class="table-wrap">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Preview</th>
+                                <th>Title / Date</th>
+                                <th>Target</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="notice-master-list">
+                            <!-- Injected -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- ── SECTION: SUPPORT DESK ── -->
+        <div id="sec-help" class="section-panel">
+            <div class="stats-grid">
+                <div class="stat-card" style="border-left: 4px solid var(--red);">
+                    <div class="val" id="sm-open-count" style="color: var(--red);">0</div>
+                    <div class="stat-info">
+                        <h4>Open Issues</h4>
+                    </div>
+                </div>
+                <div class="stat-card" style="border-left: 4px solid var(--primary);">
+                    <div class="val" id="sm-resolved-count" style="color: var(--primary);">0</div>
+                    <div class="stat-info">
+                        <h4>Resolved</h4>
+                    </div>
+                </div>
+            </div>
+            <div class="data-card">
+                <div class="card-hdr">
+                    <h3>GitHub Support Tickets</h3>
+                </div>
+                <div class="table-wrap">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Priority</th>
+                                <th>Student & Issue</th>
+                                <th>Date</th>
+                                <th>Status</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="support-master-list">
+                            <!-- Injected -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- ── SECTION: JACKPOT SETTINGS ── -->
+        <div id="sec-jackpot" class="section-panel">
+            <div class="data-card" style="border-color: #ffab00;">
+                <div class="card-hdr">
+                    <h3 style="color: #ffab00;">⚡ Jackpot Remote Controllers</h3>
+                </div>
+                <p style="font-size: 13px; color: #aaa; margin-bottom: 25px;">Force actions across all user devices in
+                    real-time.</p>
+
+                <div class="config-row">
+                    <div>
+                        <div class="input-group">
+                            <label>Emergency Red Alert (Shows overlay)</label>
+                            <input type="text" id="alert-msg" placeholder="SYSTEM UNDER MAINTENANCE...">
+                        </div>
+                        <button class="btn-full" style="background:#ff3838; color:white;"
+                            onclick="sendJackpotAlert()">BROADCAST RED ALERT</button>
+                    </div>
+                    <div>
+                        <!-- INSTALL / Force Update button permanently removed -->
+                        <div
+                            style="background:rgba(255,255,255,0.03); border:1px dashed rgba(255,255,255,0.1); border-radius:14px; padding:20px; text-align:center;">
+                            <i class="fas fa-ban"
+                                style="color:#ff3838; font-size:24px; margin-bottom:10px; display:block;"></i>
+                            <p style="font-size:12px; color:#555; margin:0;">Force Update / INSTALL
+                                button<br>permanently disabled.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </main>
+
+    <!-- USER MODAL (STAFF DETAILS) -->
+    <div id="userModal" class="overlay">
+        <div class="modal">
+            <div class="modal-close" onclick="closeModal('userModal')">&times;</div>
+            <div style="display: flex; align-items: center; gap: 20px; margin-bottom: 25px;">
+                <img id="m-user-dp" src="gttc-logo.png"
+                    style="width: 70px; height: 70px; border-radius: 20px; border: 2px solid var(--primary);">
+                <div>
+                    <h2 id="m-user-name">Loading...</h2>
+                    <p id="m-user-id" style="font-size: 13px; color: var(--dim);">ID: --</p>
+                    <span id="m-user-role" class="role-tag rt-staff">STAFF</span>
+                </div>
+            </div>
+
+            <div class="input-group">
+                <label>Access Control</label>
+                <div class="switch-group">
+                    <div class="switch-info">
+                        <h5>Block Access</h5>
+                        <p>Prevent login permanently</p>
+                    </div>
+                    <label class="switch"><input type="checkbox" id="m-user-blocked"><span
+                            class="slider"></span></label>
+                </div>
+                <div class="switch-group">
+                    <div class="switch-info">
+                        <h5>Promote to Admin</h5>
+                        <p>Give dashboard rights</p>
+                    </div>
+                    <label class="switch"><input type="checkbox" id="m-user-isadmin"><span
+                            class="slider"></span></label>
+                </div>
+            </div>
+
+            <div class="card-hdr">
+                <h4>Assigned Classes</h4>
+            </div>
+            <div id="m-user-classes"
+                style="font-size: 13px; color: #bbb; line-height: 1.6; background: rgba(0,0,0,0.2); padding: 12px; border-radius: 12px; margin-bottom: 20px;">
+                Checking documents...
+            </div>
+
+            <button class="btn-full" onclick="updateUserPermissions()">💾 SAVE MASTER PERMISSIONS</button>
+        </div>
+    </div>
+
+    <!-- SUPPORT MODAL (ISSUE DETAIL & REPLY) -->
+    <div id="supportModal" class="overlay">
+        <div class="modal" style="max-height: 90vh; overflow-y: auto;">
+            <div class="modal-close" onclick="closeModal('supportModal')">&times;</div>
+            <div id="sm-detail-header" style="margin-bottom: 20px;">
+                <h2 id="sm-issue-title" style="font-size: 18px; color: var(--primary);">Issue Title</h2>
+                <div style="display: flex; gap: 10px; margin-top: 5px;">
+                    <span id="sm-issue-status" class="role-tag rt-admin">OPEN</span>
+                    <small id="sm-issue-date" style="color: var(--dim);">Date</small>
+                </div>
+            </div>
+
+            <div id="sm-issue-body"
+                style="font-size: 14px; color: #eee; line-height: 1.6; background: rgba(255,255,255,0.03); padding: 15px; border-radius: 12px; margin-bottom: 20px; white-space: pre-wrap; border: 1px solid var(--border);">
+                Loading...
+            </div>
+
+            <div id="sm-issue-attachment" style="margin-bottom: 20px; display: none;">
+                <h4 style="margin-bottom: 10px; color: var(--primary); font-size: 14px;">📸 Evidence / Screenshot</h4>
+                <img id="sm-evidence-img"
+                    style="width: 100%; border-radius: 12px; border: 1px solid var(--border); cursor: pointer; background: #000;"
+                    onclick="window.open(this.src)">
+                <p style="font-size: 10px; color: var(--dim); margin-top: 5px; text-align: center;">Tap image to see
+                    full size</p>
+            </div>
+
+            <div class="input-group">
+                <label>Add Response / Resolution Note</label>
+                <textarea id="sm-reply-text" rows="3"
+                    style="width:100%; background:rgba(0,0,0,0.2); border:1px solid var(--border); border-radius:10px; color:white; padding:12px; font-size:14px;"
+                    placeholder="Type your reply here... This will be posted as a comment."></textarea>
+            </div>
+
+            <div style="grid-template-columns: 1fr 1fr; display: grid; gap: 10px; margin-top: 10px;">
+                <button class="btn-full" id="sm-reply-btn" onclick="submitSupportReply()"
+                    style="background: var(--surface); border: 1px solid var(--primary); color: var(--primary);">📤
+                    REPLY</button>
+                <button class="btn-full" onclick="markResolvedFromModal()"
+                    style="background: #00e676; color: #000; border: none;">✅ RESOLVE</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+    <script src="firebase-init.js"></script>
+    <script src="gttc-notify.js"></script>
+    <script src="https://accounts.google.com/gsi/client" async></script>
+
+    <script>
+        // CRITICAL CONSTANTS
+        const GH_TOKEN = 'ghp_' + 'Dr10U3NJtTY8Ym5XbhrCAS6xmg4GKW3G6w6O';
+        const REPO = 'ImranShek24/GTTC-Notices';
+        let currentUserContext = null;
+
+        // YOUTUBE OAUTH CONFIG
+        const CLIENT_ID = '314962618124-' + 'l6gi5mselo1ililhhl9c10ulhpcu3lmd.apps.googleusercontent.com';
+        const SCOPES = 'https://www.googleapis.com/auth/youtube.upload https://www.googleapis.com/auth/youtube.readonly';
+        const REDIRECT_URI = 'https://imranshek24.github.io/GTTC-Notices/super-admin.html';
+        let adminTokenClient;
+
+        // AUTH GUARD (Strict Security)
+        window.onload = async () => {
+            while (!window.db) {
+                await new Promise(r => setTimeout(r, 100));
+            }
+            const isSuper = localStorage.getItem('gttc_superadmin') === '1';
+            const uid = localStorage.getItem('gttc_current_user');
+
+            if (!isSuper || uid !== '6363536608') {
+                window.location.href = 'login.html';
+                return;
+            }
+            initPanel();
+        };
+
+        function toggleSidebar() {
+            document.querySelector('.sidebar').classList.toggle('active');
+            document.getElementById('sidebar-overlay').classList.toggle('active');
+        }
+
+        async function checkYouTubeToken() {
+            try {
+                const doc = await window.db.collection('youtube_tokens').doc('master_auth').get();
+                if (doc.exists) {
+                    const data = doc.data();
+                    const remaining = (data.expiryDate - Date.now()) / 60000;
+                    if (remaining < 15) silentRefreshAdmin();
+                }
+            } catch (e) { }
+        }
+
+        function silentRefreshAdmin() {
+            if (adminTokenClient) {
+                // If manual click, we can try prompt: 'select_account'
+                // But for auto-sync, prompt: '' is better.
+                // We'll use login_hint to bypass selection if possible.
+                adminTokenClient.requestAccessToken({
+                    prompt: '',
+                    login_hint: 'shekimran104@gmail.com'
+                });
+                showToast("🔄 Syncing YouTube Auth...");
+            }
+        }
+
+        function adminAuthorizeManual() {
+            if (adminTokenClient) {
+                adminTokenClient.requestAccessToken({
+                    prompt: 'select_account',
+                    login_hint: 'shekimran104@gmail.com'
+                });
+            }
+        }
+
+        async function onAdminToken(tokenResponse) {
+            if (!tokenResponse.access_token) return;
+            const expiresAt = Date.now() + ((tokenResponse.expires_in || 3600) * 1000);
+            try {
+                await window.db.collection('youtube_tokens').doc('master_auth').set({
+                    id: 'master_auth',
+                    accessToken: tokenResponse.access_token,
+                    refreshToken: '', // Manual refresh usually doesn't give RT unless requested
+                    expiryDate: expiresAt,
+                    updatedAt: new Date().toISOString()
+                }, { merge: true });
+                showToast("✅ YouTube Token Synced!");
+                if (window.GTTCVoice) GTTCVoice.speak("Master control YouTube authorization token refreshed.");
+            } catch (e) { console.error(e); }
+        }
+
+        let _ytRefreshTimer = null;
+        function startAutoRefreshYouTube() {
+            if (_ytRefreshTimer) clearInterval(_ytRefreshTimer);
+            _ytRefreshTimer = setInterval(() => {
+                checkYouTubeToken();
+            }, 58 * 60 * 1000); // Check every 58 mins
+
+        }
+
+        async function initPanel() {
+            try {
+                await fetchCounts();
+                await loadStaffSummary();
+                await loadAllUsers();
+                await loadGitHubConfig();
+                await loadNotices();
+                await loadSupportTickets();
+
+                document.getElementById('loading').style.display = 'none';
+
+                // Initialize YouTube GIS Client
+                adminTokenClient = google.accounts.oauth2.initTokenClient({
+                    client_id: CLIENT_ID,
+                    scope: SCOPES,
+                    callback: onAdminToken,
+                });
+
+                // Auto-refresh logic (Firebase is enough for our check)
+                startAutoRefreshYouTube();
+
+                // Initial Token Check
+                checkYouTubeToken();
+
+                // Clear any old forceUpdate to prevent INSTALL banner
+                clearForceUpdate();
+
+                // ── Init FCM for Super Admin device (Redmi Note 14)
+                GTTC_NOTIFY.init().then(() => {
+                    GTTC_NOTIFY.saveFCMToken('6363536608', 'staff');
+                    GTTC_NOTIFY.startForegroundListener('6363536608');
+                });
+
+                // ── Real-time listener for incoming support tickets (Firebase)
+                const loadTickets = async () => {
+                    const snap = await window.db.collection('notifications').where('status', '==', 'pending').orderBy('createdAt', 'desc').limit(20).get();
+                    const count = snap.size;
+                    const navBadge = document.getElementById('support-nav-badge');
+                    const deskBadge = document.getElementById('support-nav-badge-desk');
+                    const displayVal = count > 0 ? 'inline-flex' : 'none';
+                    const countStr = count > 9 ? '9+' : String(count);
+                    if (navBadge) { navBadge.textContent = countStr; navBadge.style.display = displayVal; }
+                    if (deskBadge) { deskBadge.textContent = countStr; deskBadge.style.display = displayVal; }
+                    const statsEl = document.getElementById('count-complaints');
+                    if (statsEl && count > 0) statsEl.innerText = count;
+                };
+
+                loadTickets();
+                window.db.collection('notifications').onSnapshot(() => {
+                    loadTickets();
+                    GTTC_NOTIFY.playAlertSound();
+                });
+
+            } catch (e) {
+                console.error('Init Error:', e);
+            }
+        }
+
+        // ── HIGH-PRIORITY IN-APP ALERT for Super Admin ──
+        function showAdminPushAlert(notif) {
+            const existing = document.getElementById('admin-push-alert');
+            if (existing) existing.remove();
+
+            const el = document.createElement('div');
+            el.id = 'admin-push-alert';
+            el.innerHTML = `
+                <div style="display:flex;align-items:center;gap:14px;">
+                    <div style="width:46px;height:46px;background:linear-gradient(135deg,#ff3838,#ff6b35);border-radius:14px;display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0;animation:pulse2 1s infinite;">💬</div>
+                    <div style="flex:1;min-width:0;">
+                        <div style="font-weight:900;font-size:14px;color:#fff;margin-bottom:3px;">${notif.title || '🔔 New Student Message'}</div>
+                        <div style="font-size:12px;color:rgba(255,255,255,0.8);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${notif.body || 'Tap to view'}</div>
+                        <div style="font-size:10px;color:rgba(255,100,100,0.9);margin-top:3px;font-weight:700;">🚨 HIGH PRIORITY — Student needs help!</div>
+                    </div>
+                    <div style="display:flex;flex-direction:column;gap:6px;">
+                        <button onclick="showSection('help');document.getElementById('admin-push-alert').remove()" 
+                            style="background:#ff3838;color:#fff;border:none;border-radius:8px;padding:8px 12px;font-size:11px;font-weight:800;cursor:pointer;">VIEW</button>
+                        <button onclick="this.closest('#admin-push-alert').remove()" 
+                            style="background:rgba(255,255,255,0.1);color:#fff;border:none;border-radius:8px;padding:6px 12px;font-size:11px;cursor:pointer;">✕</button>
+                    </div>
+                </div>
+            `;
+            el.style.cssText = `
+                position: fixed; top: 16px; left: 50%; transform: translateX(-50%) translateY(-150px);
+                background: linear-gradient(135deg, rgba(20,10,10,0.97), rgba(40,10,10,0.97));
+                backdrop-filter: blur(25px); -webkit-backdrop-filter: blur(25px);
+                border: 1px solid rgba(255,56,56,0.5); border-radius: 20px;
+                padding: 16px 18px; width: calc(100% - 32px); max-width: 460px;
+                z-index: 99999; box-shadow: 0 20px 60px rgba(255,56,56,0.4), 0 0 0 1px rgba(255,56,56,0.2);
+                transition: transform 0.4s cubic-bezier(0.22,1,0.36,1);
+            `;
+            document.body.appendChild(el);
+            setTimeout(() => { el.style.transform = 'translateX(-50%) translateY(0)'; }, 50);
+            setTimeout(() => {
+                el.style.transform = 'translateX(-50%) translateY(-150px)';
+                setTimeout(() => el.remove(), 400);
+            }, 12000);
+        }
+
+        // NAVIGATION (Unified Mobile/Desktop Sync)
+        function showSection(id, el, mEl) {
+            document.querySelectorAll('.section-panel').forEach(s => s.classList.remove('active'));
+            document.querySelectorAll('.nav-item').forEach(i => i.classList.remove('active'));
+            document.querySelectorAll('.m-nav-item').forEach(i => i.classList.remove('active'));
+
+            document.getElementById('sec-' + id).classList.add('active');
+
+            // Sync Desktop Sidebar
+            const dItems = document.querySelectorAll('.nav-item');
+            if (id === 'dashboard') dItems[0].classList.add('active');
+            else if (id === 'users') dItems[1].classList.add('active');
+            else if (id === 'config') dItems[2].classList.add('active');
+            else if (id === 'notices') dItems[3].classList.add('active');
+            else if (id === 'help') dItems[4].classList.add('active');
+            else if (id === 'jackpot') dItems[5].classList.add('active');
+
+            // Sync Mobile Bottom Nav
+            const mItems = document.querySelectorAll('.m-nav-item');
+            if (id === 'dashboard') mItems[0].classList.add('active');
+            else if (id === 'users') mItems[1].classList.add('active');
+            else if (id === 'jackpot') mItems[2].classList.add('active');
+            else if (id === 'notices') mItems[3].classList.add('active');
+            else if (id === 'config') mItems[4].classList.add('active');
+
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        // ── FIRESTORE OPS ──
+        async function fetchCounts() {
+            const stuSnap = await window.db.collection('students').get();
+            const stfSnap = await window.db.collection('staff').get();
+            document.getElementById('count-students').innerText = stuSnap.size || 0;
+            document.getElementById('count-staff').innerText = stfSnap.size || 0;
+        }
+
+        async function loadStaffSummary() {
+            const snap = await window.db.collection('staff').orderBy('createdAt', 'desc').limit(5).get();
+            const listEl = document.getElementById('staff-summary-list');
+            listEl.innerHTML = '';
+            if (snap) {
+                snap.forEach(doc => {
+                    const s = doc.data();
+                    const tr = `<tr>
+                        <td data-label="Staff" class="user-row"><img src="${s.photo || 'gttc-logo.png'}"> ${s.fullName}</td>
+                        <td data-label="ID">${s.regNo}</td>
+                        <td data-label="Class">${s.branch} · ${s.assignedSemester || s.assignedSemCode || 'N/A'}</td>
+                        <td data-label="Status"><span class="role-tag ${s.role === 'admin' ? 'rt-admin' : 'rt-staff'}">${s.role || 'STAFF'}</span></td>
+                        <td data-label="Action"><button class="btn-sm btn-edit" onclick="openUserModal('${s.regNo}', 'staff')">👁️</button></td>
+                    </tr>`;
+                    listEl.innerHTML += tr;
+                });
+            }
+        }
+
+        async function loadAllUsers() {
+            const listEl = document.getElementById('user-master-list');
+            listEl.innerHTML = '';
+
+            // Fetch Students
+            const stuSnap = await window.db.collection('students').orderBy('createdAt', 'desc').limit(20).get();
+            stuSnap.forEach(doc => {
+                const u = doc.data();
+                const tr = `<tr>
+                        <td data-label="Student" class="user-row"><img src="${u.photo || 'gttc-logo.png'}"> ${u.fullName}<br><small>${u.regNo}</small></td>
+                        <td data-label="Type"><span class="role-tag rt-student">STUDENT</span></td>
+                        <td data-label="Branch">${u.course} · ${u.semester}</td>
+                        <td data-label="Access">${u.blocked ? '🔴 BLOCKED' : '🟢 ACTIVE'}</td>
+                        <td data-label="Action" class="action-btns">
+                            <button class="btn-sm btn-delete" onclick="removeUser('${u.regNo}', 'students')">🗑️</button>
+                        </td>
+                    </tr>`;
+                listEl.innerHTML += tr;
+            });
+
+            // Fetch Staff
+            const stfSnap = await window.db.collection('staff').orderBy('createdAt', 'desc').get();
+            stfSnap.forEach(doc => {
+                const u = doc.data();
+                const tr = `<tr>
+                        <td data-label="Staff" class="user-row"><img src="${u.photo || 'gttc-logo.png'}"> ${u.fullName}<br><small>${u.regNo}</small></td>
+                        <td data-label="Type"><span class="role-tag rt-staff">STAFF</span></td>
+                        <td data-label="Branch">${u.branch} · ${u.assignedSemester || 'N/A'}</td>
+                        <td data-label="Access">${u.blocked ? '🔴 BLOCKED' : '🟢 ACTIVE'}</td>
+                        <td data-label="Action" class="action-btns">
+                            <button class="btn-sm btn-edit" onclick="openUserModal('${u.regNo}', 'staff')">⚙️</button>
+                        </td>
+                    </tr>`;
+                listEl.innerHTML += tr;
+            });
+        }
+
+        // ── GITHUB CONFIG OPS ──
+        let _configSha = '';
+        async function loadGitHubConfig() {
+            try {
+                const res = await fetch(`https://api.github.com/repos/${REPO}/contents/app_settings.json`, {
+                    headers: { Authorization: 'token ' + GH_TOKEN }
+                });
+                if (res.ok) {
+                    const data = await res.json();
+                    _configSha = data.sha;
+                    const cfg = JSON.parse(atob(data.content));
+                    document.getElementById('cfg-logo').value = cfg.appLogo || '';
+                    document.getElementById('cfg-ticker').value = cfg.tickerText || '';
+                    document.getElementById('feat-quiz').checked = cfg.features?.quiz !== false;
+                    document.getElementById('feat-fees').checked = cfg.features?.fees !== false;
+                    document.getElementById('feat-ai').checked = cfg.features?.ai !== false;
+                }
+
+                // Load YouTube Tokens
+                const ytDoc = await window.db.collection('youtube_tokens').doc('master_auth').get();
+                if (ytDoc.exists) {
+                    const ytData = ytDoc.data();
+                    document.getElementById('yt-client-id').value = ytData.clientId || '';
+                    document.getElementById('yt-client-secret').value = ytData.clientSecret || '';
+                    document.getElementById('yt-refresh-token').value = ytData.refreshToken || '';
+                }
+            } catch (e) { /* Config not found */ }
+        }
+
+        async function saveYouTubeMasterTokens() {
+            const clientId = document.getElementById('yt-client-id').value.trim();
+            const clientSecret = document.getElementById('yt-client-secret').value.trim();
+            const refreshToken = document.getElementById('yt-refresh-token').value.trim();
+
+            if (!clientId || !clientSecret || !refreshToken) {
+                return alert("Please fill all YouTube Auth fields!");
+            }
+
+            try {
+                await window.db.collection('youtube_tokens').doc('master_auth').set({
+                    id: 'master_auth',
+                    clientId,
+                    clientSecret,
+                    refreshToken,
+                    updatedAt: new Date().toISOString()
+                }, { merge: true });
+                showToast("✅ YouTube Master Tokens Saved!");
+                if (window.GTTCVoice) GTTCVoice.speak("YouTube master authorization tokens updated successfully.");
+            } catch (err) {
+                alert("Error saving tokens: " + err.message);
+            }
+        }
+
+        function generateYouTubeAuthLink() {
+            const baseUrl = "https://accounts.google.com/o/oauth2/v2/auth";
+            const params = new URLSearchParams({
+                client_id: CLIENT_ID,
+                redirect_uri: REDIRECT_URI,
+                response_type: "code",
+                scope: "https://www.googleapis.com/auth/youtube.upload https://www.googleapis.com/auth/youtube.readonly",
+                access_type: "offline",
+                prompt: "consent"
+            });
+            const authUrl = `${baseUrl}?${params.toString()}`;
+            window.open(authUrl, '_blank');
+            alert("Redirecting to Google. Login karein, phir URL se 'code' copy karke refresh token generate karein agar zarurat ho. Agar direct login chahiye, toh Master tokens save karein.");
+        }
+
+        async function saveAppSettings() {
+            const cfg = {
+                appLogo: document.getElementById('cfg-logo').value,
+                tickerText: document.getElementById('cfg-ticker').value,
+                features: {
+                    quiz: document.getElementById('feat-quiz').checked,
+                    fees: document.getElementById('feat-fees').checked,
+                    ai: document.getElementById('feat-ai').checked
+                },
+                lastUpdated: new Date().toISOString()
+            };
+
+            const body = {
+                message: "Update live config via Master Panel",
+                content: btoa(JSON.stringify(cfg, null, 2)),
+                sha: _configSha,
+                branch: 'main'
+            };
+
+            const res = await fetch(`https://api.github.com/repos/${REPO}/contents/app_settings.json`, {
+                method: 'PUT',
+                headers: { Authorization: 'token ' + GH_TOKEN, 'Content-Type': 'application/json' },
+                body: JSON.stringify(body)
+            });
+
+            if (res.ok) {
+                const d = await res.json();
+                _configSha = d.content.sha;
+                showToast("✅ Live Config Pushed to GitHub!");
+            } else {
+                alert("GitHub Push Failed. Check Connection.");
+            }
+        }
+
+        // ── NOTICES MASTER OPS ──
+        async function handleGHUpload(input) {
+            const file = input.files[0];
+            if (!file) return;
+
+            const def = document.getElementById('ghUploadDefault');
+            const spin = document.getElementById('ghUploadSpinner');
+            const done = document.getElementById('ghUploadDone');
+
+            spin.style.display = 'block'; def.style.display = 'none'; done.style.display = 'none';
+            document.getElementById('postBtn').disabled = true;
+
+            try {
+                const base64 = await new Promise((res) => {
+                    const r = new FileReader();
+                    r.onload = () => res(r.result.split(',')[1]);
+                    r.readAsDataURL(file);
+                });
+
+                const filename = Date.now() + '_' + file.name.replace(/[^a-zA-Z0-9.-]/g, '_');
+                const path = `https://api.github.com/repos/${REPO}/contents/notices/${filename}`;
+
+                const res = await fetch(path, {
+                    method: 'PUT',
+                    headers: { Authorization: 'token ' + GH_TOKEN, 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ message: `Master Upload: ${file.name}`, content: base64 })
+                });
+
+                if (!res.ok) throw new Error("GitHub Push Failed");
+
+                const rawUrl = `https://raw.githubusercontent.com/${REPO}/main/notices/${filename}`;
+                document.getElementById('nt-ghUrl').value = rawUrl;
+
+                spin.style.display = 'none'; done.style.display = 'block';
+                document.getElementById('ghUploadFileName').textContent = '✅ ' + file.name;
+            } catch (e) {
+                alert(e.message);
+                spin.style.display = 'none'; def.style.display = 'block';
+            } finally {
+                document.getElementById('postBtn').disabled = false;
+            }
+        }
+
+        async function saveMasterNotice() {
+            const title = document.getElementById('nt-title').value.trim();
+            const text = document.getElementById('nt-text').value.trim();
+            const target = document.getElementById('nt-target').value;
+            const ghUrl = document.getElementById('nt-ghUrl').value.trim();
+
+            if (!title && !text && !ghUrl) return alert("Please fill at least one field!");
+
+            const btn = document.getElementById('postBtn');
+            btn.disabled = true; btn.innerText = "POSTING...";
+
+            const isPdf = ghUrl.toLowerCase().endsWith('.pdf');
+
+            try {
+                await window.db.collection('notices').add({
+                    title: title || (isPdf ? "📄 Document" : "📷 Photo Notice"),
+                    fullText: text || "",
+                    imageUrl: isPdf ? null : (ghUrl || null),
+                    pdfUrl: isPdf ? ghUrl : null,
+                    targetDept: target,
+                    postedBy: "SYSTEM ROOT",
+                    createdAt: new Date().toISOString()
+                });
+
+                showToast("🚀 Notice Posted Successfully!");
+
+                GTTC_NOTIFY.sendBroadcast(
+                    "🚨 MASTER UPDATE",
+                    "Naya Notice/Update aaya hai! Immediate attention required.",
+                    "/index.html"
+                );
+
+                // Reset Form
+                document.getElementById('nt-title').value = '';
+                document.getElementById('nt-text').value = '';
+                document.getElementById('nt-ghUrl').value = '';
+                document.getElementById('ghUploadDone').style.display = 'none';
+                document.getElementById('ghUploadDefault').style.display = 'block';
+
+                loadNotices();
+            } catch (e) {
+                alert("Firebase Error: " + e.message);
+            } finally {
+                btn.disabled = false; btn.innerText = "🚀 POST TO SLIDER";
+            }
+        }
+
+        async function loadNotices() {
+            const list = document.getElementById('notice-master-list');
+            list.innerHTML = '<tr><td colspan="4" style="text-align:center;">Syncing Notices...</td></tr>';
+            const snap = await window.db.collection('notices').orderBy('createdAt', 'desc').limit(15).get();
+            list.innerHTML = '';
+            if (snap) {
+                snap.forEach(n => {
+                    const tr = `<tr>
+                        <td data-label="Preview"><img src="${n.imageUrl || 'gttc-logo.png'}" style="width:40px;height:40px;border-radius:8px;object-fit:cover;"></td>
+                        <td data-label="Title"><strong>${n.title}</strong><br><small>${n.postedBy || 'Admin'}</small></td>
+                        <td data-label="Target">${n.targetDept || 'ALL'}</td>
+                        <td data-label="Action" class="action-btns">
+                            <button class="btn-sm btn-delete" onclick="deleteNotice('${n.id}')">🗑️</button>
+                        </td>
+                    </tr>`;
+                    list.innerHTML += tr;
+                });
+            }
+        }
+
+        async function deleteNotice(id) {
+            if (!confirm("Permanently delete this notice for everyone?")) return;
+            await window.db.collection('notices').doc(id).delete();
+            showToast("🗑️ Notice Removed");
+            loadNotices();
+        }
+
+        // ── SUPPORT DESK OPS ──
+        let _allIssues = [];
+        let _currentIssue = null;
+        let _currentTicketDocId = null;
+        let _currentStudentId = null;
+
+        async function loadSupportTickets() {
+            const list = document.getElementById('support-master-list');
+            list.innerHTML = '<tr><td colspan="5" style="text-align:center;">Fetching GitHub Issues...</td></tr>';
+
+            try {
+                const res = await fetch(`https://api.github.com/repos/${REPO}/issues?labels=complaint&state=all`, {
+                    headers: { Authorization: 'token ' + GH_TOKEN }
+                });
+                _allIssues = await res.json();
+                list.innerHTML = '';
+
+                let openC = 0, solvedC = 0;
+                _allIssues.forEach((issue, idx) => {
+                    if (issue.state === 'open') openC++; else solvedC++;
+                    const isSolved = issue.state === 'closed';
+                    const sid = issue.body?.match(/Student ID.*`([^`]+)`/)?.[1] || 'Unknown';
+                    const date = new Date(issue.created_at).toLocaleDateString('en-IN');
+
+                    const tr = `<tr>
+                        <td data-label="Priority"><span style="color:${isSolved ? '#ccc' : '#ff3838'};">${isSolved ? '●' : '🔥'}</span></td>
+                        <td data-label="Complaint"><strong>${issue.title}</strong><br><small>Student: ${sid}</small></td>
+                        <td data-label="Date">${date}</td>
+                        <td data-label="Status"><span class="role-tag ${isSolved ? 'rt-student' : 'rt-admin'}">${issue.state.toUpperCase()}</span></td>
+                        <td data-label="Action" class="action-btns">
+                            <button class="btn-sm btn-edit" title="View Details" onclick="openSupportModal(${idx}, '${issue.number}')">👁️</button>
+                            ${!isSolved ? `
+                                <button class="btn-sm btn-promote" title="Reply Now" onclick="openSupportModal(${idx}, '${issue.number}')">💬</button>
+                                <button class="btn-sm btn-promote" title="Mark Solved" style="background:#00e676; color:#000;" onclick="resolveIssue(${issue.number})">✅</button>
+                            ` : ''}
+                        </td>
+                    </tr>`;
+                    list.innerHTML += tr;
+                });
+                document.getElementById('sm-open-count').innerText = openC;
+                document.getElementById('sm-resolved-count').innerText = solvedC;
+                document.getElementById('count-complaints').innerText = openC;
+            } catch (e) { list.innerHTML = '<tr><td colspan="5">GitHub Connection Error</td></tr>'; }
+        }
+
+        async function openSupportModal(idx, ticketId) {
+            const issue = _allIssues[idx];
+            _currentIssue = issue;
+
+            try {
+                const snap = await window.db.collection('support_tickets').where('ticketId', '==', parseInt(ticketId)).limit(1).get();
+                if (!snap.empty) {
+                    const ticket = snap.docs[0].data();
+                    _currentTicketDocId = snap.docs[0].id;
+                    _currentStudentId = ticket.studentId;
+                } else {
+                    _currentTicketDocId = null;
+                    _currentStudentId = null;
+                }
+            } catch (e) { _currentTicketDocId = null; _currentStudentId = null; }
+
+            document.getElementById('sm-issue-title').innerText = issue.title;
+            document.getElementById('sm-issue-status').innerText = issue.state.toUpperCase();
+            document.getElementById('sm-issue-status').className = `role-tag ${issue.state === 'open' ? 'rt-admin' : 'rt-student'}`;
+            document.getElementById('sm-issue-date').innerText = new Date(issue.created_at).toLocaleString();
+
+            // Clean Body
+            let cleanBody = issue.body.split('---\n\n')[1] || issue.body;
+            cleanBody = cleanBody.replace(/!\[Evidence\]\((.+)\)/, '');
+            document.getElementById('sm-issue-body').innerText = cleanBody.trim();
+
+            // Handle Attachment
+            const imgMatch = issue.body.match(/!\[Evidence\]\((.+)\)/);
+            const attArea = document.getElementById('sm-issue-attachment');
+            if (imgMatch && imgMatch[1]) {
+                document.getElementById('sm-evidence-img').src = imgMatch[1];
+                attArea.style.display = 'block';
+            } else {
+                attArea.style.display = 'none';
+            }
+
+            document.getElementById('sm-reply-text').value = '';
+            document.getElementById('supportModal').classList.add('active');
+
+            // Focus reply box after animation
+            setTimeout(() => document.getElementById('sm-reply-text').focus(), 300);
+        }
+
+        async function submitSupportReply() {
+            const text = document.getElementById('sm-reply-text').value.trim();
+            if (!text) return alert("Please type a response first!");
+
+            const btn = document.getElementById('sm-reply-btn');
+            btn.disabled = true; btn.innerText = "SENDING...";
+
+            try {
+                // 1. Post to GitHub
+                const res = await fetch(`https://api.github.com/repos/${REPO}/issues/${_currentIssue.number}/comments`, {
+                    method: 'POST',
+                    headers: { Authorization: 'token ' + GH_TOKEN, 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ body: `**Root Admin Response:**\n${text}` })
+                });
+
+                if (res.ok) {
+                    if (_currentTicketDocId) {
+                        await window.db.collection('support_tickets').doc(_currentTicketDocId).update({
+                            adminReply: text,
+                            status: 'replied',
+                            lastUpdated: new Date().toISOString()
+                        });
+
+                        if (_currentStudentId && window.GTTC_NOTIFY) {
+                            GTTC_NOTIFY.sendNotification({
+                                toUserId: _currentStudentId,
+                                title: "🔔 Admin Response",
+                                body: "Admin has replied to your message. Tech support desk check karein.",
+                                senderName: "Super Admin",
+                                clickUrl: "/index.html"
+                            });
+                        }
+                    }
+
+                    showToast("📤 Reply Posted Successfully!");
+                    document.getElementById('sm-reply-text').value = '';
+                } else { throw new Error("GitHub Error"); }
+            } catch (e) { alert(e.message); }
+            finally { btn.disabled = false; btn.innerText = "📤 REPLY"; }
+        }
+
+        async function markResolvedFromModal() {
+            if (!confirm("Close this issue?")) return;
+            await resolveIssue(_currentIssue.number);
+            closeModal('supportModal');
+        }
+
+        async function resolveIssue(num) {
+            const res = await fetch(`https://api.github.com/repos/${REPO}/issues/${num}`, {
+                method: 'PATCH',
+                headers: { Authorization: 'token ' + GH_TOKEN, 'Content-Type': 'application/json' },
+                body: JSON.stringify({ state: 'closed' })
+            });
+            if (res.ok) {
+                showToast("✅ Issue Marked as Resolved!");
+                loadSupportTickets();
+            }
+        }
+
+        // ── USER MODAL OPS ──
+        async function openUserModal(id, col) {
+            currentUserContext = { id, col };
+            const doc = await window.db.collection(col).doc(id).get();
+            const u = doc.exists ? doc.data() : null;
+            if (!u) return;
+
+            document.getElementById('m-user-name').innerText = u.fullName;
+            document.getElementById('m-user-id').innerText = "ID: " + id;
+            document.getElementById('m-user-dp').src = u.photo || 'gttc-logo.png';
+            document.getElementById('m-user-blocked').checked = u.blocked === true;
+            document.getElementById('m-user-isadmin').checked = u.role === 'admin';
+
+            if (col === 'staff') {
+                document.getElementById('m-user-role').innerText = "STAFF";
+                document.getElementById('m-user-role').className = "role-tag rt-staff";
+                document.getElementById('m-user-classes').innerText = `Assigned: ${u.branch} | Semester: ${u.semester || u.assignedSemester || 'N/A'}\nBio: ${u.bio || 'No bio'}`;
+            } else {
+                document.getElementById('m-user-role').innerText = "STUDENT";
+                document.getElementById('m-user-role').className = "role-tag rt-student";
+                document.getElementById('m-user-classes').innerText = `Dept: ${u.course} | Sem: ${u.semester}`;
+            }
+
+            document.getElementById('userModal').classList.add('active');
+        }
+
+        async function updateUserPermissions() {
+            const { id, col } = currentUserContext;
+            const updates = {
+                blocked: document.getElementById('m-user-blocked').checked,
+                role: document.getElementById('m-user-isadmin').checked ? 'admin' : (col === 'staff' ? 'staff' : (col === 'students' ? 'STUDENT' : 'USER'))
+            };
+
+            await window.db.collection(col).doc(id).update(updates);
+            showToast("🔒 Permissions Updated!");
+            closeModal('userModal');
+            loadAllUsers();
+        }
+
+        async function removeUser(id, col) {
+            if (!confirm(`Permanently remove ${id} from database? This cannot be undone.`)) return;
+            await window.db.collection(col).doc(id).delete();
+            showToast("🗑️ User Purged");
+            loadAllUsers();
+        }
+
+        // ── JACKPOT OPS ──
+        async function sendJackpotAlert() {
+            const msg = document.getElementById('alert-msg').value;
+            if (!msg) return;
+            await window.db.collection('admin_settings').doc('jackpot').set({
+                id: 'jackpot',
+                alert: msg,
+                timestamp: Date.now(),
+                updatedAt: new Date().toISOString()
+            }, { merge: true });
+            showToast("🚨 EMERGENCY ALERT BROADCASTED!");
+        }
+
+        async function sendUpdateForce() {
+            // INSTALL button removed — forceUpdate feature disabled
+            showToast("⚠️ Force Update feature has been disabled.");
+        }
+
+        // On panel load, clear any old forceUpdate from Firebase so INSTALL banner never shows
+        async function clearForceUpdate() {
+            try {
+                await window.db.collection('admin_settings').doc('jackpot').update({
+                    forceUpdate: firebase.firestore.FieldValue.delete()
+                });
+            } catch (e) { /* ignore if doc doesn't exist */ }
+        }
+
+        // HELPERS
+        function closeModal(id) { document.getElementById(id).classList.remove('active'); }
+        function showToast(msg) {
+            const t = document.getElementById('toast');
+            t.innerText = msg;
+            t.style.display = 'block';
+            setTimeout(() => t.style.display = 'none', 3000);
+        }
+
+        // Handle Capacitor Back Button
+        document.addEventListener("DOMContentLoaded", () => {
+            if (window.Capacitor && window.Capacitor.Plugins && window.Capacitor.Plugins.App) {
+                window.Capacitor.Plugins.App.addListener('backButton', ({ canGoBack }) => {
+                    let handled = false;
+                    const overlayChecks = ['userModal', 'supportModal', 'sidebar-overlay'];
+
+                    for (let id of overlayChecks) {
+                        const el = document.getElementById(id);
+                        if (el && el.classList.contains('active')) {
+                            el.classList.remove('active');
+                            if (id === 'sidebar-overlay') document.querySelector('.sidebar').classList.remove('active');
+                            handled = true;
+                            break;
+                        }
+                    }
+
+                    if (handled) return;
+
+                    if (canGoBack) window.history.back();
+                    else window.Capacitor.Plugins.App.exitApp();
+                });
+            }
+        });
+
+    </script>
+    <script src="gttc-pro-features.js"></script>
+</body>
+
+</html>
