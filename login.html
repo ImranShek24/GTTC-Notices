@@ -919,10 +919,16 @@
                         <span class="input-icon" id="rPwToggle" onclick="togglePw('regPass','rPwToggle')">👁️</span>
                     </div>
                 </div>
+                <!-- 🚀 NEXT BUTTON (SCROLL TO ROLE) -->
+                <button class="action-btn"
+                    style="margin-top:15px; background:rgba(255,255,255,0.05); color:var(--text2); border:1px dashed var(--border); font-size:12px; padding:12px;"
+                    onclick="document.getElementById('reg-step-2').scrollIntoView({behavior:'smooth', block:'start'})">
+                    <span>👇</span> Proceed to Select Role
+                </button>
             </div>
 
             <!-- Step 2: Role Selection -->
-            <div class="glass-card">
+            <div class="glass-card" id="reg-step-2">
                 <div class="section-label">Your Role</div>
                 <div class="role-grid">
                     <div class="role-card" id="r-student" onclick="selRole('student')">
@@ -932,7 +938,7 @@
                     </div>
                     <div class="role-card" id="r-staff" onclick="selRole('staff')">
                         <span class="role-ic">👩‍🏫</span>
-                        <span class="role-name">Staff</span>
+                        <span class="role-name">Staff / Admin</span>
                         <span class="role-sub">Faculty / In-charge</span>
                     </div>
                 </div>
@@ -1125,6 +1131,14 @@
             document.getElementById('tab-login').classList.toggle('active', mode === 'login');
             document.getElementById('tab-register').classList.toggle('active', mode === 'register');
             hideMsgs();
+            // Scroll to form start
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+            if (mode === 'register') {
+                setTimeout(() => {
+                    const rf = document.getElementById('register-form');
+                    if (rf) rf.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                }, 100);
+            }
         }
 
         /* ─── HELPERS ─── */
@@ -1402,7 +1416,9 @@
             document.querySelectorAll('.role-card').forEach(c => c.classList.remove('active'));
             const card = document.getElementById('r-' + r);
             if (card) card.classList.add('active');
-            document.getElementById('reg-dept').classList.remove('hidden');
+            const target = document.getElementById('reg-dept');
+            target.classList.remove('hidden');
+            setTimeout(() => target.scrollIntoView({ behavior: 'smooth', block: 'center' }), 100);
             hideMsgs();
         }
 
@@ -1411,7 +1427,9 @@
             document.querySelectorAll('#reg-dept .snake-card').forEach(c => c.classList.remove('active'));
             const card = document.getElementById('d-' + d);
             if (card) card.classList.add('active');
-            document.getElementById('reg-sem').classList.remove('hidden');
+            const target = document.getElementById('reg-sem');
+            target.classList.remove('hidden');
+            setTimeout(() => target.scrollIntoView({ behavior: 'smooth', block: 'center' }), 100);
             hideMsgs();
         }
 
@@ -1420,7 +1438,9 @@
             document.querySelectorAll('#reg-sem .snake-card').forEach(c => c.classList.remove('active'));
             const card = document.getElementById('s-' + idNum);
             if (card) card.classList.add('active');
-            document.getElementById('reg-final').classList.remove('hidden');
+            const target = document.getElementById('reg-final');
+            target.classList.remove('hidden');
+            setTimeout(() => target.scrollIntoView({ behavior: 'smooth', block: 'center' }), 100);
             hideMsgs();
         }
 
