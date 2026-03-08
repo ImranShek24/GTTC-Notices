@@ -711,10 +711,8 @@
     </div>
 
     <!-- Firebase SDKs -->
-    <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-auth-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-firestore-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-storage-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
     <script src="firebase-init.js"></script>
 
     <!-- ASK MODAL -->
@@ -735,6 +733,8 @@
         let currentUserData = null;
 
         async function initAuth() {
+            const isReady = await window.dbReady(5000);
+            if (!isReady) return;
             if (!currentUserId) {
                 window.location.href = 'login.html';
                 return;
@@ -767,8 +767,8 @@
             }
 
             try {
-                const collection = userRole === 'staff' ? 'staff' : 'students';
-                const doc = await db.collection(collection).doc(currentUserId).get();
+                const table = userRole === 'staff' ? 'staff' : 'students';
+                const doc = await window.db.collection(table).doc(currentUserId).get();
 
                 if (doc.exists) {
                     currentUserData = doc.data();
@@ -883,63 +883,80 @@
             if (role === 'fees_admin') {
                 document.getElementById('classLabel').textContent = "ALL FACULTY / STAFF MEMBERS";
                 document.querySelector('.section-label').textContent = "STAFF DIRECTORY";
-                // For Madam, show staff list in the Attendance tab first
-                db.collection('staff')
-                    .orderBy('fullName')
-                    .onSnapshot(snap => renderStaffDirectory(snap));
 
-                // Keep the 'All Students' tab as a general biodata list
-                db.collection('students')
-                    .orderBy('fullName')
-                    .onSnapshot(snap => renderStudentLists(snap));
+                const staffSnap = await window.db.collection('staff').orderBy('fullName').get();
+                const staffData = staffSnap.docs.map(d => d.data());
+                renderStaffDirectory(staffData);
+
+                const studentSnap = await window.db.collection('students').orderBy('fullName').get();
+                const studentData = studentSnap.docs.map(d => d.data());
+                renderStudentLists(studentData);
             } else {
                 const sem = currentUserData.assignedSemester || "1st";
                 const course = currentUserData.assignedCourse || "DAR";
                 document.getElementById('classLabel').textContent = `${sem} Semester ${course} Students`;
-                db.collection('students')
-                    .where('semester', '==', sem)
-                    .where('course', '==', course)
-                    .onSnapshot(snap => renderStudentLists(snap));
+
+                const snap = await window.db.collection('students').where('semester', '==', sem).where('course', '==', course).get();
+                const data = snap.docs.map(d => d.data());
+                renderStudentLists(data);
+
+                // Realtime subscription for attendance
+                if (window.classAttListener) window.classAttListener();
+                window.classAttListener = window.db.collection('students').where('semester', '==', sem).where('course', '==', course).onSnapshot(() => {
+                    loadStaffClassData(); // Reload all for simplicity
+                });
             }
 
             // Load Questions for regular staff only
             if (role !== 'fees_admin') {
                 const sem = currentUserData.assignedSemester || "1st";
                 const course = currentUserData.assignedCourse || "DAR";
-                db.collection('class_questions')
+                const snap = await window.db.collection('class_questions')
                     .where('course', '==', course)
                     .where('semester', '==', sem)
-                    .orderBy('timestamp', 'desc')
-                    .onSnapshot(snap => {
-                        const qList = document.getElementById('staffQuestionsList');
-                        qList.innerHTML = '';
-                        if (snap.empty) {
-                            qList.innerHTML = `<div style="text-align:center; padding:40px; opacity:0.6;">No questions asked yet.</div>`;
-                            return;
-                        }
-                        snap.forEach(doc => {
-                            const q = doc.data();
-                            const card = document.createElement('div');
-                            card.className = 'q-card';
-                            card.innerHTML = `
-                                <div class="q-header">
-                                    <span>From: ${q.studentName}</span>
-                                    <span>${q.timestamp ? new Date(q.timestamp.toDate()).toLocaleTimeString() : '...'}</span>
-                                </div>
-                                <div class="q-text">${q.question}</div>
-                                <div style="margin-top:10px; text-align:right;">
-                                    <button class="btn-view-sm" onclick="alert('Reply function coming soon!')">Reply</button>
-                                </div>
-                            `;
-                            qList.appendChild(card);
-                        });
+                    .orderBy('created_at', 'desc')
+                    .get();
+                const questions = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+
+                renderQuestions(questions);
+
+                if (window.classQListener) window.classQListener();
+                window.classQListener = window.db.collection('class_questions')
+                    .where('course', '==', course)
+                    .where('semester', '==', sem)
+                    .onSnapshot(() => {
+                        loadStaffClassData();
                     });
             } else {
                 document.getElementById('staffQuestionsList').innerHTML = `<div style="text-align:center; padding:40px; opacity:0.6;">Dashboard for Fees Admin. Select 'ALL STUDENTS' tab to scan biodata.</div>`;
             }
         }
 
-        function renderStudentLists(snap) {
+        function renderQuestions(questions) {
+            const qList = document.getElementById('staffQuestionsList');
+            qList.innerHTML = '';
+            if (!questions || questions.length === 0) {
+                qList.innerHTML = `<div style="text-align:center; padding:40px; opacity:0.6;">No questions asked yet.</div>`;
+                return;
+            }
+            questions.forEach(q => {
+                const card = document.createElement('div');
+                card.className = 'q-card';
+                card.innerHTML = `
+                    <div class="q-header">
+                        <span>From: ${q.studentName}</span>
+                        <span>${new Date(q.created_at).toLocaleTimeString()}</span>
+                    </div>
+                    <div class="q-text">${q.question}</div>
+                    <div style="margin-top:10px; text-align:right;">
+                        <button class="btn-view-sm" onclick="alert('Reply function coming soon!')">Reply</button>
+                    </div>
+                `;
+                qList.appendChild(card);
+            });
+        }
+
+        function renderStudentLists(data) {
             const attList = document.getElementById('staffAttList');
             const allList = document.getElementById('allStudentsList');
             attList.innerHTML = '';
@@ -949,27 +966,24 @@
             let absentCount = 0;
             let otherCount = 0;
 
-            if (snap.empty) {
+            if (!data || data.length === 0) {
                 attList.innerHTML = `<div style="text-align:center; padding:40px; opacity:0.6;">No students found in this section.</div>`;
                 allList.innerHTML = `<div style="text-align:center; padding:40px; opacity:0.6;">No students found in database.</div>`;
                 document.getElementById('count-total').textContent = "0";
                 return;
             }
 
-            snap.forEach(doc => {
-                const s = doc.data();
-                const id = doc.id;
-
+            data.forEach(s => {
+                const id = s.regNo;
                 if (s.attendanceToday === 'P') presentCount++;
                 else if (s.attendanceToday === 'A') absentCount++;
                 else if (s.attendanceToday === 'O') otherCount++;
 
-                // Attendance marking item
                 const attRow = document.createElement('div');
                 attRow.className = 'attendance-row';
                 attRow.innerHTML = `
                     <div style="display:flex; align-items:center; gap:12px;">
-                        <img src="${s.photo || 'https://via.placeholder.com/40'}" class="s-item-dp" style="width:35px; height:35px;">
+                        <img src="${s.photo || 'https://via.placeholder.com/35'}" class="s-item-dp" style="width:35px; height:35px;">
                         <div style="font-size:14px; font-weight:700;">${s.fullName || 'Student'}</div>
                     </div>
                     <div style="display:flex; gap:8px;">
@@ -980,7 +994,6 @@
                 `;
                 attList.appendChild(attRow);
 
-                // All Students (Biodata) item
                 const sItem = document.createElement('div');
                 sItem.className = 'student-item';
                 sItem.setAttribute('data-search', (s.fullName + " " + (id)).toLowerCase());
@@ -998,23 +1011,21 @@
             document.getElementById('count-p').textContent = presentCount;
             document.getElementById('count-a').textContent = absentCount;
             document.getElementById('count-o').textContent = otherCount;
-            document.getElementById('count-total').textContent = snap.size;
+            document.getElementById('count-total').textContent = data.length;
         }
 
         // ── MADAM SPECIAL: STAFF DIRECTORY ──
-        function renderStaffDirectory(snap) {
+        function renderStaffDirectory(data) {
             const staffList = document.getElementById('staffAttList');
             staffList.innerHTML = '';
 
-            if (snap.empty) {
+            if (!data || data.length === 0) {
                 staffList.innerHTML = `<div style="text-align:center; padding:40px; opacity:0.6;">No staff found in database.</div>`;
                 return;
             }
 
-            snap.forEach(doc => {
-                const s = doc.data();
-                const id = doc.id;
-
+            data.forEach(s => {
+                const id = s.regNo;
                 const staffRow = document.createElement('div');
                 staffRow.className = 'attendance-row';
                 staffRow.style.padding = '12px 15px';
@@ -1034,18 +1045,12 @@
 
         async function viewStaffStudents(staffId, sem, course, staffName) {
             if (!sem || !course) return alert(`${staffName} ne abhi tak koi class assign nahi ki hai.`);
-
-            // Switch to Students tab to show their students
             switchTab('students');
             document.getElementById('classLabel').textContent = `${staffName}'s Class: ${sem} ${course}`;
-
-            // Clear current search to show these specific students
             document.getElementById('studentSearch').value = '';
-
-            db.collection('students')
-                .where('semester', '==', sem)
-                .where('course', '==', course)
-                .onSnapshot(snap => renderStudentLists(snap));
+            const snap = await window.db.collection('students').where('semester', '==', sem).where('course', '==', course).get();
+            const data = snap.docs.map(d => d.data());
+            renderStudentLists(data);
         }
 
         // ── STUDENT BIODATA OVERLAY ──
@@ -1055,7 +1060,8 @@
 
         async function markStatus(id, status) {
             try {
-                await db.collection('students').doc(id).update({ attendanceToday: status });
+                await window.db.collection('students').doc(id).update({ attendanceToday: status });
+                loadStaffClassData();
             } catch (e) {
                 alert("Error marking attendance: " + e.message);
             }
@@ -1079,13 +1085,13 @@
 
             try {
                 const s = currentUserData;
-                await db.collection('class_questions').add({
+                await window.db.collection('class_questions').add({
                     studentId: currentUserId,
                     studentName: s.fullName || s.name || "Student",
                     course: s.course,
                     semester: s.semester,
                     question: text,
-                    timestamp: firebase.firestore.FieldValue.serverTimestamp()
+                    created_at: new Date().toISOString()
                 });
                 alert("Question sent to Madam! ✅");
                 document.getElementById('questionInput').value = '';
