@@ -1430,21 +1430,38 @@
 
         function startAutoRefreshShowcase() {
             if (_showcaseRefreshTimer) clearInterval(_showcaseRefreshTimer);
+            // Check EVERY MINUTE to ensure we hit the 57-minute window precisely
             _showcaseRefreshTimer = setInterval(async () => {
                 try {
                     const doc = await window.db.collection('youtube_tokens').doc('master_auth').get();
                     if (!doc.exists) return;
                     const data = doc.data();
                     const remaining = (data.expiryDate - Date.now()) / 60000;
+
+                    // If less than 10 mins remain, refresh pro-actively
                     if (remaining < 10) {
+                        console.log("[YouTube] Token expiring in " + Math.floor(remaining) + " mins. Refreshing...");
                         if (data.refreshToken && data.clientId && data.clientSecret) {
-                            refreshAccessTokenNow();
+                            await refreshAccessTokenNow();
                         } else {
                             silentRefreshAdmin();
                         }
                     }
                 } catch (e) { }
-            }, 55 * 60 * 1000); // 55 mins
+            }, 60000);
+
+            // Do an immediate check on page load
+            setTimeout(checkYouTubeTokenInShowcase, 2000);
+        }
+
+        async function checkYouTubeTokenInShowcase() {
+            try {
+                const doc = await window.db.collection('youtube_tokens').doc('master_auth').get();
+                if (!doc.exists) return;
+                const data = doc.data();
+                const remaining = (data.expiryDate - Date.now()) / 60000;
+                if (remaining < 10) await refreshAccessTokenNow();
+            } catch (e) { }
         }
 
         async function saveAutoRefreshTokens() {
