@@ -1821,6 +1821,58 @@
             alert("Redirecting to Google. Login karein, phir URL se 'code' copy karke refresh token generate karein agar zarurat ho. Agar direct login chahiye, toh Master tokens save karein.");
         }
 
+        // Listener for Authorization Code from Redirect
+        (function checkForAuthCode() {
+            const urlParams = new URLSearchParams(window.location.search);
+            const code = urlParams.get('code');
+            if (code) {
+                setTimeout(() => {
+                    const rtField = document.getElementById('yt-refresh-token');
+                    if (rtField) {
+                        rtField.value = "CODE_PENDING: " + code;
+                        rtField.style.borderColor = "#34a853";
+                        showToast("📡 AUTHORIZATION CODE DETECTED!");
+                        if (confirm("Authorization code detect hua hai. Kya aap ise Refresh Token mein exchange karna chahte hain? (Don't forget to save Client Secret first)")) {
+                            exchangeCodeForToken(code);
+                        }
+                    }
+                }, 1000);
+            }
+        })();
+
+        async function exchangeCodeForToken(code) {
+            const clientSecret = document.getElementById('yt-client-secret').value.trim();
+            if (!clientSecret || clientSecret === 'GOCSPX-...') {
+                return alert("Pehle 'Client Secret' box mein apna GOCSPX- secret enter karein!");
+            }
+
+            try {
+                const res = await fetch('https://oauth2.googleapis.com/token', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                    body: new URLSearchParams({
+                        code: code,
+                        client_id: CLIENT_ID,
+                        client_secret: clientSecret,
+                        redirect_uri: REDIRECT_URI,
+                        grant_type: 'authorization_code'
+                    })
+                });
+
+                const data = await res.json();
+                if (data.refresh_token) {
+                    document.getElementById('yt-refresh-token').value = data.refresh_token;
+                    showToast("✅ REFRESH TOKEN RECEIVED!");
+                    alert("Refresh Token mil gaya hai! 'SAVE MASTER TOKENS' button par click karein finalize karne ke liye.");
+                } else {
+                    console.error("Token exchange failed:", data);
+                    alert("Exchange failed: " + (data.error_description || data.error || "Unknown error"));
+                }
+            } catch (err) {
+                alert("Network error: " + err.message);
+            }
+        }
+
         async function saveAppSettings() {
             const cfg = {
                 appLogo: document.getElementById('cfg-logo').value,
