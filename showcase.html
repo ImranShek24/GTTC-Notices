@@ -1,0 +1,1662 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport"
+        content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>GTTC 24 Showcase - Talent Feed</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #64ffda;
+            --bg: #000;
+            --glass: rgba(255, 255, 255, 0.1);
+            --border: rgba(255, 255, 255, 0.15);
+        }
+
+        html,
+        body {
+            overflow-x: hidden;
+            overscroll-behavior: none;
+            -webkit-text-size-adjust: 100%;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Outfit', sans-serif;
+            touch-action: manipulation;
+        }
+
+        input,
+        select,
+        textarea {
+            font-size: 16px !important;
+        }
+
+        body {
+            background: var(--bg);
+            color: #fff;
+            overflow: hidden;
+            height: 100vh;
+            width: 100vw;
+        }
+
+        /* ── FEED ── */
+        .feed-container {
+            height: 100vh;
+            width: 100vw;
+            overflow-y: scroll;
+            scroll-snap-type: y mandatory;
+            scrollbar-width: none;
+        }
+
+        .feed-container::-webkit-scrollbar {
+            display: none;
+        }
+
+        .showcase-card {
+            height: 100vh;
+            width: 100vw;
+            scroll-snap-align: start;
+            position: relative;
+            background: #111;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .video-wrapper {
+            position: absolute;
+            inset: 0;
+            z-index: 1;
+            background: #000;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .video-wrapper iframe {
+            width: 100%;
+            height: 100%;
+            border: none;
+        }
+
+        /* Thumbnail fallback for Error 153 */
+        .yt-thumb-wrap {
+            position: relative;
+            width: 100%;
+            height: 100%;
+            background: #000;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+        }
+
+        .yt-thumb-wrap img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            opacity: 0.75;
+            transition: opacity 0.3s;
+        }
+
+        .yt-thumb-wrap:hover img {
+            opacity: 0.9;
+        }
+
+        .yt-play-btn {
+            position: absolute;
+            width: 68px;
+            height: 68px;
+            background: rgba(255, 0, 0, 0.92);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.6);
+            transition: transform 0.2s;
+        }
+
+        .yt-thumb-wrap:hover .yt-play-btn {
+            transform: scale(1.1);
+        }
+
+        .yt-play-btn::after {
+            content: '';
+            border-left: 26px solid #fff;
+            border-top: 16px solid transparent;
+            border-bottom: 16px solid transparent;
+            margin-left: 6px;
+        }
+
+        .yt-err-badge {
+            position: absolute;
+            bottom: 12px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(0, 0, 0, 0.8);
+            color: #ff4f4f;
+            font-size: 11px;
+            font-weight: 700;
+            padding: 5px 12px;
+            border-radius: 20px;
+            white-space: nowrap;
+        }
+
+        .overlay-top {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            padding: 44px 18px 18px;
+            background: linear-gradient(to bottom, rgba(0, 0, 0, 0.8), transparent);
+            z-index: 10;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .back-btn {
+            color: #fff;
+            font-size: 20px;
+            text-decoration: none;
+            margin-right: 8px;
+        }
+
+        .v-user-dp {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            border: 2px solid var(--primary);
+            object-fit: cover;
+        }
+
+        .v-user-name {
+            font-weight: 800;
+            font-size: 15px;
+            color: var(--primary);
+            text-shadow: 0 2px 6px rgba(0, 0, 0, 0.6);
+        }
+
+        .overlay-bottom {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 80px;
+            padding: 20px 18px 44px;
+            background: linear-gradient(to top, rgba(0, 0, 0, 0.8), transparent);
+            z-index: 10;
+        }
+
+        .v-caption {
+            font-size: 16px;
+            font-weight: 600;
+            line-height: 1.5;
+            text-shadow: 0 2px 10px rgba(0, 0, 0, 0.8);
+        }
+
+        .side-actions {
+            position: absolute;
+            bottom: 90px;
+            right: 14px;
+            z-index: 10;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+            align-items: center;
+        }
+
+        .act-group {
+            text-align: center;
+        }
+
+        .act-btn {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.12);
+            backdrop-filter: blur(10px);
+            border: 1px solid var(--border);
+            color: #fff;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 22px;
+            cursor: pointer;
+            margin-bottom: 5px;
+            transition: 0.3s;
+        }
+
+        .act-btn.liked {
+            color: #ff3e3e;
+            background: rgba(255, 62, 62, 0.1);
+            border-color: #ff3e3e;
+        }
+
+        .act-group span {
+            font-size: 12px;
+            font-weight: 800;
+        }
+
+        .yt-bottom-link {
+            position: absolute;
+            bottom: 12px;
+            left: 18px;
+            z-index: 20;
+            color: rgba(255, 255, 255, 0.35);
+            text-decoration: none;
+            font-size: 10px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            transition: all 0.3s;
+            background: rgba(0, 0, 0, 0.4);
+            padding: 4px 10px;
+            border-radius: 20px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .yt-bottom-link:active {
+            opacity: 0.8;
+            transform: scale(0.95);
+        }
+
+        .yt-bottom-link i {
+            color: rgba(255, 255, 255, 0.5);
+            font-size: 12px;
+            transition: color 0.3s;
+        }
+
+        .yt-bottom-link:hover i {
+            color: #ff0000;
+        }
+
+        .yt-bottom-link:hover {
+            color: rgba(255, 255, 255, 0.8);
+            background: rgba(0, 0, 0, 0.6);
+            border-color: rgba(255, 255, 255, 0.2);
+        }
+
+        .refresh-glow {
+            color: #ff4f4f;
+            text-shadow: 0 0 10px rgba(255, 79, 79, 0.4);
+            animation: ytPulse 2s infinite;
+        }
+
+        @keyframes ytPulse {
+            0% {
+                transform: scale(1);
+                opacity: 0.7;
+            }
+
+            50% {
+                transform: scale(1.1);
+                opacity: 1;
+                text-shadow: 0 0 20px #ff4f4f;
+            }
+
+            100% {
+                transform: scale(1);
+                opacity: 0.7;
+            }
+        }
+
+        /* ── FAB ── */
+        .fab {
+            position: fixed;
+            bottom: 100px;
+            left: 22px;
+            width: 62px;
+            height: 62px;
+            background: #007bff;
+            color: #fff;
+            border: none;
+            border-radius: 50%;
+            font-size: 26px;
+            box-shadow: 0 10px 30px rgba(0, 123, 255, 0.45);
+            z-index: 500;
+            cursor: pointer;
+        }
+
+        .fab:active {
+            transform: scale(0.9);
+        }
+
+        /* ── UPLOAD UI ENHANCEMENTS ── */
+        .upload-card {
+            background: rgba(255, 255, 255, 0.03);
+            border: 2px dashed rgba(255, 255, 255, 0.15);
+            border-radius: 24px;
+            padding: 40px 20px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+            overflow: hidden;
+            margin-bottom: 20px;
+        }
+
+        .upload-card:active {
+            transform: scale(0.98);
+            background: rgba(100, 255, 218, 0.05);
+            border-color: var(--primary);
+        }
+
+        .upload-card.has-file {
+            border-style: solid;
+            border-color: var(--primary);
+            background: rgba(100, 255, 218, 0.05);
+            padding: 20px;
+        }
+
+        .up-icon-lrg {
+            font-size: 50px;
+            color: var(--primary);
+            margin-bottom: 15px;
+            display: block;
+            text-shadow: 0 0 20px rgba(100, 255, 218, 0.3);
+        }
+
+        .up-hint {
+            font-size: 14px;
+            font-weight: 700;
+            color: #fff;
+            margin-bottom: 5px;
+        }
+
+        .up-sub {
+            font-size: 11px;
+            color: #666;
+            font-weight: 600;
+        }
+
+        /* ── UPLOAD MODAL ── */
+        .up-modal {
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.96);
+            backdrop-filter: blur(20px);
+            z-index: 3000;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .up-content {
+            background: #111;
+            width: 100%;
+            max-width: 420px;
+            border-radius: 30px;
+            padding: 28px;
+            border: 1px solid var(--border);
+        }
+
+        .up-title {
+            font-weight: 800;
+            color: var(--primary);
+            font-size: 22px;
+            margin-bottom: 22px;
+            display: block;
+        }
+
+        .up-field {
+            margin-bottom: 18px;
+        }
+
+        .up-field label {
+            font-size: 11px;
+            color: #888;
+            font-weight: 800;
+            margin-bottom: 8px;
+            display: block;
+            letter-spacing: 1.5px;
+        }
+
+        .up-field input[type="text"] {
+            width: 100%;
+            background: #1a1a1a;
+            border: 1px solid #333;
+            padding: 15px;
+            border-radius: 14px;
+            color: #fff;
+            outline: none;
+            font-size: 15px;
+            font-family: 'Outfit', sans-serif;
+        }
+
+        .up-field input[type="text"]:focus {
+            border-color: var(--primary);
+        }
+
+        /* Progress */
+        .prog-wrap {
+            display: none;
+            margin-top: 18px;
+            margin-bottom: 10px;
+        }
+
+        .prog-label {
+            font-size: 12px;
+            color: #888;
+            font-weight: 700;
+            margin-bottom: 8px;
+            display: flex;
+            justify-content: space-between;
+        }
+
+        .prog-track {
+            background: #222;
+            border-radius: 50px;
+            height: 8px;
+            overflow: hidden;
+        }
+
+        .prog-fill {
+            height: 100%;
+            width: 0%;
+            background: linear-gradient(90deg, var(--primary), #00b4d8);
+            border-radius: 50px;
+            transition: width 0.3s ease;
+        }
+
+        /* Buttons */
+        .btn-row {
+            display: flex;
+            gap: 10px;
+            margin-top: 16px;
+        }
+
+        .post-btn {
+            flex: 1;
+            background: var(--primary);
+            color: #000;
+            border: none;
+            padding: 17px;
+            border-radius: 16px;
+            font-weight: 800;
+            cursor: pointer;
+            font-size: 15px;
+            font-family: 'Outfit', sans-serif;
+            transition: opacity 0.3s;
+        }
+
+        .post-btn:disabled {
+            opacity: 0.35;
+            cursor: not-allowed;
+        }
+
+        .cancel-btn {
+            flex: 1;
+            background: #1a1a1a;
+            color: #888;
+            border: 1px solid #333;
+            padding: 17px;
+            border-radius: 16px;
+            font-weight: 800;
+            cursor: pointer;
+            font-size: 15px;
+            font-family: 'Outfit', sans-serif;
+        }
+
+        /* ── ADMIN ZONE MODAL ── */
+        .admin-modal {
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.97);
+            backdrop-filter: blur(20px);
+            z-index: 5000;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            padding: 24px;
+        }
+
+        .admin-box {
+            background: #0d0d0d;
+            width: 100%;
+            max-width: 360px;
+            border-radius: 24px;
+            padding: 28px;
+            border: 1px solid rgba(255, 0, 80, 0.25);
+        }
+
+        .admin-box h3 {
+            color: #ff4f4f;
+            font-size: 18px;
+            margin-bottom: 6px;
+        }
+
+        .admin-box p {
+            color: #555;
+            font-size: 12px;
+            margin-bottom: 20px;
+        }
+
+        .admin-input {
+            width: 100%;
+            background: #111;
+            border: 1px solid #333;
+            padding: 14px;
+            border-radius: 13px;
+            color: #fff;
+            outline: none;
+            font-size: 15px;
+            margin-bottom: 13px;
+            font-family: 'Outfit', sans-serif;
+        }
+
+        .admin-input:focus {
+            border-color: #ff4f4f;
+        }
+
+        .admin-login-btn {
+            width: 100%;
+            background: #ff4f4f;
+            color: #fff;
+            border: none;
+            padding: 16px;
+            border-radius: 14px;
+            font-weight: 800;
+            cursor: pointer;
+            font-size: 15px;
+            margin-bottom: 10px;
+        }
+
+        .admin-yt-btn {
+            width: 100%;
+            background: #1a1a1a;
+            color: var(--primary);
+            border: 1px solid var(--primary);
+            padding: 16px;
+            border-radius: 14px;
+            font-weight: 800;
+            cursor: pointer;
+            font-size: 15px;
+            display: none;
+        }
+
+        .admin-status {
+            font-size: 12px;
+            text-align: center;
+            margin-top: 10px;
+            color: #666;
+            min-height: 18px;
+        }
+
+        .admin-close-btn {
+            width: 100%;
+            background: transparent;
+            color: #444;
+            border: none;
+            padding: 12px;
+            cursor: pointer;
+            margin-top: 8px;
+            font-size: 13px;
+        }
+
+        /* ── COMMENTS ── */
+        .cmt-modal {
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 4000;
+            display: none;
+            align-items: flex-end;
+        }
+
+        .cmt-content {
+            background: #1a1a1a;
+            width: 100%;
+            height: 62vh;
+            border-radius: 22px 22px 0 0;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .cmt-header {
+            padding: 16px 18px;
+            border-bottom: 1px solid #2a2a2a;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-weight: 800;
+        }
+
+        .cmt-list {
+            flex: 1;
+            overflow-y: auto;
+            padding: 15px;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .cmt-item {
+            display: flex;
+            gap: 10px;
+        }
+
+        .cmt-user-dp {
+            width: 34px;
+            height: 34px;
+            border-radius: 50%;
+            flex-shrink: 0;
+        }
+
+        .cmt-text-box {
+            background: #111;
+            padding: 10px 14px;
+            border-radius: 14px;
+            flex: 1;
+        }
+
+        .cmt-user {
+            font-size: 12px;
+            font-weight: 800;
+            color: var(--primary);
+            margin-bottom: 3px;
+        }
+
+        .cmt-msg {
+            font-size: 13px;
+            color: #ddd;
+            line-height: 1.4;
+        }
+
+        .cmt-input-row {
+            padding: 12px 15px 28px;
+            border-top: 1px solid #2a2a2a;
+            display: flex;
+            gap: 10px;
+        }
+
+        .cmt-input-row input {
+            flex: 1;
+            background: #111;
+            border: 1px solid #333;
+            border-radius: 22px;
+            padding: 13px 18px;
+            color: #fff;
+            outline: none;
+            font-family: 'Outfit', sans-serif;
+        }
+
+        .cmt-send {
+            background: var(--primary);
+            color: #000;
+            width: 46px;
+            height: 46px;
+            border: none;
+            border-radius: 50%;
+            cursor: pointer;
+            font-size: 18px;
+            flex-shrink: 0;
+        }
+
+        /* ── INSTA TOAST ── */
+        .insta-toast {
+            position: fixed;
+            top: calc(env(safe-area-inset-top) - 110px);
+            left: 16px;
+            right: 16px;
+            background: rgba(255, 255, 255, 0.96);
+            color: #000;
+            padding: 13px 16px;
+            border-radius: 16px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            box-shadow: 0 12px 40px rgba(0, 0, 0, 0.5);
+            z-index: 9999;
+            transition: transform 0.55s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+
+        .insta-toast.show {
+            transform: translateY(calc(env(safe-area-inset-top) + 120px));
+        }
+
+        .it-dp {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            object-fit: cover;
+        }
+
+        .it-content {
+            flex: 1;
+            font-size: 13px;
+            font-weight: 600;
+        }
+
+        /* Footer */
+        .footer-label {
+            position: fixed;
+            bottom: 8px;
+            left: 0;
+            right: 0;
+            text-align: center;
+            font-size: 10px;
+            font-weight: 800;
+            color: rgba(255, 255, 255, 0.2);
+            z-index: 5;
+            letter-spacing: 2px;
+            pointer-events: none;
+        }
+
+        /* Admin trigger (5-tap lock icon in footer) */
+        #adminTrigger {
+            position: fixed;
+            bottom: 8px;
+            right: 14px;
+            font-size: 11px;
+            color: rgba(255, 255, 255, 0.1);
+            z-index: 10;
+            cursor: pointer;
+            padding: 6px;
+            -webkit-user-select: none;
+            user-select: none;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="footer-label">BUILT BY IMRAN SHEK 24</div>
+    <div id="adminTrigger" onclick="adminTap()">🔐</div>
+    <div id="yt-refresh-top" style="display:none; position:fixed; top:20px; right:20px; z-index:1000; cursor:pointer;"
+        onclick="silentRefreshAdmin()">
+        <i class="fas fa-rotate refresh-glow"></i>
+    </div>
+
+    <div id="instaToast" class="insta-toast">
+        <img id="itImg" src="" class="it-dp">
+        <div id="itText" class="it-content">Notification</div>
+    </div>
+
+    <!-- Feed -->
+    <div class="feed-container" id="feed">
+        <div style="height:100vh;display:flex;align-items:center;justify-content:center;opacity:0.4;">
+            <i class="fas fa-spinner fa-spin" style="font-size:30px;color:var(--primary)"></i>
+        </div>
+    </div>
+
+    <button class="fab" onclick="openUpload()"><i class="fas fa-plus"></i></button>
+
+    <!-- ── UPLOAD MODAL ── -->
+    <div id="upModal" class="up-modal">
+        <div class="up-content">
+            <span class="up-title">🎬 Post Your Talent</span>
+
+            <div class="up-field">
+                <label>STEP 1 — CHOOSE VIDEO FROM GALLERY</label>
+                <input type="file" id="vFile" accept="video/*" onchange="previewSelect(event)" style="display:none;">
+
+                <div class="upload-card" id="uploadCard" onclick="document.getElementById('vFile').click()">
+                    <div id="upDefault">
+                        <i class="fas fa-clapperboard up-icon-lrg"></i>
+                        <div class="up-hint">Tap to Select Video</div>
+                        <div class="up-sub">MP4, MOV supported (Max 100MB)</div>
+                    </div>
+                    <div id="upSelected" style="display:none;">
+                        <video id="vPreview"
+                            style="width:100%; border-radius:18px; max-height:220px; box-shadow:0 10px 30px rgba(0,0,0,0.5);"
+                            controls></video>
+                        <div style="margin-top:12px; font-size:12px; color:var(--primary); font-weight:800;">
+                            ✅ VIDEO SELECTED
+                        </div>
+                        <div style="font-size:10px; color:#555; margin-top:4px;">Tap to change video</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="up-field">
+                <label>STEP 2 — VIDEO TITLE / CAPTION</label>
+                <input type="text" id="vCaption" placeholder="Give your talent a name (e.g. My Dancing Video)"
+                    oninput="checkReady()">
+            </div>
+
+            <div class="prog-wrap" id="progWrap">
+                <div class="prog-label">
+                    <span id="progStatus">Starting...</span>
+                    <span id="progPct">0%</span>
+                </div>
+                <div class="prog-track">
+                    <div class="prog-fill" id="progFill"></div>
+                </div>
+            </div>
+
+            <div class="btn-row">
+                <button class="post-btn" id="postBtn" onclick="submitUpload()" disabled>POST VIDEO</button>
+                <button class="cancel-btn" onclick="closeUpload()">CANCEL</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ── ADMIN ZONE MODAL ── -->
+    <div id="adminModal" class="admin-modal">
+        <div class="admin-box">
+            <h3>🛡️ Admin Zone</h3>
+            <p>Sirf Imran Shek ke liye restricted access.</p>
+
+            <div id="adminLoginSection">
+                <input type="tel" class="admin-input" id="adminPhone" placeholder="Mobile Number">
+                <input type="password" class="admin-input" id="adminPass" placeholder="Password">
+                <button class="admin-login-btn" onclick="verifyAdmin()">LOGIN</button>
+            </div>
+
+            <div id="adminAuthSection" style="display:none;">
+                <p style="color:var(--primary); font-size:13px; margin-bottom:16px;">
+                    ✅ Enable Background Auto-Upload using Refresh Token!
+                </p>
+                <div
+                    style="background:#1a1a1a; padding:12px; border-radius:12px; margin-bottom:15px; border:1px solid #333;">
+                    <p style="font-size:11px; color:#aaa; margin-bottom:10px;">Paste Google OAuth2 credentials to never
+                        re-login again.</p>
+                    <input type="text" id="adminClientId" class="admin-input" placeholder="Google Client ID"
+                        style="padding:10px; font-size:12px;">
+                    <input type="password" id="adminClientSecret" class="admin-input" placeholder="Google Client Secret"
+                        style="padding:10px; font-size:12px;">
+                    <input type="password" id="adminRefreshToken" class="admin-input" placeholder="OAuth2 Refresh Token"
+                        style="padding:10px; font-size:12px;">
+                    <button class="admin-login-btn" onclick="saveAutoRefreshTokens()"
+                        style="padding:12px; background:#00e676; color:#000;">
+                        <i class="fas fa-save"></i> SAVE CONFIG & START
+                    </button>
+                    <div id="configStatus" style="font-size:11px; margin-top:5px; text-align:center;"></div>
+                </div>
+
+                <p style="color:#555; font-size:11px; margin-bottom:10px;">Or manual temporary authorize (expires in
+                    1hr):</p>
+                <button class="admin-yt-btn" id="adminYtBtn" onclick="adminAuthorize()" style="display:block;">
+                    <i class="fab fa-youtube"></i>&nbsp; TEMPORARY AUTHORIZE
+                </button>
+                <div id="tokenInfo" style="font-size:12px; color:#555; text-align:center; margin-top:12px;"></div>
+            </div>
+
+            <div class="admin-status" id="adminStatus"></div>
+            <button class="admin-close-btn" onclick="closeAdmin()">✕ Close</button>
+        </div>
+    </div>
+
+    <!-- ── COMMENTS MODAL ── -->
+    <div id="cmtModal" class="cmt-modal">
+        <div class="cmt-content">
+            <div class="cmt-header">
+                <span>Comments</span>
+                <i class="fas fa-times" onclick="closeCmt()" style="cursor:pointer;font-size:18px;"></i>
+            </div>
+            <div class="cmt-list" id="cmtList"></div>
+            <div class="cmt-input-row">
+                <input type="text" id="cmtInput" placeholder="Write a comment...">
+                <button class="cmt-send" onclick="postComment()"><i class="fas fa-paper-plane"></i></button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Firebase -->
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+    <script src="firebase-init.js"></script>
+
+    <!-- Google Identity Services -->
+    <script src="https://accounts.google.com/gsi/client"></script>
+
+    <script>
+        /* ─── CONFIG ─── */
+        const CLIENT_ID = '314962618124-l6gi5mselo1ililhhl9c10ulhpcu3lmd.apps.googleusercontent.com';
+        const SCOPES = 'https://www.googleapis.com/auth/youtube.upload https://www.googleapis.com/auth/youtube.readonly';
+        const REDIRECT_URI = window.location.origin + window.location.pathname;
+        const ADMIN_PHONE = '6363536608';
+        const ADMIN_PASS = '6363536608DAR';
+
+        /* ─── STATE ─── */
+        const currentUserId = localStorage.getItem('gttc_current_user') || localStorage.getItem('gttc_current_staff');
+        let currentUserData = null;
+        let selectedFile = null;
+        let adminTokenClient;
+        let activeVidId = null;
+        let activeUploaderId = null;
+        let adminTapCount = 0;
+        let adminTapTimer = null;
+
+        /* ─── INIT ─── */
+        async function init() {
+            const isReady = await window.dbReady(5000);
+            if (!isReady) {
+                console.error("Firebase not ready");
+            }
+            if (!currentUserId) { window.location.href = 'login.html'; return; }
+            await loadCurrentUser();
+            loadFeed();
+            startNotifListener();
+
+            adminTokenClient = google.accounts.oauth2.initTokenClient({
+                client_id: CLIENT_ID,
+                scope: SCOPES,
+                callback: onAdminToken,
+            });
+
+            if (currentUserId === '6363536608') {
+                document.getElementById('yt-refresh-top').style.display = 'block';
+                startAutoRefreshShowcase();
+            }
+        }
+
+        async function loadCurrentUser() {
+            try {
+                if (localStorage.getItem('gttc_superadmin') === '1') {
+                    currentUserData = { fullName: 'Imran Shek 24', regNo: '6363536608', photo: 'gttc-logo.png' };
+                    return;
+                }
+                const role = localStorage.getItem('gttc_user_role');
+                const table = role === 'staff' ? 'staff' : 'students';
+                const doc = await window.db.collection(table).doc(currentUserId).get();
+                if (doc.exists) currentUserData = doc.data();
+                else currentUserData = { fullName: localStorage.getItem('gttc_user_name') || 'Student', photo: '' };
+            } catch (err) {
+                currentUserData = { fullName: 'Student', photo: '' };
+            }
+        }
+
+        /* ─── FEED ─── */
+        async function loadFeed() {
+            const feed = document.getElementById('feed');
+            window.db.collection('showcase_posts').orderBy('createdAt', 'desc').onSnapshot(snap => {
+                const posts = [];
+                snap.forEach(doc => posts.push({ id: doc.id, ...doc.data() }));
+
+                feed.innerHTML = '';
+                if (posts.length === 0) {
+                    feed.innerHTML = '<div style="height:100vh;display:flex;align-items:center;justify-content:center;opacity:0.3;font-size:14px;">No videos yet. Post the first talent! 🌟</div>';
+                    return;
+                }
+                posts.forEach(v => {
+                    const id = v.id;
+                    const liked = (v.likes || []).includes(currentUserId);
+                    const ytId = v.youtubeId || '';
+                    const embedUrl = `https://www.youtube.com/embed/${ytId}?modestbranding=1&rel=0&enablejsapi=1&playsinline=1&origin=http://localhost:5500`;
+                    const thumbUrl = `https://img.youtube.com/vi/${ytId}/hqdefault.jpg`;
+                    const ytLink = `https://www.youtube.com/watch?v=${ytId}`;
+
+                    const card = document.createElement('div');
+                    card.className = 'showcase-card';
+                    card.innerHTML = `
+                        <div class="overlay-top">
+                            <a href="javascript:void(0)" onclick="goBack()" class="back-btn"><i class="fas fa-chevron-left"></i></a>
+                            <img src="${v.uploaderPhoto || 'https://via.placeholder.com/40'}" class="v-user-dp">
+                            <div class="v-user-name">${v.uploaderName || 'Student'}</div>
+                        </div>
+                        <div class="video-wrapper" id="vw-${id}">
+                            <div class="yt-thumb-wrap" onclick="playInline('${id}','${ytId}')" title="Tap to play">
+                                <img src="${thumbUrl}" onerror="this.src='https://via.placeholder.com/640x360/111/333?text=GTTC+Video'" alt="thumbnail">
+                                <div class="yt-play-btn"></div>
+                            </div>
+                        </div>
+                        <div class="side-actions">
+                            <div class="act-group">
+                                <button class="act-btn ${liked ? 'liked' : ''}" onclick="toggleLike('${id}','${v.uploaderUid}',${liked})">
+                                    <i class="fas fa-heart"></i>
+                                </button>
+                                <span>${(v.likes || []).length}</span>
+                            </div>
+                            <div class="act-group">
+                                <button class="act-btn" onclick="openCmt('${id}','${v.uploaderUid}')">
+                                    <i class="fas fa-comment"></i>
+                                </button>
+                                <span>Comment</span>
+                            </div>
+                        </div>
+                        <a href="${ytLink}" target="_blank" class="yt-bottom-link">
+                            <i class="fab fa-youtube"></i>
+                            <span>Watch on YouTube</span>
+                        </a>
+                        <div class="v-caption">${v.caption || ''}</div>`;
+                    feed.appendChild(card);
+                });
+            });
+        }
+
+        /* ─── UPLOAD MODAL ─── */
+        async function openUpload() {
+            try {
+                const doc = await window.db.collection('youtube_tokens').doc('master_auth').get();
+                if (!doc.exists) {
+                    if (currentUserId === '6363536608' || localStorage.getItem('gttc_superadmin') === '1') {
+                        alert('⚠️ You need to authorize YouTube first before users can post talent.');
+                        openAdmin();
+                    } else {
+                        alert('⚠️ Admin ne abhi tak YouTube authorize nahi kiya. Kripya admin se contact karein.');
+                    }
+                    return; // Stop upload modal from opening
+                }
+            } catch (err) {
+                console.warn("Auth check failed:", err);
+            }
+
+            document.getElementById('upModal').style.display = 'flex';
+            checkReady();
+        }
+
+        function closeUpload() {
+            document.getElementById('upModal').style.display = 'none';
+            selectedFile = null;
+            document.getElementById('vFile').value = '';
+            document.getElementById('vCaption').value = '';
+            document.getElementById('upDefault').style.display = 'block';
+            document.getElementById('upSelected').style.display = 'none';
+            document.getElementById('uploadCard').classList.remove('has-file');
+            document.getElementById('vPreview').src = '';
+            document.getElementById('progWrap').style.display = 'none';
+            document.getElementById('progFill').style.width = '0%';
+            document.getElementById('progPct').textContent = '0%';
+            document.getElementById('postBtn').disabled = true;
+            document.getElementById('postBtn').innerText = 'POST VIDEO';
+        }
+
+        function previewSelect(e) {
+            selectedFile = e.target.files[0];
+            if (selectedFile) {
+                // Size Check (100MB Limit)
+                if (selectedFile.size > 100 * 1024 * 1024) {
+                    alert("⚠️ Error: Video file 100MB se zyada badi hai. Kripya choti file select karein.");
+                    selectedFile = null;
+                    e.target.value = "";
+                    return;
+                }
+                const prev = document.getElementById('vPreview');
+                prev.src = URL.createObjectURL(selectedFile);
+                document.getElementById('upDefault').style.display = 'none';
+                document.getElementById('upSelected').style.display = 'block';
+                document.getElementById('uploadCard').classList.add('has-file');
+            }
+            checkReady();
+        }
+
+        function checkReady() {
+            const ok = !!selectedFile && document.getElementById('vCaption').value.trim().length > 0;
+            document.getElementById('postBtn').disabled = !ok;
+        }
+
+        async function submitUpload() {
+            const cap = document.getElementById('vCaption').value.trim();
+            if (!selectedFile || !cap) return;
+
+            const btn = document.getElementById('postBtn');
+            btn.disabled = true;
+            btn.innerText = 'Checking auth...';
+
+            try {
+                const doc = await window.db.collection('youtube_tokens').doc('master_auth').get();
+                if (!doc.exists) {
+                    alert('⚠️ Admin ne abhi tak YouTube authorize nahi kiya. Admin se contact karo.');
+                    btn.disabled = false; btn.innerText = 'POST VIDEO';
+                    return;
+                }
+                const tokenDoc = doc.data();
+
+                let { accessToken, expiryDate, clientId, clientSecret, refreshToken } = tokenDoc;
+                const remaining = expiryDate ? (expiryDate - Date.now()) / 60000 : -1;
+
+                if (remaining <= 0 || !accessToken) {
+                    if (clientId && clientSecret && refreshToken) {
+                        btn.innerText = 'Refreshing Token...';
+                        const refreshed = await refreshAccessTokenNow();
+                        if (!refreshed) {
+                            alert('⚠️ Auto-refresh failed. Admin needs to check credentials.');
+                            btn.disabled = false; btn.innerText = 'POST VIDEO';
+                            return;
+                        }
+                        // reloading updated token
+                        const reDoc = await window.db.collection('youtube_tokens').doc('master_auth').get();
+                        accessToken = reDoc.data().accessToken;
+                    } else {
+                        alert('⚠️ YouTube Token Expired! Admin ko Auth refresh karna hoga.');
+                        btn.disabled = false; btn.innerText = 'POST VIDEO';
+                        return;
+                    }
+                } else if (remaining < 15) {
+                    // Pre-emptively refresh but continue using current meanwhile
+                    if (clientId && clientSecret && refreshToken) refreshAccessTokenNow();
+                    else silentRefreshAdmin();
+                }
+
+                uploadToYouTube(accessToken);
+
+            } catch (err) {
+                alert('Firebase Error: ' + err.message);
+                btn.disabled = false; btn.innerText = 'POST VIDEO';
+            }
+        }
+
+        function uploadToYouTube(token) {
+            const btn = document.getElementById('postBtn');
+            btn.innerText = 'UPLOADING...';
+
+            const progWrap = document.getElementById('progWrap');
+            const progFill = document.getElementById('progFill');
+            const progPct = document.getElementById('progPct');
+            const progStatus = document.getElementById('progStatus');
+
+            progWrap.style.display = 'block';
+            progFill.style.width = '0%';
+            progPct.textContent = '0%';
+            progStatus.textContent = 'Connecting to YouTube...';
+
+            const videoTitle = document.getElementById('vCaption').value.trim();
+            const metadata = {
+                snippet: {
+                    title: videoTitle,
+                    description: `Uploaded via GTTC Talent Showcase by ${currentUserData?.fullName || currentUserData?.name || 'Student'} `,
+                    categoryId: '22'
+                },
+                status: { privacyStatus: 'unlisted' }
+            };
+
+            const formData = new FormData();
+            formData.append('metadata', new Blob([JSON.stringify(metadata)], { type: 'application/json' }));
+            formData.append('file', selectedFile);
+
+            const xhr = new XMLHttpRequest();
+            xhr.open('POST', 'https://www.googleapis.com/upload/youtube/v3/videos?uploadType=multipart&part=snippet,status');
+            xhr.setRequestHeader('Authorization', 'Bearer ' + token);
+
+            xhr.upload.onprogress = e => {
+                if (e.lengthComputable) {
+                    const pct = Math.round((e.loaded / e.total) * 100);
+                    progFill.style.width = pct + '%';
+                    progPct.textContent = pct + '%';
+                    progStatus.textContent = pct < 100 ? `Uploading...${pct} % ` : '⏳ Processing on YouTube...';
+                }
+            };
+
+            xhr.onload = () => {
+                let data;
+                try {
+                    data = JSON.parse(xhr.responseText);
+                } catch (parseErr) {
+                    const errMsg = 'Invalid response from YouTube API';
+                    console.error('[Upload] Parse error:', parseErr, '| Raw response:', xhr.responseText);
+                    logUploadError(errMsg, xhr.status, xhr.responseText);
+                    progStatus.textContent = '❌ ' + errMsg;
+                    progFill.style.background = '#ff3d00';
+                    btn.disabled = false;
+                    btn.innerText = 'RETRY';
+                    return;
+                }
+
+                if (data.id) {
+                    // SUCCESS
+                    progStatus.textContent = '✅ Done! Saving to feed...';
+                    progFill.style.width = '100%';
+                    progPct.textContent = '100%';
+                    console.log('[Upload] ✅ YouTube Video ID:', data.id);
+                    saveToDB(data.id, videoTitle);
+                } else {
+                    // YouTube returned an error object
+                    const errCode = data.error?.code || xhr.status;
+                    const errMsg = data.error?.message || 'Unknown YouTube rejection';
+                    const errReason = data.error?.errors?.[0]?.reason || 'unknown';
+
+                    console.error(`[Upload] ❌ YouTube Error ${errCode}: ${errMsg}(reason: ${errReason})`);
+                    logUploadError(errMsg, errCode, errReason);
+
+                    // User-friendly messages based on error type
+                    let userMsg = '❌ Upload Failed: ' + errMsg;
+                    if (errCode === 401) userMsg = '❌ Token expired! Admin ko dobara authorize karna hoga.';
+                    else if (errCode === 403) userMsg = '❌ Permission denied. Admin ka YouTube quota khatam ho sakta hai.';
+                    else if (errCode === 400) userMsg = '❌ Bad request. Video format supported nahi hai.';
+                    else if (errReason === 'uploadLimitExceeded') userMsg = '❌ Daily upload limit exceed ho gaya!';
+
+                    progStatus.textContent = userMsg;
+                    progFill.style.background = '#ff3d00';
+                    progFill.style.width = '100%';
+                    btn.disabled = false;
+                    btn.innerText = 'RETRY';
+                }
+            };
+
+            xhr.onerror = () => {
+                const errMsg = 'Network error — internet check karo';
+                console.error('[Upload] ❌ XHR network error. Status:', xhr.status);
+                logUploadError(errMsg, 'NETWORK_ERROR', 'xhr.onerror');
+                progStatus.textContent = '❌ ' + errMsg;
+                progFill.style.background = '#ff3d00';
+                btn.disabled = false;
+                btn.innerText = 'RETRY';
+                progWrap.style.display = 'none';
+            };
+
+            xhr.ontimeout = () => {
+                const errMsg = 'Upload timeout — file too large ya slow internet';
+                console.error('[Upload] ❌ XHR timeout.');
+                logUploadError(errMsg, 'TIMEOUT', 'xhr.ontimeout');
+                progStatus.textContent = '❌ ' + errMsg;
+                btn.disabled = false;
+                btn.innerText = 'RETRY';
+            };
+
+            xhr.timeout = 10 * 60 * 1000; // 10 minute max timeout
+            xhr.send(formData);
+        }
+
+        async function logUploadError(message, code, detail) {
+            try {
+                await window.db.collection('upload_errors').add({
+                    uploaderId: currentUserId,
+                    uploaderName: currentUserData?.fullName || 'Unknown',
+                    errorMessage: message,
+                    errorCode: String(code),
+                    errorDetail: String(detail),
+                    fileName: selectedFile ? selectedFile.name : 'unknown',
+                    fileSize: selectedFile ? selectedFile.size : 0,
+                    createdAt: new Date().toISOString()
+                });
+            } catch (logErr) { console.warn('[ErrorLogger] Could not log to Firebase:', logErr); }
+        }
+
+        async function saveToDB(ytId, videoTitle) {
+            if (!currentUserData) await loadCurrentUser();
+            const safeData = {
+                fullName: currentUserData?.fullName || 'Student',
+                photo: currentUserData?.photo || ''
+            };
+            try {
+                await window.db.collection('showcase_posts').add({
+                    youtubeId: ytId,
+                    caption: videoTitle || document.getElementById('vCaption')?.value?.trim() || 'GTTC Talent',
+                    uploaderUid: currentUserId,
+                    uploaderName: safeData.fullName,
+                    uploaderPhoto: safeData.photo,
+                    createdAt: new Date().toISOString(),
+                    likes: []
+                });
+                closeUpload();
+                showInstaToast({ fromPhoto: '', fromName: 'System', type: 'like', customMsg: 'Your video is now LIVE! 🎉' });
+                if (window.GTTC_NOTIFY) {
+                    GTTC_NOTIFY.sendBroadcast("🌟 Talent Showcase", `${safeData.fullName} ne naya post kiya hai.`, "/showcase.html");
+                }
+            } catch (dbErr) {
+                alert('⚠️ Video YouTube par upload hua lekin feed mein save nahi hua. Admin se contact karo.');
+            }
+        }
+
+        // ── PLAY INLINE: Replaces thumbnail with actual iframe on tap ──
+        function playInline(id, ytId) {
+            const wrap = document.getElementById(`vw-${id}`);
+            const origin = window.location.origin.includes('file://') ? 'http://localhost:5500' : window.location.origin;
+
+            wrap.innerHTML = `
+                <iframe
+                    src="https://www.youtube.com/embed/${ytId}?autoplay=1&modestbranding=1&rel=0&enablejsapi=1&playsinline=1&origin=${origin}"
+                    allow="autoplay; encrypted-media; picture-in-picture"
+                    allowfullscreen
+                    loading="lazy"
+                    style="width:100%; height:100%; border:none;"
+                    ></iframe>
+                `;
+            console.log('[Player] Inline playback started for:', ytId);
+        }
+
+        // ── ADMIN: Manually save an orphaned YouTube video to feed ──
+        // Call from browser console: manualSavePost('VIDEO_ID', 'Title')
+        window.manualSavePost = async function (ytId, title) {
+            if (!currentUserId) return;
+            if (!currentUserData) await loadCurrentUser();
+            try {
+                await window.db.collection('showcase_posts').add({
+                    youtubeId: ytId,
+                    caption: title || 'GTTC Talent Video',
+                    uploaderUid: currentUserId,
+                    uploaderName: currentUserData?.fullName || 'Admin',
+                    uploaderPhoto: currentUserData?.photo || '',
+                    createdAt: new Date().toISOString(),
+                    likes: []
+                });
+                alert('✅ Video feed mein add ho gaya!');
+            } catch (e) { console.error('❌ Manual save failed:', e); }
+        };
+
+        /* ─── ADMIN ZONE ─── */
+        let adminLoggedIn = false;
+
+        function adminTap() {
+            adminTapCount++;
+            clearTimeout(adminTapTimer);
+            adminTapTimer = setTimeout(() => { adminTapCount = 0; }, 2000);
+            if (adminTapCount >= 5) {
+                adminTapCount = 0;
+                openAdmin();
+            }
+        }
+
+        function openAdmin() {
+            document.getElementById('adminModal').style.display = 'flex';
+            document.getElementById('adminStatus').textContent = '';
+            document.getElementById('adminLoginSection').style.display = 'block';
+            document.getElementById('adminAuthSection').style.display = 'none';
+            adminLoggedIn = false;
+            loadTokenStatus();
+        }
+
+        function closeAdmin() { document.getElementById('adminModal').style.display = 'none'; }
+
+        function verifyAdmin() {
+            const phone = document.getElementById('adminPhone').value.trim();
+            const pass = document.getElementById('adminPass').value.trim();
+            const status = document.getElementById('adminStatus');
+
+            if (phone === ADMIN_PHONE && pass === ADMIN_PASS) {
+                adminLoggedIn = true;
+                document.getElementById('adminLoginSection').style.display = 'none';
+                document.getElementById('adminAuthSection').style.display = 'block';
+                document.getElementById('adminYtBtn').style.display = 'block';
+                status.style.color = '#25d366';
+                loadTokenStatus();
+            } else {
+                status.style.color = '#ff4f4f';
+                status.textContent = '❌ Wrong credentials!';
+            }
+        }
+
+        async function loadTokenStatus() {
+            try {
+                const doc = await window.db.collection('youtube_tokens').doc('master_auth').get();
+                if (doc.exists) {
+                    const data = doc.data();
+                    const remaining = Math.max(0, Math.round((data.expiryDate - Date.now()) / 60000));
+                    const info = document.getElementById('tokenInfo');
+                    if (info) {
+                        info.textContent = remaining > 0 ? `✅ Token active — ${remaining} min remaining` : '⚠️ Token expired.';
+                        info.style.color = remaining > 0 ? '#25d366' : '#ff4f4f';
+                    }
+                    const adminStatus = document.getElementById('adminStatus');
+                    if (adminStatus && !adminLoggedIn) {
+                        adminStatus.textContent = remaining > 0 ? `YouTube: Active(${remaining} min)` : 'YouTube: Expired';
+                        adminStatus.style.color = remaining > 0 ? '#25d366' : '#ff4f4f';
+                    }
+                }
+            } catch (e) { }
+        }
+
+        function adminAuthorize() {
+            document.getElementById('adminStatus').textContent = 'Opening Google auth...';
+            // Use login_hint for requested bypass
+            adminTokenClient.requestAccessToken({
+                prompt: 'select_account',
+                login_hint: 'shekimran104@gmail.com'
+            });
+        }
+
+        async function onAdminToken(tokenResponse) {
+            if (tokenResponse.error !== undefined) throw (tokenResponse);
+            const expiresAt = Date.now() + (tokenResponse.expires_in * 1000);
+            try {
+                // IMPORTANT: Preserving existing refreshToken if manual auth was used
+                await window.db.collection('youtube_tokens').doc('master_auth').set({
+                    id: 'master_auth',
+                    accessToken: tokenResponse.access_token,
+                    expiryDate: expiresAt,
+                    updatedAt: new Date().toISOString()
+                }, { merge: true });
+                document.getElementById('adminStatus').style.color = '#25d366';
+                document.getElementById('adminStatus').textContent = '✅ YouTube authorized! Token saved. Auto-refresh ON 🔄';
+                if (window.GTTCVoice) GTTCVoice.speak("YouTube authorization token refreshed.");
+                loadTokenStatus();
+                startAutoRefreshShowcase();
+            } catch (e) {
+                document.getElementById('adminStatus').textContent = 'Firebase save error: ' + e.message;
+            }
+        }
+
+        // ── AUTO-REFRESH FOR SHOWCASE PAGE ──
+        let _showcaseRefreshTimer = null;
+
+        function silentRefreshAdmin() {
+            if (adminTokenClient) {
+                console.log('[SilentRefresh] Syncing YouTube Auth...');
+                adminTokenClient.requestAccessToken({ prompt: '' });
+                if (document.getElementById('adminStatus')) {
+                    document.getElementById('adminStatus').textContent = '🔄 Syncing YouTube Auth...';
+                }
+            }
+        }
+
+        function startAutoRefreshShowcase() {
+            if (_showcaseRefreshTimer) clearInterval(_showcaseRefreshTimer);
+            _showcaseRefreshTimer = setInterval(async () => {
+                try {
+                    const doc = await window.db.collection('youtube_tokens').doc('master_auth').get();
+                    if (!doc.exists) return;
+                    const data = doc.data();
+                    const remaining = (data.expiryDate - Date.now()) / 60000;
+                    if (remaining < 10) {
+                        if (data.refreshToken && data.clientId && data.clientSecret) {
+                            refreshAccessTokenNow();
+                        } else {
+                            silentRefreshAdmin();
+                        }
+                    }
+                } catch (e) { }
+            }, 55 * 60 * 1000); // 55 mins
+        }
+
+        async function saveAutoRefreshTokens() {
+            const cid = document.getElementById('adminClientId').value.trim();
+            const csec = document.getElementById('adminClientSecret').value.trim();
+            const rtk = document.getElementById('adminRefreshToken').value.trim();
+            const sts = document.getElementById('configStatus');
+            sts.style.color = '#fff'; sts.textContent = 'Saving...';
+
+            if (!cid || !csec || !rtk) {
+                sts.style.color = '#ff4f4f';
+                sts.textContent = 'Missing fields!';
+                return;
+            }
+
+            try {
+                await window.db.collection('youtube_tokens').doc('master_auth').set({
+                    id: 'master_auth',
+                    clientId: cid,
+                    clientSecret: csec,
+                    refreshToken: rtk,
+                    updatedAt: new Date().toISOString()
+                }, { merge: true });
+
+                sts.textContent = 'Verifying credentials...';
+                const success = await refreshAccessTokenNow();
+                if (success) {
+                    sts.style.color = '#00e676';
+                    sts.textContent = '✅ Verified! Background auto-upload is now active.';
+                    document.getElementById('adminStatus').textContent = 'Auto-uploader configured.';
+                    document.getElementById('adminStatus').style.color = '#25d366';
+                } else {
+                    sts.style.color = '#ff4f4f';
+                    sts.textContent = '❌ Tokens saved, but verify failed. Check credentials.';
+                }
+            } catch (e) {
+                sts.style.color = '#ff4f4f'; sts.textContent = e.message;
+            }
+        }
+
+        async function refreshAccessTokenNow() {
+            try {
+                const doc = await window.db.collection('youtube_tokens').doc('master_auth').get();
+                if (!doc.exists) return false;
+                const d = doc.data();
+                if (!d.clientId || !d.clientSecret || !d.refreshToken) return false;
+
+                const resp = await fetch('https://oauth2.googleapis.com/token', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                    body: new URLSearchParams({
+                        client_id: d.clientId,
+                        client_secret: d.clientSecret,
+                        refresh_token: d.refreshToken,
+                        grant_type: 'refresh_token'
+                    })
+                });
+                const j = await resp.json();
+                if (j.access_token) {
+                    const expiry = Date.now() + ((j.expires_in || 3600) * 1000);
+                    await window.db.collection('youtube_tokens').doc('master_auth').update({
+                        accessToken: j.access_token,
+                        expiryDate: expiry,
+                        updatedAt: new Date().toISOString()
+                    });
+                    loadTokenStatus();
+                    console.log('✅ Background YouTube token refreshed via REST.');
+                    return true;
+                } else {
+                    console.error('Refresh token rejected:', j);
+                    return false;
+                }
+            } catch (err) {
+                console.error('Refresh token error:', err);
+                return false;
+            }
+        }
+
+        /* ─── LIKES ─── */
+        async function toggleLike(id, uploaderUid, liked) {
+            try {
+                const postRef = window.db.collection('showcase_posts').doc(id);
+                if (liked) {
+                    await postRef.update({
+                        likes: firebase.firestore.FieldValue.arrayRemove(currentUserId)
+                    });
+                } else {
+                    await postRef.update({
+                        likes: firebase.firestore.FieldValue.arrayUnion(currentUserId)
+                    });
+                    if (uploaderUid !== currentUserId) {
+                        await window.db.collection('notifications').add({
+                            to: uploaderUid, from: currentUserId,
+                            fromName: currentUserData.fullName,
+                            fromPhoto: currentUserData.photo || '',
+                            type: 'like',
+                            createdAt: new Date().toISOString()
+                        });
+                    }
+                }
+            } catch (err) { console.error(err); }
+        }
+
+        /* ─── COMMENTS ─── */
+        function openCmt(id, uId) {
+            activeVidId = id; activeUploaderId = uId;
+            document.getElementById('cmtModal').style.display = 'flex';
+            loadComments(id);
+        }
+        function closeCmt() { document.getElementById('cmtModal').style.display = 'none'; }
+
+        function loadComments(id) {
+            const list = document.getElementById('cmtList');
+            window.db.collection('showcase_comments').where('videoId', '==', id).orderBy('createdAt', 'asc').onSnapshot(snap => {
+                list.innerHTML = '';
+                if (snap.empty) {
+                    list.innerHTML = '<div style="text-align:center;opacity:0.3;padding:30px;font-size:13px;">No comments yet</div>';
+                    return;
+                }
+                snap.forEach(doc => {
+                    const c = doc.data();
+                    const div = document.createElement('div');
+                    div.className = 'cmt-item';
+                    div.innerHTML = `<img src="${c.userPhoto || 'https://via.placeholder.com/34'}" class="cmt-user-dp" >
+                <div class="cmt-text-box">
+                    <div class="cmt-user">${c.userName}</div>
+                    <div class="cmt-msg">${c.text}</div>
+                </div>`;
+                    list.appendChild(div);
+                });
+                list.scrollTop = list.scrollHeight;
+            });
+        }
+
+        async function postComment() {
+            const input = document.getElementById('cmtInput');
+            const text = input.value.trim();
+            if (!text) return;
+            input.value = '';
+            try {
+                await window.db.collection('showcase_comments').add({
+                    videoId: activeVidId,
+                    userId: currentUserId,
+                    userName: currentUserData.fullName,
+                    userPhoto: currentUserData.photo || '',
+                    text,
+                    createdAt: new Date().toISOString()
+                });
+                if (activeUploaderId !== currentUserId) {
+                    await window.db.collection('notifications').add({
+                        to: activeUploaderId, from: currentUserId,
+                        fromName: currentUserData.fullName,
+                        fromPhoto: currentUserData.photo || '',
+                        type: 'comment', text,
+                        createdAt: new Date().toISOString()
+                    });
+                }
+            } catch (e) { console.error(e); }
+        }
+
+        /* ─── NOTIFICATIONS ─── */
+        function startNotifListener() {
+            window.db.collection('notifications').where('to', '==', currentUserId).orderBy('createdAt', 'desc').limit(1).onSnapshot(snap => {
+                if (!snap.empty) {
+                    // Optional: filter for new records only if needed, but for now just show.
+                    // snap.docChanges().forEach(change => { if(change.type==='added') showInstaToast(change.doc.data()); });
+                }
+            });
+        }
+
+        function showInstaToast(n) {
+            const t = document.getElementById('instaToast');
+            document.getElementById('itImg').src = n.fromPhoto || 'https://via.placeholder.com/36';
+            document.getElementById('itText').innerHTML = n.customMsg
+                ? `< b > ${n.customMsg}</b > `
+                : `< b > ${n.fromName}</b > ${n.type === 'like' ? 'liked your video! ❤️' : 'commented: "' + (n.text || '').substring(0, 18) + '..."'}`;
+            t.classList.add('show');
+            setTimeout(() => t.classList.remove('show'), 4000);
+        }
+
+        /* ─── UTILS ─── */
+        function goBack() {
+            window.location.href = localStorage.getItem('gttc_user_role') === 'staff' ? 'index-staff.html' : 'index.html';
+        }
+
+        window.onload = init;
+
+        // Handle Capacitor Back Button
+        document.addEventListener("DOMContentLoaded", () => {
+            if (window.Capacitor && window.Capacitor.Plugins && window.Capacitor.Plugins.App) {
+                window.Capacitor.Plugins.App.addListener('backButton', ({ canGoBack }) => {
+                    const overlayChecks = [
+                        { id: 'uploadModal', fn: () => document.getElementById('uploadModal').classList.remove('show') },
+                        { id: 'videoEditorModal', fn: () => document.getElementById('videoEditorModal').classList.remove('show') },
+                        { id: 'adminModal', fn: () => document.getElementById('adminModal').classList.remove('active') }
+                    ];
+
+                    for (let c of overlayChecks) {
+                        const el = document.getElementById(c.id);
+                        if (el && (el.classList.contains('show') || el.classList.contains('active'))) {
+                            if (c.fn) c.fn();
+                            return;
+                        }
+                    }
+
+                    if (canGoBack) window.history.back();
+                    else window.Capacitor.Plugins.App.exitApp();
+                });
+            }
+        });
+    </script>
+    <script src="gttc-pro-features.js"></script>
+</body>
+
+</html>
