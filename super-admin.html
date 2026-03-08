@@ -1208,7 +1208,11 @@
                         </div>
                         <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px; margin-top:8px;">
                             <div>
-                                <div style="font-size:9px; color:var(--dim);">Next Refresh In</div>
+                                <div style="display:flex; align-items:center; gap:5px;">
+                                    <div style="font-size:9px; color:var(--dim);">Next Refresh In</div>
+                                    <i class="fas fa-sync-alt" style="font-size:10px; color:#ff3d00; cursor:pointer;"
+                                        onclick="manualRefreshYouTubeToken()" title="Refresh Now"></i>
+                                </div>
                                 <div id="yt-next-ref" style="font-size:12px; font-weight:900; color:#ff3d00;">--:--
                                 </div>
                             </div>
@@ -1217,6 +1221,12 @@
                                 <div id="yt-last-ref" style="font-size:12px; font-weight:900; color:#34a853;">Never
                                 </div>
                             </div>
+                        </div>
+                        <div
+                            style="margin-top:10px; padding-top:10px; border-top:1px solid #ff3d001a; display:flex; justify-content:space-between; align-items:center;">
+                            <span style="font-size:9px; color:var(--dim); font-weight:700;">TOTAL REFRESHES</span>
+                            <span id="yt-refresh-count"
+                                style="font-size:12px; font-weight:900; color:var(--text1);">0</span>
                         </div>
                     </div>
                     <p style="font-size: 10px; color: var(--dim); margin-bottom: 15px;">Target Channel Direct Upload
@@ -1551,6 +1561,9 @@
                     const last = new Date(data.updatedAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
                     document.getElementById('yt-last-ref').textContent = last;
                 }
+                if (document.getElementById('yt-refresh-count')) {
+                    document.getElementById('yt-refresh-count').textContent = data.refreshCount || 0;
+                }
 
                 // If less than 15 mins remain, refresh using Refresh Token
                 if (remaining < 15) {
@@ -1582,14 +1595,37 @@
                     await window.db.collection('youtube_tokens').doc('master_auth').update({
                         accessToken: j.access_token,
                         expiryDate: expiry,
-                        updatedAt: new Date().toISOString()
+                        updatedAt: new Date().toISOString(),
+                        refreshCount: firebase.firestore.FieldValue.increment(1)
                     });
                     console.log("[YouTube] Background token refresh SUCCESS.");
+                    checkYouTubeToken(); // Refresh UI
+                    return true;
                 } else {
                     console.error("[YouTube] Refresh failed:", j);
+                    return false;
                 }
             } catch (err) {
                 console.error("[YouTube] Network error in refresh:", err);
+                return false;
+            }
+        }
+
+        async function manualRefreshYouTubeToken() {
+            try {
+                const doc = await window.db.collection('youtube_tokens').doc('master_auth').get();
+                if (!doc.exists) return alert("Pehle YouTube Auth setup karein!");
+
+                showToast("🔄 Manual refreshing YouTube token...");
+                const success = await refreshMasterTokenInBackground(doc.data());
+                if (success) {
+                    showToast("✅ Token Refreshed Successfully!");
+                    if (window.GTTCVoice) GTTCVoice.speak("YouTube token refreshed manually.");
+                } else {
+                    alert("❌ Refresh fail ho gaya. Credentials check karein.");
+                }
+            } catch (e) {
+                alert("Error: " + e.message);
             }
         }
 
